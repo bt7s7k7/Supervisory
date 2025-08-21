@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 import com.tterrag.registrate.Registrate;
 
+import bt7s7k7.supervisory.blocks.AllBlockEntities;
 import bt7s7k7.supervisory.blocks.AllBlocks;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -24,5 +25,6 @@ public class Supervisory {
 		modContainer.registerConfig(Type.COMMON, Config.SPEC);
 
 		AllBlocks.register();
+		AllBlockEntities.register();
 	}
 }

@@ -1,6 +1,5 @@
 package bt7s7k7.supervisory.blocks;
 
-import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
 import bt7s7k7.supervisory.Supervisory;
@@ -23,13 +22,5 @@ public class AllBlocks {
 
 	public static void register() {
 		// Load this class
-
-		Supervisory.REGISTRATE.addDataGenerator(ProviderType.BLOCKSTATE, (ctx) -> {
-			Supervisory.LOGGER.info("Supervisory.REGISTRATE.addDataGenerator(ProviderType.BLOCKSTATE");
-
-			for (var property : REMOTE_TERMINAL_UNIT.getDefaultState().getProperties()) {
-				Supervisory.LOGGER.info("RTU_PROPERTY: " + property.toString());
-			}
-		});
 	}
 }
