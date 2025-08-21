@@ -24,3 +24,5 @@ runs
 run-data
 .vscode
 repo
+*.local
+src/generated/resources

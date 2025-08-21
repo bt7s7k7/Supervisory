@@ -19,6 +19,7 @@ group = mod_group_id
 
 repositories {
     // Add here additional repositories if required by some of the dependencies below.
+    maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
 }
 
 base {
@@ -126,6 +127,7 @@ dependencies {
 
     // Example mod dependency using a file as dependency
     // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")
