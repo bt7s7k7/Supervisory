@@ -26,3 +26,7 @@ run-data
 repo
 *.local
 src/generated/resources
+src/main/resources/assets/supervisory/textures
+
+# UCPEM
+ucpem_ports
