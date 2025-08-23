@@ -31,9 +31,7 @@ public class RemoteTerminalUnitBlockEntity extends BlockEntity implements Config
 			this.name = name;
 		}
 
-		public Configuration() {
-			// Default constructor
-		}
+		public Configuration() {}
 
 		@Override
 		public String toString() {
@@ -63,8 +61,7 @@ public class RemoteTerminalUnitBlockEntity extends BlockEntity implements Config
 		tag.merge(result);
 	}
 
-	public void tick(Level level, BlockPos pos, BlockState state) {
-	}
+	public void tick(Level level, BlockPos pos, BlockState state) {}
 
 	@Override
 	public Configuration getConfiguration() {

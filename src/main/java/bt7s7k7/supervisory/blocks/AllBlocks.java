@@ -7,8 +7,7 @@ import bt7s7k7.supervisory.blocks.remoteTerminalUnit.RemoteTerminalUnitBlock;
 import net.minecraft.world.level.block.Blocks;
 
 public class AllBlocks {
-	public static final BlockEntry<RemoteTerminalUnitBlock> REMOTE_TERMINAL_UNIT = Supervisory.REGISTRATE
-			.block("remote_terminal_unit", RemoteTerminalUnitBlock::new)
+	public static final BlockEntry<RemoteTerminalUnitBlock> REMOTE_TERMINAL_UNIT = Supervisory.REGISTRATE.block("remote_terminal_unit", RemoteTerminalUnitBlock::new)
 			.initialProperties(() -> Blocks.STONE)
 			.simpleItem()
 			.blockstate((ctx, prov) -> prov.horizontalBlock(ctx.getEntry(),

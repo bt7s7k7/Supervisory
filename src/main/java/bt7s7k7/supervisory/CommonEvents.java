@@ -16,8 +16,7 @@ public class CommonEvents {
 		var commands = event.getDispatcher();
 		commands.register(Commands.literal("supervisory").executes((ctx) -> {
 			var source = ctx.getSource();
-			source.sendSuccess(
-					() -> Component.literal("Supervisory is ready. Test value " + Config.TEST_NUMBER.getAsInt()), true);
+			source.sendSuccess(() -> Component.literal("Test succeeded"), true);
 			return 0;
 		}));
 	}
