@@ -21,8 +21,6 @@ public class Supervisory {
 	public static final Registrate REGISTRATE = Registrate.create(MOD_ID);
 
 	public Supervisory(IEventBus modEventBus, ModContainer modContainer) {
-		LOGGER.info("Running supervisory! Word of the day: reticulation");
-
 		modContainer.registerConfig(Type.COMMON, Config.SPEC);
 
 		AllBlocks.register();

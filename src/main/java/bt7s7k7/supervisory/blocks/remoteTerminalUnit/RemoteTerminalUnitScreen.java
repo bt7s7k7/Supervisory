@@ -3,7 +3,6 @@ package bt7s7k7.supervisory.blocks.remoteTerminalUnit;
 import java.util.function.Consumer;
 
 import bt7s7k7.supervisory.I18n;
-import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
 import bt7s7k7.supervisory.support.GridLayout;
 import net.minecraft.client.gui.GuiGraphics;
@@ -48,8 +47,6 @@ public class RemoteTerminalUnitScreen extends Screen {
 	@Override
 	protected void init() {
 		super.init();
-
-		Supervisory.LOGGER.info("Opening screen RemoteTerminalUnitScreen, width: " + this.width + ", height: " + this.height);
 
 		GridLayout.builder()
 				.addColumn(50)

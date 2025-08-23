@@ -10,7 +10,6 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 // @EventBusSubscriber(modid = Supervisory.MOD_ID, value = Dist.CLIENT)
 public class SupervisoryClient {
 	public SupervisoryClient(ModContainer container) {
-		Supervisory.LOGGER.info("We are here");
 		container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
 	}
 }
