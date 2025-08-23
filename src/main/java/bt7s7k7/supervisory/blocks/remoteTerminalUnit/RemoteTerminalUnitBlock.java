@@ -1,6 +1,7 @@
 package bt7s7k7.supervisory.blocks.remoteTerminalUnit;
 
 import bt7s7k7.supervisory.blocks.AllBlockEntities;
+import bt7s7k7.supervisory.blocks.smartRedstoneComponent.SmartRedstoneComponentBlock;
 import bt7s7k7.supervisory.configuration.ConfigurationManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,7 +22,7 @@ import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class RemoteTerminalUnitBlock extends Block implements EntityBlock {
+public class RemoteTerminalUnitBlock extends SmartRedstoneComponentBlock implements EntityBlock {
 	public RemoteTerminalUnitBlock(Properties properties) {
 		super(properties);
 		this.registerDefaultState(this.stateDefinition.any()

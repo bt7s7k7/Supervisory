@@ -28,8 +28,10 @@ public class I18n {
 
 	public static final Key REMOTE_TERMINAL_UNIT_TITLE = register(new Key("gui.remote_terminal_unit.title", "Remote Terminal Unit Configuration"));
 	public static final Key REMOTE_TERMINAL_UNIT_DOMAIN = register(new Key("gui.remote_terminal_unit.domain", "Domain"));
-	public static final Key REMOTE_TERMINAL_UNIT_NAME = register(new Key("gui.remote_terminal_unit.name", "Name"));
+	public static final Key REMOTE_TERMINAL_UNIT_INPUT = register(new Key("gui.remote_terminal_unit.input", "Input"));
+	public static final Key REMOTE_TERMINAL_UNIT_OUTPUT = register(new Key("gui.remote_terminal_unit.output", "Output"));
 	public static final Key REMOTE_TERMINAL_UNIT_DONE = register(new Key("gui.remote_terminal_unit.done", "Done"));
+	public static final Key REMOTE_TERMINAL_UNIT_APPLY = register(new Key("gui.remote_terminal_unit.apply", "Apply"));
 
 	public static void register() {
 		// Load this class

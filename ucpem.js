@@ -1,9 +1,13 @@
 /// <reference path="./.vscode/config.d.ts" />
 // @ts-check
 
-const { project, join, constants, run } = require("ucpem")
+const { project, join, constants, run, github } = require("ucpem")
 const { mkdir } = require("node:fs/promises")
 const { dirname } = require("node:path")
+
+project.prefix("src/main/java").res("bt7s7k7.supervisory",
+	github("bt7s7k7/TreeBurst").res("bt7s7k7.treeburst")
+)
 
 project.script("export-art", async () => {
 	/** @type {{ input: string, output: string, configuration?: Record<string, boolean>, x: number, y: number, width: number, height: number }[]} */

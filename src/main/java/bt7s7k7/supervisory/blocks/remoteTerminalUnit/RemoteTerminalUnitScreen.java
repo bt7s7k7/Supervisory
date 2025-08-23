@@ -1,5 +1,7 @@
 package bt7s7k7.supervisory.blocks.remoteTerminalUnit;
 
+import java.util.function.Consumer;
+
 import bt7s7k7.supervisory.I18n;
 import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
@@ -31,6 +33,19 @@ public class RemoteTerminalUnitScreen extends Screen {
 	}
 
 	@Override
+	public boolean isPauseScreen() {
+		return false;
+	}
+
+	private void addStringField(GridLayout layout, Component label, String value, Consumer<String> responder) {
+		layout.apply(this.addRenderableWidget(new StringWidget(label, this.font)).alignLeft());
+		var inputField = this.addRenderableWidget(new EditBox(this.font, 0, 0, label));
+		layout.apply(inputField);
+		inputField.setValue(value);
+		inputField.setResponder(responder);
+	}
+
+	@Override
 	protected void init() {
 		super.init();
 
@@ -43,30 +58,32 @@ public class RemoteTerminalUnitScreen extends Screen {
 					layout.colspan().apply(this.addRenderableWidget(new StringWidget(this.title, this.font)));
 				})
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					layout.apply(this.addRenderableWidget(new StringWidget(I18n.REMOTE_TERMINAL_UNIT_DOMAIN.toComponent(), this.font)).alignLeft());
-					var domainInput = this.addRenderableWidget(new EditBox(this.font, 0, 0, Component.literal("Test")));
-					layout.apply(domainInput);
-					domainInput.setValue(this.configuration.domain);
-					domainInput.setResponder(v -> this.configuration.domain = v);
+					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_DOMAIN.toComponent(), this.configuration.domain, v -> this.configuration.domain = v);
 				})
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					layout.apply(this.addRenderableWidget(new StringWidget(I18n.REMOTE_TERMINAL_UNIT_NAME.toComponent(), this.font)).alignLeft());
-					var nameInput = this.addRenderableWidget(new EditBox(this.font, 0, 0, Component.literal("Test")));
-					layout.apply(nameInput);
-					nameInput.setValue(this.configuration.name);
-					nameInput.setResponder(v -> this.configuration.name = v);
+					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_INPUT.toComponent(), this.configuration.input, v -> this.configuration.input = v);
+				})
+				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
+					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_OUTPUT.toComponent(), this.configuration.output, v -> this.configuration.output = v);
 				})
 				.addRow(5)
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
 					layout.nextRow().colspan(2).cell().childLayout()
 							.addGrowColumn()
 							.addColumn(50)
+							.addColumn(50)
+							.setGap(5)
 							.addRow().render(layout_1 -> {
-								layout_1.next().apply(
-										this.addRenderableWidget(Button.builder(I18n.REMOTE_TERMINAL_UNIT_DONE.toComponent(), e -> {
-											ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, this.configuration);
-											this.onClose();
-										}).build()));
+								layout_1.next();
+
+								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.REMOTE_TERMINAL_UNIT_APPLY.toComponent(), e -> {
+									ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, this.configuration);
+								}).build()));
+
+								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.REMOTE_TERMINAL_UNIT_DONE.toComponent(), e -> {
+									ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, this.configuration);
+									this.onClose();
+								}).build()));
 							})
 							.build();
 				})
