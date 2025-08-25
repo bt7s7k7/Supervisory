@@ -1,6 +1,7 @@
 package bt7s7k7.supervisory.network;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.BiConsumer;
@@ -32,11 +33,11 @@ public class NetworkDevice {
 	public final HashSet<String> pendingUpdates = new HashSet<>();
 
 	public static final Codec<NetworkDevice> CODEC = RecordCodecBuilder.create(instance -> (instance.group(
-			Codec.STRING.fieldOf("domain").forGetter(v -> v.domain),
-			Codec.list(Codec.STRING).fieldOf("subscriptions").forGetter(v -> v.subscriptions.stream().toList()),
-			Codec.unboundedMap(Codec.STRING, ManagedValueCodec.INSTANCE).fieldOf("cache").forGetter(v -> v.cache),
-			Codec.unboundedMap(Codec.STRING, ManagedValueCodec.INSTANCE).fieldOf("local").forGetter(v -> v.local),
-			Codec.list(Codec.STRING).fieldOf("pending_updates").forGetter(v -> v.pendingUpdates.stream().toList()))
+			Codec.STRING.fieldOf("domain").orElse("").forGetter(v -> v.domain),
+			Codec.list(Codec.STRING).fieldOf("subscriptions").orElse(Collections.emptyList()).forGetter(v -> v.subscriptions.stream().toList()),
+			Codec.unboundedMap(Codec.STRING, ManagedValueCodec.INSTANCE).fieldOf("cache").orElse(Collections.emptyMap()).forGetter(v -> v.cache),
+			Codec.unboundedMap(Codec.STRING, ManagedValueCodec.INSTANCE).fieldOf("local").orElse(Collections.emptyMap()).forGetter(v -> v.local),
+			Codec.list(Codec.STRING).fieldOf("pending_updates").orElse(Collections.emptyList()).forGetter(v -> v.pendingUpdates.stream().toList()))
 			.apply(instance, (domain, subscriptions, cache, local, pendingUpdates) -> {
 				var device = new NetworkDevice(domain);
 

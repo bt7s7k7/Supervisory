@@ -11,7 +11,7 @@ import bt7s7k7.supervisory.Supervisory;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @EventBusSubscriber
@@ -38,7 +38,9 @@ public class NetworkManager {
 	}
 
 	@SubscribeEvent
-	private static void uninitializeNetwork(ServerStoppingEvent event) {
+	// Using ServerStoppedEvent instead of ServerStoppingEvent because loaded NetworkDevices use
+	// disconnectDevice on unload which is called after ServerStoppingEvent
+	private static void uninitializeNetwork(ServerStoppedEvent event) {
 		Supervisory.LOGGER.info("Unloading network manager");
 		instance = null;
 	}

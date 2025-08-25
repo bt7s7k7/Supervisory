@@ -107,6 +107,26 @@ public class GridLayout {
 			return this;
 		}
 
+		public Builder renderRow(Consumer<GridLayout> action) {
+			var index = Math.max(0, this.rows.size() - 1) * Math.max(1, this.columns.size());
+			this.deferredActions.add(layout -> {
+				layout.index = index;
+				layout.current = layout.cells.get(layout.index);
+				action.accept(layout);
+			});
+			return this;
+		}
+
+		public Builder renderColumn(Consumer<GridLayout> action) {
+			var index = Math.max(1, this.rows.size()) * Math.max(0, this.columns.size() - 1);
+			this.deferredActions.add(layout -> {
+				layout.index = index;
+				layout.current = layout.cells.get(layout.index);
+				action.accept(layout);
+			});
+			return this;
+		}
+
 		public GridLayout build() {
 			var cells = new ArrayList<Cell>();
 

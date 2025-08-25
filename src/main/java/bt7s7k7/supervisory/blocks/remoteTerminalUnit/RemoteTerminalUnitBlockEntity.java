@@ -103,8 +103,9 @@ public class RemoteTerminalUnitBlockEntity extends DirectControlDeviceBlockEntit
 	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.saveAdditional(tag, registries);
 
-		tag.merge((CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow());
-		tag.remove("domain");
+		var result = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow();
+		result.remove("domain");
+		tag.merge(result);
 	}
 
 	@Override

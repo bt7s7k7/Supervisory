@@ -17,7 +17,10 @@ project.script("export-art", async () => {
 			output: "block/remote_terminal_unit_side.png",
 			x: 0, y: 0, width: 16, height: 16,
 			configuration: {
-				"indicators": false
+				"indicators": false,
+				"rtu": true,
+				"plc": false,
+				"plcColors": false,
 			}
 		},
 		{
@@ -25,7 +28,32 @@ project.script("export-art", async () => {
 			output: "block/remote_terminal_unit_front.png",
 			x: 0, y: 0, width: 16, height: 16,
 			configuration: {
-				"indicators": true
+				"indicators": true,
+				"rtu": true,
+				"plc": false,
+				"plcColors": false,
+			}
+		},
+		{
+			input: "remote_terminal_unit.xcf",
+			output: "block/programmable_logic_controller_side.png",
+			x: 0, y: 0, width: 16, height: 16,
+			configuration: {
+				"indicators": false,
+				"rtu": false,
+				"plc": true,
+				"plcColors": true,
+			}
+		},
+		{
+			input: "remote_terminal_unit.xcf",
+			output: "block/programmable_logic_controller_front.png",
+			x: 0, y: 0, width: 16, height: 16,
+			configuration: {
+				"indicators": true,
+				"rtu": false,
+				"plc": true,
+				"plcColors": true,
 			}
 		},
 	]

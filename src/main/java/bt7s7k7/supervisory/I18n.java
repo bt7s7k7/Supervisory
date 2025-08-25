@@ -30,8 +30,15 @@ public class I18n {
 	public static final Key REMOTE_TERMINAL_UNIT_DOMAIN = register(new Key("gui.remote_terminal_unit.domain", "Domain"));
 	public static final Key REMOTE_TERMINAL_UNIT_INPUT = register(new Key("gui.remote_terminal_unit.input", "Input"));
 	public static final Key REMOTE_TERMINAL_UNIT_OUTPUT = register(new Key("gui.remote_terminal_unit.output", "Output"));
-	public static final Key REMOTE_TERMINAL_UNIT_DONE = register(new Key("gui.remote_terminal_unit.done", "Done"));
-	public static final Key REMOTE_TERMINAL_UNIT_APPLY = register(new Key("gui.remote_terminal_unit.apply", "Apply"));
+
+	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_TITLE = register(new Key("gui.programmable_logic_controller.title", "PLC Configuration"));
+	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_COMPILE = register(new Key("gui.programmable_logic_controller.compile", "Compile"));
+	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_COMMAND = register(new Key("gui.programmable_logic_controller.command", "Enter command..."));
+	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_CODE = register(new Key("gui.programmable_logic_controller.code", "Enter code..."));
+
+	public static final Key DONE = register(new Key("gui.done", "Done"));
+	public static final Key APPLY = register(new Key("gui.apply", "Apply"));
+	public static final Key CLOSE = register(new Key("gui.close", "Close"));
 
 	public static void register() {
 		// Load this class

@@ -67,7 +67,7 @@ public abstract class DirectControlDeviceBlockEntity extends SmartRedstoneCompon
 			NetworkDevice.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("device")).ifSuccess(device -> {
 				this.setDevice(device, false);
 			}).ifError(error -> {
-				Supervisory.LOGGER.error("Failed to load NetworkDevice for " + this.getClass().getSimpleName() + " at " + this.worldPosition, error);
+				Supervisory.LOGGER.error("Failed to load NetworkDevice for " + this.getClass().getSimpleName() + " at " + this.worldPosition + ": " + error.toString());
 			});
 		}
 	}
@@ -76,7 +76,7 @@ public abstract class DirectControlDeviceBlockEntity extends SmartRedstoneCompon
 	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.saveAdditional(tag, registries);
 
-		if (this.device != null) {
+		if (this.device != null && (this.device.domain != "" || !this.device.local.isEmpty())) {
 			tag.put("device", NetworkDevice.CODEC.encodeStart(NbtOps.INSTANCE, this.device).getOrThrow());
 		}
 	}

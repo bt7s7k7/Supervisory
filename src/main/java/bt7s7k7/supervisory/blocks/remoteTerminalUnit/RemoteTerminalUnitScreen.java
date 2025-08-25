@@ -73,11 +73,11 @@ public class RemoteTerminalUnitScreen extends Screen {
 							.addRow().render(layout_1 -> {
 								layout_1.next();
 
-								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.REMOTE_TERMINAL_UNIT_APPLY.toComponent(), e -> {
+								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.APPLY.toComponent(), e -> {
 									ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, this.configuration);
 								}).build()));
 
-								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.REMOTE_TERMINAL_UNIT_DONE.toComponent(), e -> {
+								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.DONE.toComponent(), e -> {
 									ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, this.configuration);
 									this.onClose();
 								}).build()));
