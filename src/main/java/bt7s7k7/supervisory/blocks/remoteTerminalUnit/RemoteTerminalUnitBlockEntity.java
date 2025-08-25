@@ -3,11 +3,11 @@ package bt7s7k7.supervisory.blocks.remoteTerminalUnit;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import bt7s7k7.supervisory.Supervisory;
-import bt7s7k7.supervisory.blocks.smartRedstoneComponent.SmartRedstoneComponentBlockEntity;
+import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.support.RelativeDirection;
+import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -15,15 +15,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.fml.loading.FMLLoader;
 
-public class RemoteTerminalUnitBlockEntity extends SmartRedstoneComponentBlockEntity implements Configurable<RemoteTerminalUnitBlockEntity.Configuration> {
+public class RemoteTerminalUnitBlockEntity extends DirectControlDeviceBlockEntity implements Configurable<RemoteTerminalUnitBlockEntity.Configuration> {
 	public RemoteTerminalUnitBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
 		super(type, pos, blockState);
 	}
@@ -61,15 +59,10 @@ public class RemoteTerminalUnitBlockEntity extends SmartRedstoneComponentBlockEn
 				.apply(instance, Configuration::new)));
 	}
 
-	public NetworkDevice device = null;
 	public Configuration configuration = new Configuration();
 
-	public void setDevice(NetworkDevice device, boolean fresh) {
-		if (this.device != null) {
-			this.device.disconnect();
-		}
-		this.device = device;
-
+	@Override
+	protected void initializeNetworkDevice(NetworkDevice device, boolean fresh) {
 		if (fresh) {
 			if (!this.configuration.output.isEmpty()) {
 				for (var direction : Direction.values()) {
@@ -83,35 +76,17 @@ public class RemoteTerminalUnitBlockEntity extends SmartRedstoneComponentBlockEn
 				device.subscribe(this.configuration.input + "." + direction.name);
 			}
 		}
+	}
 
-		device.onUpdate = (key, value) -> {
-			if (value instanceof Primitive.Number numberValue && !this.configuration.input.isEmpty()) {
-				for (var direction : RelativeDirection.values()) {
-					var name = this.configuration.input + "." + direction.name;
-					if (name.equals(key)) {
-						this.setOutput(direction.getAbsolute(this.getFront()), (int) numberValue.value);
-					}
+	@Override
+	protected void handleNetworkUpdate(String key, ManagedValue value) {
+		if (value instanceof Primitive.Number numberValue && !this.configuration.input.isEmpty()) {
+			for (var direction : RelativeDirection.values()) {
+				var name = this.configuration.input + "." + direction.name;
+				if (name.equals(key)) {
+					this.setOutput(direction.getAbsolute(this.getFront()), (int) numberValue.value);
 				}
 			}
-		};
-
-		device.connect();
-		if (fresh) {
-			device.sendUpdateRequests();
-		}
-	}
-
-	public NetworkDevice getDevice() {
-		if (this.device == null) {
-			this.device = new NetworkDevice("");
-		}
-
-		return this.device;
-	}
-
-	protected void teardownDevice() {
-		if (this.device != null) {
-			this.device.disconnect();
 		}
 	}
 
@@ -122,14 +97,6 @@ public class RemoteTerminalUnitBlockEntity extends SmartRedstoneComponentBlockEn
 		Configuration.CODEC.parse(NbtOps.INSTANCE, tag).ifSuccess(configuration -> {
 			this.configuration = configuration;
 		});
-
-		if (tag.contains("device")) {
-			NetworkDevice.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("device")).ifSuccess(device -> {
-				this.setDevice(device, false);
-			}).ifError(error -> {
-				Supervisory.LOGGER.error("Failed to load NetworkDevice for RemoteTerminalUnitBlockEntity at " + this.worldPosition, error);
-			});
-		}
 	}
 
 	@Override
@@ -138,27 +105,17 @@ public class RemoteTerminalUnitBlockEntity extends SmartRedstoneComponentBlockEn
 
 		tag.merge((CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow());
 		tag.remove("domain");
-
-		if (this.device != null) {
-			tag.put("device", NetworkDevice.CODEC.encodeStart(NbtOps.INSTANCE, this.device).getOrThrow());
-		}
-	}
-
-	public void tick(Level level, BlockPos pos, BlockState state) {
-		if (this.device != null) {
-			this.device.sendPendingUpdates();
-		}
 	}
 
 	@Override
 	public Configuration getConfiguration() {
-		this.configuration.domain = this.device == null ? "" : this.device.domain;
+		this.configuration.domain = this.hasDevice() ? this.getDevice().domain : "";
 		return this.configuration;
 	}
 
 	@Override
 	public void setConfiguration(Configuration configuration) {
-		if ((this.device != null && configuration.domain == this.device.domain)
+		if ((this.hasDevice() && configuration.domain == this.getDevice().domain)
 				&& configuration.input == this.configuration.input
 				&& configuration.output == this.configuration.output) {
 			return;
@@ -187,27 +144,10 @@ public class RemoteTerminalUnitBlockEntity extends SmartRedstoneComponentBlockEn
 	}
 
 	@Override
-	public void setRemoved() {
-		super.setRemoved();
-		this.teardownDevice();
-	}
-
-	@Override
-	public void onChunkUnloaded() {
-		super.onChunkUnloaded();
-		this.teardownDevice();
-	}
-
-	protected Direction getFront() {
-		return this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-	}
-
-	@Override
 	protected void handleRedstoneInputChange(Direction direction, int strength) {
 		if (this.configuration.output.isEmpty()) return;
-		if (this.device == null) return;
+		if (!this.hasDevice()) return;
 		var relativeDirection = RelativeDirection.from(this.getFront(), direction);
-		this.device.updateLocalResource(this.configuration.output + "." + relativeDirection.name, Primitive.from(strength));
+		this.getDevice().updateLocalResource(this.configuration.output + "." + relativeDirection.name, Primitive.from(strength));
 	}
-
 }
