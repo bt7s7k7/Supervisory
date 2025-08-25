@@ -10,7 +10,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
+import bt7s7k7.treeburst.runtime.GlobalScope;
+import bt7s7k7.treeburst.runtime.NativeFunction;
+import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -44,10 +48,12 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 	protected void handleRedstoneInputChange(Direction direction, int strength) {}
 
 	public static class Configuration {
+		public String command = "";
 		public String code = "";
 		public ArrayList<Component> log = new ArrayList<>();
 
-		public Configuration(String code, List<Component> log) {
+		public Configuration(String command, String code, List<Component> log) {
+			this.command = command;
 			this.code = code;
 			this.log = log instanceof ArrayList<Component> arrayList ? arrayList : new ArrayList<>(log);
 		}
@@ -60,17 +66,56 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 		}
 
 		public static final Codec<Configuration> CODEC = RecordCodecBuilder.create(instance -> (instance.group(
+				Codec.STRING.fieldOf("command").orElse("").forGetter(v -> v.command),
 				Codec.STRING.fieldOf("code").orElse("").forGetter(v -> v.code),
-				Codec.list(ComponentSerialization.CODEC).fieldOf("code").orElse(Collections.emptyList()).forGetter(v -> v.log))
+				Codec.list(ComponentSerialization.CODEC).fieldOf("log").orElse(Collections.emptyList()).forGetter(v -> v.log))
 				.apply(instance, Configuration::new)));
 	}
 
+	public void log(Component message) {
+		this.configuration.log.add(message);
+		while (this.configuration.log.size() > 100) {
+			this.configuration.log.removeFirst();
+		}
+
+		LogEventRouter.getInstance().sendLogEvent(level, worldPosition, message);
+		this.setChanged();
+	}
+
 	public Configuration configuration = new Configuration();
+	public ScriptEngine scriptEngine = new ScriptEngine() {
+		@Override
+		protected void handleError(Diagnostic error) {
+			log(Component.literal(error.format()).withStyle(ChatFormatting.RED));
+		};
+
+		@Override
+		protected void initializeGlobals(GlobalScope globalScope) {
+			globalScope.declareGlobal("print", NativeFunction.simple(globalScope, List.of("message"), (args, scope, result) -> {
+				var message = args.get(0);
+
+				log(formatValue(message));
+			}));
+		}
+
+		@Override
+		public ManagedValue executeCode(String path, String code) {
+			var result = super.executeCode(path, code);
+
+			if (result != null && path.equals("command")) {
+				log(formatValue(result));
+			}
+
+			return result;
+		};
+	};
 
 	@Override
 	public void saveAdditional(CompoundTag tag, Provider registries) {
 		super.saveAdditional(tag, registries);
-		tag.merge((CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow());
+		var result = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow();
+		result.remove("command");
+		tag.merge(result);
 	}
 
 	@Override
@@ -89,8 +134,15 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 
 	@Override
 	public void setConfiguration(Configuration configuration) {
-		this.configuration = configuration;
-		this.setDevice(new NetworkDevice(""), true);
+		if (configuration.command.isEmpty()) {
+			this.setDevice(new NetworkDevice(""), true);
+			this.configuration.code = configuration.code;
+			this.configuration.log.clear();
+			this.scriptEngine.clear();
+		} else {
+			this.scriptEngine.executeCode("command", configuration.command);
+		}
+
 		this.setChanged();
 	}
 
@@ -101,7 +153,7 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 
 	@OnlyIn(Dist.CLIENT)
 	private void displayScreen(Configuration configuration) {
-		Minecraft.getInstance().setScreen(new ProgrammableLogicControllerScreen(configuration));
+		Minecraft.getInstance().setScreen(new ProgrammableLogicControllerScreen(this, configuration));
 	}
 
 	@Override
@@ -111,16 +163,12 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 		}
 	}
 
-	private int time = 0;
-
 	@Override
 	public void tick(Level level, BlockPos pos, BlockState state) {
 		super.tick(level, pos, state);
 
-		time++;
-		if (time > 5) {
-			time = 0;
-			LogEventRouter.getInstance().sendLogEvent(level, pos, Component.literal("Tick: " + level.getGameTime()));
+		if (this.scriptEngine.isEmpty()) {
+			this.scriptEngine.executeCode("code", this.configuration.code);
 		}
 	}
 }

@@ -1,10 +1,12 @@
 package bt7s7k7.supervisory.blocks.programmableLogicController;
 
+import java.util.Collections;
+
 import com.mojang.blaze3d.platform.InputConstants;
 
 import bt7s7k7.supervisory.I18n;
+import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
 import bt7s7k7.supervisory.support.GridLayout;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -14,18 +16,19 @@ import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ProgrammableLogicControllerScreen extends Screen {
+	public final ProgrammableLogicControllerBlockEntity blockEntity;
 	public final ProgrammableLogicControllerBlockEntity.Configuration configuration;
 
 	public String commandInput = "";
 
-	protected ProgrammableLogicControllerScreen(ProgrammableLogicControllerBlockEntity.Configuration configuration) {
+	protected ProgrammableLogicControllerScreen(ProgrammableLogicControllerBlockEntity blockEntity, ProgrammableLogicControllerBlockEntity.Configuration configuration) {
 		super(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_TITLE.toComponent());
+		this.blockEntity = blockEntity;
 		this.configuration = configuration;
 		LogEventRouter.getInstance().onLogReceived = this::handleLogReceived;
 	}
@@ -153,7 +156,7 @@ public class ProgrammableLogicControllerScreen extends Screen {
 					var commandField = this.addRenderableWidget(new EditBox(font, 0, 0, Component.empty()) {
 						@Override
 						public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-							if (this.isActive() && this.isFocused() && keyCode == InputConstants.KEY_RETURN) {
+							if (this.isActive() && this.isFocused() && (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER)) {
 								submitCommand();
 								this.setValue("");
 							}
@@ -170,9 +173,9 @@ public class ProgrammableLogicControllerScreen extends Screen {
 						}
 					});
 
+					commandField.setResponder(value -> this.commandInput = value);
 					commandField.setValue(this.commandInput);
 					layout.apply(commandField);
-
 				})
 				.setOffset(5, 5)
 				.setLimit(this.width - 10, this.height - 10)
@@ -180,11 +183,20 @@ public class ProgrammableLogicControllerScreen extends Screen {
 	}
 
 	protected void compile() {
-		this.handleLogReceived(Component.literal("Compiled text of length: " + this.configuration.code.length()).withStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
+		this.configuration.log.clear();
+		this.rebuildLogView();
+
+		var configuration = new ProgrammableLogicControllerBlockEntity.Configuration("", this.configuration.code, Collections.emptyList());
+		ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, configuration);
 	}
 
 	protected void submitCommand() {
-		this.handleLogReceived(Component.literal(this.commandInput).withStyle(Style.EMPTY.withColor(ChatFormatting.BLUE)));
+		if (this.commandInput.trim().isEmpty()) {
+			return;
+		}
+
+		var configuration = new ProgrammableLogicControllerBlockEntity.Configuration(this.commandInput, "", Collections.emptyList());
+		ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, configuration);
 		this.commandInput = "";
 	}
 
