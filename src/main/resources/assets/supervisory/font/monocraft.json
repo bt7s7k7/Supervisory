@@ -1,0 +1,14 @@
+{
+	"providers": [
+		{
+			"type": "ttf",
+			"file": "supervisory:monocraft.ttf",
+			"size": 9,
+			"oversample": 2
+		},
+		{
+			"type": "reference",
+			"id": "minecraft:default"
+		}
+	]
+}

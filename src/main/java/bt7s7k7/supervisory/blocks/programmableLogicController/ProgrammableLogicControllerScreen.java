@@ -5,6 +5,7 @@ import java.util.Collections;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import bt7s7k7.supervisory.I18n;
+import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
 import bt7s7k7.supervisory.support.GridLayout;
 import net.minecraft.client.gui.Font;
@@ -12,10 +13,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.FittingMultiLineTextWidget;
-import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
@@ -85,6 +87,9 @@ public class ProgrammableLogicControllerScreen extends Screen {
 	protected LogView logView = null;
 	protected GridLayout.Cell logViewPosition = null;
 
+	public static final ResourceLocation MONOSPACE_FONT = Supervisory.resource("monocraft");
+	public static final Style EDITOR_STYLE = Style.EMPTY.withFont(MONOSPACE_FONT);
+
 	protected void rebuildLogView() {
 		var targetScrollAmount = Double.POSITIVE_INFINITY;
 
@@ -101,6 +106,8 @@ public class ProgrammableLogicControllerScreen extends Screen {
 			logContent.append(line);
 			logContent.append("\n");
 		}
+
+		logContent = logContent.withStyle(EDITOR_STYLE);
 
 		this.logView = this.addRenderableWidget(new LogView(logViewPosition.x(), logViewPosition.y(), logViewPosition.width(), logViewPosition.height(), logContent, this.font));
 		this.logView.setScrollAmount(targetScrollAmount);
@@ -136,10 +143,11 @@ public class ProgrammableLogicControllerScreen extends Screen {
 							.build();
 				})
 				.addGrowRow().renderRow(layout -> {
-					var editBox = this.addRenderableWidget(new MultiLineEditBox(
-							font, layout.cell().x(), layout.cell().y(), layout.cell().width(), layout.cell().height(),
+					var editBox = this.addRenderableWidget(new CodeEditorWidget(font,
+							layout.cell().x(), layout.cell().y(),
+							layout.cell().width(), layout.cell().height(),
 							I18n.PROGRAMMABLE_LOGIC_CONTROLLER_CODE.toComponent(),
-							Component.empty()));
+							EDITOR_STYLE));
 					editBox.setValue(this.configuration.code);
 					editBox.setValueListener(value -> {
 						this.configuration.code = value;

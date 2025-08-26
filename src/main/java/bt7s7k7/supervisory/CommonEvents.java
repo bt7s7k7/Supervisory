@@ -8,6 +8,7 @@ import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.commands.Commands;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -55,6 +56,15 @@ public class CommonEvents {
 
 		commands.register(main.then(Commands.literal("values").executes(ctx -> {
 			testSerialization();
+			return 0;
+		})));
+
+		commands.register(main.then(Commands.literal("font").executes(ctx -> {
+			var source = ctx.getSource();
+			source.sendSuccess(() -> Component
+					.literal("Font test: '")
+					.append(Component.literal("1.58 + 2!").withStyle(Style.EMPTY.withFont(Supervisory.resource("monocraft"))))
+					.append(Component.literal("', hope it works.")), true);
 			return 0;
 		})));
 	}
