@@ -84,7 +84,7 @@ public class CodeEditorWidget extends MultiLineEditBox {
 	}
 
 	@Override
-	protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		var styledGraphics = new GuiGraphics(Minecraft.getInstance(), guiGraphics.bufferSource()) {
 			@Override
 			public int drawString(Font font, String text, int x, int y, int color) {
@@ -92,6 +92,11 @@ public class CodeEditorWidget extends MultiLineEditBox {
 			}
 		};
 
-		super.renderContents(styledGraphics, mouseX, mouseY, partialTick);
+		super.renderWidget(styledGraphics, mouseX, mouseY, partialTick);
+	}
+
+	@Override
+	protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+		super.renderContents(guiGraphics, mouseX, mouseY, partialTick);
 	}
 }
