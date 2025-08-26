@@ -5,6 +5,7 @@ import java.util.function.Function;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import bt7s7k7.supervisory.VanillaExtensionUtil;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.StringSplitter.WidthProvider;
@@ -14,12 +15,19 @@ import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.components.MultilineTextField;
 import net.minecraft.client.gui.font.FontSet;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 
 public class CodeEditorWidget extends MultiLineEditBox {
+	public static final int LINE_NUMBER_WIDTH = 20;
+	public static final Style LINE_NUMBER_STYLE = Style.EMPTY.withColor(ChatFormatting.DARK_GRAY).withFont(Minecraft.DEFAULT_FONT);
+	public static final Style SELECTED_LINE_NUMBER_STYLE = Style.EMPTY.withColor(ChatFormatting.GRAY).withFont(Minecraft.DEFAULT_FONT);
+
+	public final Font defaultFont;
 	public final Style style;
 	public final MultilineTextField field;
 
@@ -49,10 +57,13 @@ public class CodeEditorWidget extends MultiLineEditBox {
 			public StringSplitter getSplitter() {
 				return this.styledSplitter;
 			}
-		}, x, y, width, height, placeholder, Component.empty());
+		}, x, y, width - LINE_NUMBER_WIDTH, height, placeholder, Component.empty());
 
+		this.defaultFont = font;
 		this.style = style;
 		this.field = VanillaExtensionUtil.<MultilineTextField>getField(this, "textField", MultiLineEditBox.class);
+
+		this.setWidth(width);
 	}
 
 	@Override
@@ -99,10 +110,37 @@ public class CodeEditorWidget extends MultiLineEditBox {
 	}
 
 	@Override
+	protected void renderBackground(GuiGraphics guiGraphics) {
+		super.renderBackground(guiGraphics);
+		guiGraphics.fill(this.getX() + 1, this.getY() + 1, this.getX() + LINE_NUMBER_WIDTH, this.getY() + this.getHeight() - 1, 0xFF151515);
+	}
+
+	@Override
 	public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+		var currentLine = this.field.getLineAtCursor();
+
 		var styledGraphics = new GuiGraphics(Minecraft.getInstance(), guiGraphics.bufferSource()) {
 			@Override
+			public void fill(RenderType renderType, int minX, int minY, int maxX, int maxY, int color) {
+				super.fill(renderType, minX + LINE_NUMBER_WIDTH, minY, maxX + LINE_NUMBER_WIDTH, maxY, color);
+			}
+
+			@Override
 			public int drawString(Font font, String text, int x, int y, int color) {
+				if (x == getX() + 4) {
+					var lineIndex = (y - getY()) / 9;
+					var lineString = Integer.toString(lineIndex + 1);
+					var lineStringWidth = defaultFont.width(lineString);
+
+					var lineNumberStyle = LINE_NUMBER_STYLE;
+					if (lineIndex == currentLine) {
+						lineNumberStyle = SELECTED_LINE_NUMBER_STYLE;
+					}
+
+					super.drawString(font, FormattedCharSequence.forward(lineString, lineNumberStyle), x + LINE_NUMBER_WIDTH - lineStringWidth - 5, y, color);
+					return super.drawString(font, Component.literal(text).withStyle(style), x + LINE_NUMBER_WIDTH, y, color);
+				}
+
 				return super.drawString(font, Component.literal(text).withStyle(style), x, y, color);
 			}
 		};
@@ -113,5 +151,15 @@ public class CodeEditorWidget extends MultiLineEditBox {
 	@Override
 	protected void renderContents(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		super.renderContents(guiGraphics, mouseX, mouseY, partialTick);
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		return super.mouseClicked(mouseX - LINE_NUMBER_WIDTH, mouseY, button);
+	}
+
+	@Override
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+		return super.mouseDragged(mouseX - LINE_NUMBER_WIDTH, mouseY, button, dragX - LINE_NUMBER_WIDTH, dragY);
 	}
 }
