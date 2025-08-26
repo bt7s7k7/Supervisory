@@ -49,6 +49,10 @@ public abstract class DirectControlDeviceBlockEntity extends SmartRedstoneCompon
 		return this.device;
 	}
 
+	public NetworkDevice tryGetDevice() {
+		return this.device;
+	}
+
 	protected boolean hasDevice() {
 		return this.device != null;
 	}
@@ -76,7 +80,7 @@ public abstract class DirectControlDeviceBlockEntity extends SmartRedstoneCompon
 	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.saveAdditional(tag, registries);
 
-		if (this.device != null && (this.device.domain != "" || !this.device.local.isEmpty())) {
+		if (this.device != null && (this.device.domain != "" || !this.device.state.isEmpty())) {
 			tag.put("device", NetworkDevice.CODEC.encodeStart(NbtOps.INSTANCE, this.device).getOrThrow());
 		}
 	}

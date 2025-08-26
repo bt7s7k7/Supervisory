@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -26,24 +27,27 @@ public class NetworkDevice {
 		return isConnected;
 	}
 
-	public final String domain;
+	public String domain;
 	public final HashSet<String> subscriptions = new HashSet<>();
 	public final HashMap<String, ManagedValue> cache = new HashMap<>();
-	public final HashMap<String, ManagedValue> local = new HashMap<>();
+	public final HashMap<String, ManagedValue> state = new HashMap<>();
+	public final HashMap<String, ManagedValue> published = new HashMap<>();
 	public final HashSet<String> pendingUpdates = new HashSet<>();
 
 	public static final Codec<NetworkDevice> CODEC = RecordCodecBuilder.create(instance -> (instance.group(
 			Codec.STRING.fieldOf("domain").orElse("").forGetter(v -> v.domain),
 			Codec.list(Codec.STRING).fieldOf("subscriptions").orElse(Collections.emptyList()).forGetter(v -> v.subscriptions.stream().toList()),
 			Codec.unboundedMap(Codec.STRING, ManagedValueCodec.INSTANCE).fieldOf("cache").orElse(Collections.emptyMap()).forGetter(v -> v.cache),
-			Codec.unboundedMap(Codec.STRING, ManagedValueCodec.INSTANCE).fieldOf("local").orElse(Collections.emptyMap()).forGetter(v -> v.local),
+			Codec.unboundedMap(Codec.STRING, ManagedValueCodec.INSTANCE).fieldOf("state").orElse(Collections.emptyMap()).forGetter(v -> v.state),
+			Codec.unboundedMap(Codec.STRING, ManagedValueCodec.INSTANCE).fieldOf("published").orElse(Collections.emptyMap()).forGetter(v -> v.published),
 			Codec.list(Codec.STRING).fieldOf("pending_updates").orElse(Collections.emptyList()).forGetter(v -> v.pendingUpdates.stream().toList()))
-			.apply(instance, (domain, subscriptions, cache, local, pendingUpdates) -> {
+			.apply(instance, (domain, subscriptions, cache, state, published, pendingUpdates) -> {
 				var device = new NetworkDevice(domain);
 
 				device.subscriptions.addAll(subscriptions);
 				device.cache.putAll(cache);
-				device.local.putAll(local);
+				device.state.putAll(state);
+				device.published.putAll(published);
 				device.pendingUpdates.addAll(pendingUpdates);
 
 				return device;
@@ -93,20 +97,34 @@ public class NetworkDevice {
 
 	private void sendUpdateNow(Stream<String> keys) {
 		var update = new UpdateSubmission(keys
-				.map(key -> new UpdateSubmission.Update(key, this.local.getOrDefault(key, Primitive.VOID)))
+				.map(key -> new UpdateSubmission.Update(key, this.published.getOrDefault(key, Primitive.VOID)))
 				.toList());
 
 		NetworkManager.getInstance().send(domain, update);
 	}
 
-	public void updateLocalResource(String key, ManagedValue value) {
+	public void publishResource(String key, ManagedValue value) {
 		if (value == Primitive.VOID) {
-			this.local.remove(key);
+			this.published.remove(key);
 		} else {
-			this.local.put(key, value);
+			this.published.put(key, value);
 		}
 
 		this.queueUpdate(key);
+	}
+
+	public List<String> getStateKeys() {
+		return new ArrayList<>(this.state.keySet());
+	}
+
+	public void setState(String key, ManagedValue value) {
+		this.state.put(key, value);
+	}
+
+	public ManagedValue getState(String key) {
+		var result = this.state.get(key);
+		if (result == null) return Primitive.VOID;
+		return result;
 	}
 
 	public void receive(Object value) {
@@ -128,7 +146,7 @@ public class NetworkDevice {
 
 		if (value instanceof UpdateRequest request) {
 			for (var query : request.queries) {
-				if (this.local.containsKey(query)) {
+				if (this.published.containsKey(query)) {
 					this.queueUpdate(query);
 				}
 			}
