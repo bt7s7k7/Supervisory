@@ -6,6 +6,8 @@ import com.mojang.blaze3d.platform.InputConstants;
 
 import bt7s7k7.supervisory.VanillaExtensionUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.StringSplitter;
+import net.minecraft.client.StringSplitter.WidthProvider;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.MultiLineEditBox;
@@ -23,6 +25,14 @@ public class CodeEditorWidget extends MultiLineEditBox {
 
 	public CodeEditorWidget(Font font, int x, int y, int width, int height, Component placeholder, Style style) {
 		super(new Font(VanillaExtensionUtil.<Function<ResourceLocation, FontSet>>getField(font, "fonts", Font.class), false) {
+			public final StringSplitter defaultSplitter = VanillaExtensionUtil.<StringSplitter>getField(this, "splitter", Font.class);
+			public final StringSplitter styledSplitter = new StringSplitter(VanillaExtensionUtil.<WidthProvider>getField(this.defaultSplitter, "widthProvider", StringSplitter.class)) {
+				@Override
+				public void splitLines(String content, int maxWidth, Style p_style, boolean withNewLines, LinePosConsumer linePos) {
+					super.splitLines(content, maxWidth, style, withNewLines, linePos);
+				}
+			};
+
 			@Override
 			public String plainSubstrByWidth(String text, int maxWidth) {
 				var formatted = FormattedText.of(text, style);
@@ -33,6 +43,11 @@ public class CodeEditorWidget extends MultiLineEditBox {
 			public int width(String text) {
 				var formatted = FormattedText.of(text, style);
 				return this.width(formatted);
+			}
+
+			@Override
+			public StringSplitter getSplitter() {
+				return this.styledSplitter;
 			}
 		}, x, y, width, height, placeholder, Component.empty());
 
