@@ -1,0 +1,87 @@
+package bt7s7k7.supervisory.script.reactivity;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Stack;
+import java.util.function.Consumer;
+
+import bt7s7k7.treeburst.runtime.ExpressionResult;
+import bt7s7k7.treeburst.runtime.GlobalScope;
+import bt7s7k7.treeburst.runtime.ManagedFunction;
+import bt7s7k7.treeburst.runtime.NativeFunction;
+import bt7s7k7.treeburst.runtime.Scope;
+import bt7s7k7.treeburst.support.Diagnostic;
+import bt7s7k7.treeburst.support.ManagedValue;
+import bt7s7k7.treeburst.support.Position;
+
+public class ReactivityManager {
+	public boolean ready = false;
+
+	public ReactivityManager(GlobalScope globalScope) {
+		globalScope.declareGlobal("reactive", NativeFunction.simple(globalScope, List.of("callback"), List.of(ManagedFunction.class), (args, scope, result) -> {
+			if (this.ready == true) {
+				result.value = new Diagnostic("Cannot create more reactive scopes after initialization", Position.INTRINSIC);
+				result.label = ExpressionResult.LABEL_EXCEPTION;
+			}
+
+			var callback = (ManagedFunction) args.get(0);
+			var reactiveScope = new ReactiveScope(this, globalScope, callback);
+			this.queueReaction(reactiveScope);
+			reactiveScope.run(scope, result);
+		}));
+	}
+
+	protected Stack<ReactiveScope> scopeStack = new Stack<>();
+	protected HashSet<ReactiveScope> pendingScopes = new HashSet<>();
+
+	public void pushScopeToStack(ReactiveScope scope) {
+		this.scopeStack.push(scope);
+	}
+
+	public void popScopeFromStack(ReactiveScope scope) {
+		if (this.scopeStack.peek() != scope) {
+			throw new IllegalArgumentException("Tried to pop a reactive scope from a stack that was not the top scope");
+		}
+		this.scopeStack.pop();
+	}
+
+	protected HashMap<String, ReactiveDependency<?>> dependencies = new HashMap<>();
+
+	public <TValue extends ManagedValue, TDependency extends ReactiveDependency<TValue>> TDependency ensureDependency(String name, Class<TDependency> type, TValue value) {
+		var existing = this.dependencies.get(name);
+		if (existing != null) return type.cast(existing);
+
+		var ctor = type.getConstructors()[0];
+		try {
+			@SuppressWarnings("unchecked") // We know this cast is valid because we cast the return value of its constructor
+			var instance = (TDependency) ctor.newInstance(this, name, value);
+			this.dependencies.put(name, instance);
+			return instance;
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
+			throw new RuntimeException("Cannot create an instance of " + type.getName(), exception);
+		}
+	}
+
+	public void queueReaction(ReactiveScope scope) {
+		this.pendingScopes.add(scope);
+	}
+
+	public void executePendingReactions(Consumer<Diagnostic> handleError, Scope scope) {
+		this.ready = true;
+
+		var pending = this.pendingScopes;
+		this.pendingScopes = new HashSet<>();
+
+		var result = new ExpressionResult();
+		for (var pendingScope : pending) {
+			pendingScope.run(scope, result);
+
+			var diagnostic = result.terminate();
+			if (diagnostic != null) {
+				handleError.accept(new Diagnostic("Failed to execute reactive scope", Position.INTRINSIC, List.of(diagnostic)));
+			}
+		}
+	}
+}

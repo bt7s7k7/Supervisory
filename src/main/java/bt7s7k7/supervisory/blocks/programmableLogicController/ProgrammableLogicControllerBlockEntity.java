@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -15,16 +11,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
-import bt7s7k7.treeburst.runtime.GlobalScope;
-import bt7s7k7.treeburst.runtime.ManagedArray;
-import bt7s7k7.treeburst.runtime.ManagedFunction;
-import bt7s7k7.treeburst.runtime.ManagedMap;
-import bt7s7k7.treeburst.runtime.ManagedTable;
-import bt7s7k7.treeburst.runtime.NativeFunction;
-import bt7s7k7.treeburst.support.Diagnostic;
+import bt7s7k7.supervisory.support.RelativeDirection;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -80,7 +69,12 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 	protected void handleNetworkUpdate(String key, ManagedValue value) {}
 
 	@Override
-	protected void handleRedstoneInputChange(Direction direction, int strength) {}
+	protected void handleRedstoneInputChange(Direction direction, int strength) {
+		var handlers = this.scriptEngine.reactiveRedstone;
+		if (handlers == null) return;
+		var relative = RelativeDirection.from(this.getFront(), direction);
+		handlers[relative.index].updateValue(Primitive.from(strength));
+	}
 
 	public static class Configuration {
 		public String command = "";
@@ -118,97 +112,7 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 	}
 
 	public Configuration configuration = new Configuration();
-	public ScriptEngine scriptEngine = new ScriptEngine() {
-		@Override
-		protected void handleError(Diagnostic error) {
-			log(Component.literal(error.format()).withStyle(ChatFormatting.RED));
-		};
-
-		protected ManagedFunction createStateAccessor(GlobalScope globalScope, Function<String, ManagedValue> getter, BiConsumer<String, ManagedValue> setter) {
-			return NativeFunction.simple(globalScope, List.of("name", "value?"), List.of(Primitive.String.class, ManagedValue.class), (args, scope, result) -> {
-				var key = ((Primitive.String) args.get(0)).value;
-				if (args.size() == 1) {
-					result.value = getter.apply(key);
-					return;
-				}
-
-				var value = args.get(1);
-				setter.accept(key, value);
-				result.value = value;
-			});
-		}
-
-		private ManagedValue translateValue(GlobalScope globalScope, ManagedValue value) {
-			if (value instanceof Primitive) {
-				return value;
-			}
-
-			if (value instanceof ManagedTable table) {
-				var entries = table.properties.entrySet().stream().collect(Collectors.toMap(
-						Map.Entry::getKey,
-						kv -> this.translateValue(globalScope, kv.getValue())));
-
-				return new ManagedTable(globalScope == null ? null : globalScope.TablePrototype, entries);
-			}
-
-			if (value instanceof ManagedArray array) {
-				var elements = array.elements.stream().map(v -> this.translateValue(globalScope, v)).toList();
-
-				return new ManagedArray(globalScope == null ? null : globalScope.ArrayPrototype, elements);
-			}
-
-			if (value instanceof ManagedMap table) {
-				var entries = table.entries.entrySet().stream().collect(Collectors.toMap(
-						kv -> this.translateValue(globalScope, kv.getKey()),
-						kv -> this.translateValue(globalScope, kv.getValue())));
-
-				return new ManagedMap(globalScope == null ? null : globalScope.MapPrototype, entries);
-			}
-
-			return null;
-		}
-
-		public ManagedValue importValue(ManagedValue value) {
-			return this.translateValue(this.getGlobalScope(), value);
-		}
-
-		@Override
-		protected void initializeGlobals(GlobalScope globalScope) {
-			log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
-
-			var device = getDevice();
-			for (var key : device.getStateKeys()) {
-				var result = this.importValue(device.getState(key));
-				if (result == null) {
-					log(Component.literal("Failed to import state value: " + key).withStyle(ChatFormatting.RED));
-					continue;
-				}
-				device.setState(key, result);
-			}
-
-			globalScope.declareGlobal("print", NativeFunction.simple(globalScope, List.of("message"), (args, scope, result) -> {
-				var message = args.get(0);
-
-				log(formatValue(message));
-			}));
-
-			globalScope.declareGlobal("l", createStateAccessor(globalScope, (key) -> getDevice().getState(key), (key, value) -> {
-				getDevice().setState(key, value);
-				setChanged();
-			}));
-		}
-
-		@Override
-		public ManagedValue executeCode(String path, String code) {
-			var result = super.executeCode(path, code);
-
-			if (result != null && path.equals("command")) {
-				log(formatValue(result));
-			}
-
-			return result;
-		};
-	};
+	public PlcScriptEngine scriptEngine = new PlcScriptEngine(this);
 
 	@Override
 	public void saveAdditional(CompoundTag tag, Provider registries) {
@@ -269,5 +173,7 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 		if (this.scriptEngine.isEmpty()) {
 			this.setDevice(new NetworkDevice(""), true);
 		}
+
+		this.scriptEngine.processTasks();
 	}
 }

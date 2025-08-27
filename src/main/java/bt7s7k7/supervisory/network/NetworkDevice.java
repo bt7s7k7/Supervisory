@@ -118,7 +118,11 @@ public class NetworkDevice {
 	}
 
 	public void setState(String key, ManagedValue value) {
-		this.state.put(key, value);
+		if (value == Primitive.VOID) {
+			this.state.remove(key);
+		} else {
+			this.state.put(key, value);
+		}
 	}
 
 	public ManagedValue getState(String key) {

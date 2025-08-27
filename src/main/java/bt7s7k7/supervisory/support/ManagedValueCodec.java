@@ -11,6 +11,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
@@ -67,7 +68,8 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 			return ARRAY_CODEC.encode(input, ops, prefix);
 		}
 
-		throw new IllegalArgumentException("Managed value type " + input.getClass() + " is not supported for encoding");
+		Supervisory.LOGGER.warn("Managed value type " + input.getClass() + " is not supported for encoding");
+		return ENCODED_HEADER.encode(EncodedType.VOID, ops, prefix);
 	}
 
 	@Override

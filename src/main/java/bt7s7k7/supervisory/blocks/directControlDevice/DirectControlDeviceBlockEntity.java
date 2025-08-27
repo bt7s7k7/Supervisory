@@ -103,7 +103,7 @@ public abstract class DirectControlDeviceBlockEntity extends SmartRedstoneCompon
 		this.teardownDevice();
 	}
 
-	protected Direction getFront() {
+	public Direction getFront() {
 		return this.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
 	}
 }
