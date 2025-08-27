@@ -155,11 +155,16 @@ public class CodeEditorWidget extends MultiLineEditBox {
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		return super.mouseClicked(mouseX - LINE_NUMBER_WIDTH, mouseY, button);
+		if (mouseX < this.getX() + this.getWidth()) mouseX -= LINE_NUMBER_WIDTH;
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-		return super.mouseDragged(mouseX - LINE_NUMBER_WIDTH, mouseY, button, dragX - LINE_NUMBER_WIDTH, dragY);
+		if (mouseX < this.getX() + this.getWidth()) {
+			mouseX -= LINE_NUMBER_WIDTH;
+			dragX -= LINE_NUMBER_WIDTH;
+		}
+		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 	}
 }
