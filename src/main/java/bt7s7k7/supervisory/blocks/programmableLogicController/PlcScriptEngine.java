@@ -8,6 +8,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.script.ScriptEngine;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
@@ -104,10 +106,16 @@ public class PlcScriptEngine extends ScriptEngine {
 			var front = this.owner.getFront();
 
 			for (var direction : RelativeDirection.values()) {
-				var redstoneValue = this.owner.getInput(direction.getAbsolute(front));
+				var absoluteDirection = direction.getAbsolute(front);
+				var redstoneValue = this.owner.getInput(absoluteDirection);
 				var dependency = RedstoneReactiveDependency.get(this.reactivityManager, direction, redstoneValue);
 				reactiveRedstone[direction.index] = dependency;
 				redstoneTable.declareProperty(direction.name, dependency.makeHandle());
+				redstoneTable.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> {
+					var strength = ((Primitive.Number) args.get(0)).value;
+					this.owner.setOutput(absoluteDirection, (int) strength);
+					result.value = null;
+				}));
 			}
 		}
 
