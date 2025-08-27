@@ -69,7 +69,7 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 
 	private Handle cachedHandle;
 
-	public Handle makeHandle() {
+	public Handle getHandle() {
 		if (this.cachedHandle == null) {
 			this.cachedHandle = new Handle(this.owner.globalScope.TablePrototype);
 		}

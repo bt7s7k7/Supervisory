@@ -93,12 +93,15 @@ public class PlcScriptEngine extends ScriptEngine {
 
 	public ReactivityManager reactivityManager;
 	public RedstoneReactiveDependency[] reactiveRedstone;
+	public TickReactiveDependency reactivityTick;
 
 	@Override
 	protected void initializeGlobals(GlobalScope globalScope) {
 		this.owner.log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
 
 		this.reactivityManager = new ReactivityManager(globalScope);
+		this.reactivityTick = TickReactiveDependency.get(reactivityManager, this.owner.getLevel() == null ? 0 : (double) this.owner.getLevel().getGameTime());
+		globalScope.declareGlobal("tick", this.reactivityTick.getHandle());
 
 		{
 			this.reactiveRedstone = new RedstoneReactiveDependency[6];
@@ -110,7 +113,7 @@ public class PlcScriptEngine extends ScriptEngine {
 				var redstoneValue = this.owner.getInput(absoluteDirection);
 				var dependency = RedstoneReactiveDependency.get(this.reactivityManager, direction, redstoneValue);
 				reactiveRedstone[direction.index] = dependency;
-				redstoneTable.declareProperty(direction.name, dependency.makeHandle());
+				redstoneTable.declareProperty(direction.name, dependency.getHandle());
 				redstoneTable.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> {
 					var strength = ((Primitive.Number) args.get(0)).value;
 					this.owner.setOutput(absoluteDirection, (int) strength);
@@ -159,7 +162,7 @@ public class PlcScriptEngine extends ScriptEngine {
 			if (imported == null) imported = Primitive.VOID;
 			var dependency = RemoteValueReactiveDependency.get(this.reactivityManager, key, imported);
 			getDevice().subscribe(key);
-			return dependency.makeHandle();
+			return dependency.getHandle();
 		}, (key, value) -> {
 			var exported = this.exportValue(value);
 			if (exported == null) return;
@@ -180,6 +183,10 @@ public class PlcScriptEngine extends ScriptEngine {
 	}
 
 	public void processTasks() {
+		if (this.reactivityTick != null) {
+			this.reactivityTick.updateValue(Primitive.from((double) this.owner.getLevel().getGameTime()));
+		}
+
 		if (this.reactivityManager != null) {
 			this.reactivityManager.executePendingReactions(this::handleError, getGlobalScope());
 		}
