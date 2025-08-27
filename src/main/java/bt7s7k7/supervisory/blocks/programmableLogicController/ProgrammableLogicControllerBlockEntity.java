@@ -2,7 +2,6 @@ package bt7s7k7.supervisory.blocks.programmableLogicController;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import com.mojang.serialization.Codec;
@@ -14,6 +13,7 @@ import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.support.RelativeDirection;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,29 +35,40 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 		super(type, pos, blockState);
 	}
 
-	protected HashMap<String, ManagedValue> savedState = null;
+	protected NetworkDevice savedState = null;
 	protected String desiredDomain = null;
 
 	@Override
 	public void setDevice(NetworkDevice device, boolean fresh) {
 		var oldDevice = this.tryGetDevice();
 		if (oldDevice != null) {
-			savedState = oldDevice.state;
+			savedState = oldDevice;
 		}
 
 		super.setDevice(device, fresh);
+
+		if (device.isConnected()) {
+			this.log(Component.literal("Connected to domain: " + device.domain).withStyle(ChatFormatting.BLUE));
+		}
 	}
 
 	@Override
 	protected void initializeNetworkDevice(NetworkDevice device, boolean fresh) {
 		if (savedState != null) {
-			device.state.putAll(savedState);
+			device.state.putAll(savedState.state);
+			device.cache.putAll(savedState.cache);
 			savedState = null;
 		}
 
-		if (fresh) {
-			this.scriptEngine.clear();
-			this.scriptEngine.executeCode("code", this.configuration.code);
+		this.scriptEngine.clear();
+		this.scriptEngine.executeCode("code", this.configuration.code);
+
+		// Remove entries that are not longer subscribed to from the cache
+		for (var it = device.cache.keySet().iterator(); it.hasNext();) {
+			var key = it.next();
+			if (!device.subscriptions.contains(key)) {
+				it.remove();
+			}
 		}
 
 		if (desiredDomain != null) {
@@ -66,7 +77,13 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 	}
 
 	@Override
-	protected void handleNetworkUpdate(String key, ManagedValue value) {}
+	protected void handleNetworkUpdate(String key, ManagedValue value) {
+		var reactivityManager = this.scriptEngine.reactivityManager;
+		if (reactivityManager == null) return;
+
+		var dependency = RemoteValueReactiveDependency.get(reactivityManager, key, value);
+		dependency.updateValue(value);
+	}
 
 	@Override
 	protected void handleRedstoneInputChange(Direction direction, int strength) {
@@ -101,7 +118,14 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 				.apply(instance, Configuration::new)));
 	}
 
+	private ArrayList<Component> pendingLogEntries = new ArrayList<>();
+
 	public void log(Component message) {
+		if (this.level == null) {
+			this.pendingLogEntries.add(message);
+			return;
+		}
+
 		this.configuration.log.add(message);
 		while (this.configuration.log.size() > 100) {
 			this.configuration.log.removeFirst();
@@ -124,11 +148,12 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 
 	@Override
 	public void loadAdditional(CompoundTag tag, Provider registries) {
-		super.loadAdditional(tag, registries);
-
 		Configuration.CODEC.parse(NbtOps.INSTANCE, tag).ifSuccess(configuration -> {
 			this.configuration = configuration;
 		});
+
+		// Load Configuration before NetworkDevice so the code is already loaded when it's executed during initializeNetworkDevice()
+		super.loadAdditional(tag, registries);
 	}
 
 	@Override
@@ -168,6 +193,14 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 
 	@Override
 	public void tick(Level level, BlockPos pos, BlockState state) {
+		if (!this.pendingLogEntries.isEmpty()) {
+			for (var entry : this.pendingLogEntries) {
+				this.log(entry);
+			}
+
+			this.pendingLogEntries.clear();
+		}
+
 		super.tick(level, pos, state);
 
 		if (this.scriptEngine.isEmpty()) {

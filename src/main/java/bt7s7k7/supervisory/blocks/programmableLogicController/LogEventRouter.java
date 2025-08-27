@@ -80,6 +80,8 @@ public final class LogEventRouter {
 		var token = getSubscriptionToken(level, position);
 		var subscriptionSet = this.listenersLookup.computeIfAbsent(token, __ -> new HashSet<>());
 		subscriptionSet.add(player.getUUID());
+
+		this.playerSubscriptionLookup.put(player.getUUID(), token);
 	}
 
 	public static record LogEvent(Component event) implements CustomPacketPayload {

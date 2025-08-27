@@ -1,5 +1,7 @@
 package bt7s7k7.supervisory.blocks.programmableLogicController;
 
+import static bt7s7k7.treeburst.runtime.ExpressionResult.LABEL_EXCEPTION;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -18,6 +20,7 @@ import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
+import bt7s7k7.treeburst.support.Position;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -104,18 +107,20 @@ public class PlcScriptEngine extends ScriptEngine {
 				var redstoneValue = this.owner.getInput(direction.getAbsolute(front));
 				var dependency = RedstoneReactiveDependency.get(this.reactivityManager, direction, redstoneValue);
 				reactiveRedstone[direction.index] = dependency;
-				redstoneTable.declareProperty(direction.name, dependency.makeHandle(globalScope.TablePrototype));
+				redstoneTable.declareProperty(direction.name, dependency.makeHandle());
 			}
 		}
 
-		var device = getDevice();
-		for (var key : device.getStateKeys()) {
-			var result = this.importValue(device.getState(key));
-			if (result == null) {
-				this.owner.log(Component.literal("Failed to import state value: " + key).withStyle(ChatFormatting.RED));
-				continue;
+		{
+			var device = getDevice();
+			for (var key : device.getStateKeys()) {
+				var result = this.importValue(device.getState(key));
+				if (result == null) {
+					this.owner.log(Component.literal("Failed to import state value: " + key).withStyle(ChatFormatting.RED));
+					continue;
+				}
+				device.setState(key, result);
 			}
-			device.setState(key, result);
 		}
 
 		globalScope.declareGlobal("print", NativeFunction.simple(globalScope, List.of("message"), (args, scope, result) -> {
@@ -129,6 +134,29 @@ public class PlcScriptEngine extends ScriptEngine {
 			this.owner.setChanged();
 		}));
 
+		globalScope.declareGlobal("setDomain", NativeFunction.simple(globalScope, List.of("name"), List.of(Primitive.String.class), (args, scope, result) -> {
+			var device = getDevice();
+			if (device.isConnected()) {
+				result.value = new Diagnostic("Cannot change the domain after already connected", Position.INTRINSIC);
+				result.label = LABEL_EXCEPTION;
+				return;
+			}
+
+			device.domain = ((Primitive.String) args.get(0)).value;
+			result.value = null;
+		}));
+
+		globalScope.declareGlobal("r", createStateAccessor(globalScope, (key) -> {
+			var imported = this.importValue(getDevice().readCachedValue(key));
+			if (imported == null) imported = Primitive.VOID;
+			var dependency = RemoteValueReactiveDependency.get(this.reactivityManager, key, imported);
+			getDevice().subscribe(key);
+			return dependency.makeHandle();
+		}, (key, value) -> {
+			var exported = this.exportValue(value);
+			if (exported == null) return;
+			getDevice().publishResource(key, exported);
+		}));
 	}
 
 	@Override

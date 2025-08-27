@@ -22,6 +22,7 @@ public class ReactiveScope {
 	public final ManagedFunction callback;
 
 	protected final ManagedTable context;
+	protected boolean missingDependency = false;
 
 	public ReactiveScope(ReactivityManager owner, GlobalScope globalScope, ManagedFunction callback) {
 		this.callback = callback;
@@ -39,12 +40,16 @@ public class ReactiveScope {
 					}
 
 					result.value = dependency.getValue();
+					if (result.value == Primitive.VOID) {
+						this.missingDependency = true;
+					}
+
 					return;
 				}),
 				"awaitReady", NativeFunction.simple(globalScope, Collections.emptyList(), (args, scope, result) -> {
 					result.value = Primitive.VOID;
 
-					if (!this.owner.ready) {
+					if (this.missingDependency) {
 						result.label = ExpressionResult.LABEL_RETURN;
 					}
 				})));
@@ -56,6 +61,7 @@ public class ReactiveScope {
 		}
 
 		this.dependencies.clear();
+		this.missingDependency = false;
 
 		// Leave the error handling to the caller of this method
 		callback.invoke(List.of(this.context), scope, result);

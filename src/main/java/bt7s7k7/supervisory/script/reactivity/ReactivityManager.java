@@ -18,8 +18,11 @@ import bt7s7k7.treeburst.support.Position;
 
 public class ReactivityManager {
 	public boolean ready = false;
+	public final GlobalScope globalScope;
 
 	public ReactivityManager(GlobalScope globalScope) {
+		this.globalScope = globalScope;
+
 		globalScope.declareGlobal("reactive", NativeFunction.simple(globalScope, List.of("callback"), List.of(ManagedFunction.class), (args, scope, result) -> {
 			if (this.ready == true) {
 				result.value = new Diagnostic("Cannot create more reactive scopes after initialization", Position.INTRINSIC);

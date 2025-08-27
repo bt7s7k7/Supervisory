@@ -131,6 +131,18 @@ public class NetworkDevice {
 		return result;
 	}
 
+	public ManagedValue readPublishedResource(String key) {
+		var result = this.published.get(key);
+		if (result == null) return Primitive.VOID;
+		return result;
+	}
+
+	public ManagedValue readCachedValue(String key) {
+		var result = this.cache.get(key);
+		if (result == null) return Primitive.VOID;
+		return result;
+	}
+
 	public void receive(Object value) {
 		if (value instanceof UpdateSubmission update) {
 			for (var event : update.updates) {
