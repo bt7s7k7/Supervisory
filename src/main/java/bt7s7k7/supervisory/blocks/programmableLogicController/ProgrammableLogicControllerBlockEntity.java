@@ -7,6 +7,7 @@ import java.util.List;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
@@ -37,6 +38,7 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 
 	protected NetworkDevice savedState = null;
 	protected String desiredDomain = null;
+	protected boolean failed = false;
 
 	@Override
 	public void setDevice(NetworkDevice device, boolean fresh) {
@@ -140,10 +142,11 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 
 	@Override
 	public void saveAdditional(CompoundTag tag, Provider registries) {
-		super.saveAdditional(tag, registries);
 		var result = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow();
 		result.remove("command");
 		tag.merge(result);
+
+		super.saveAdditional(tag, registries);
 	}
 
 	@Override
@@ -152,8 +155,13 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 			this.configuration = configuration;
 		});
 
-		// Load Configuration before NetworkDevice so the code is already loaded when it's executed during initializeNetworkDevice()
-		super.loadAdditional(tag, registries);
+		try {
+			// Load Configuration before NetworkDevice so the code is already loaded when it's executed during initializeNetworkDevice()
+			super.loadAdditional(tag, registries);
+		} catch (Exception exception) {
+			this.failed = true;
+			Supervisory.LOGGER.error("Failed to load ProgrammableLogicControllerBlockEntity at " + this.getBlockPos(), exception);
+		}
 	}
 
 	@Override
@@ -193,6 +201,8 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 
 	@Override
 	public void tick(Level level, BlockPos pos, BlockState state) {
+		if (this.failed) return;
+
 		if (!this.pendingLogEntries.isEmpty()) {
 			for (var entry : this.pendingLogEntries) {
 				this.log(entry);
@@ -201,12 +211,17 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 			this.pendingLogEntries.clear();
 		}
 
-		super.tick(level, pos, state);
+		try {
+			super.tick(level, pos, state);
 
-		if (this.scriptEngine.isEmpty()) {
-			this.setDevice(new NetworkDevice(""), true);
+			if (this.scriptEngine.isEmpty()) {
+				this.setDevice(new NetworkDevice(""), true);
+			}
+
+			this.scriptEngine.processTasks();
+		} catch (Exception exception) {
+			this.failed = true;
+			Supervisory.LOGGER.error("Failed to process tick for ProgrammableLogicControllerBlockEntity at " + this.getBlockPos(), exception);
 		}
-
-		this.scriptEngine.processTasks();
 	}
 }

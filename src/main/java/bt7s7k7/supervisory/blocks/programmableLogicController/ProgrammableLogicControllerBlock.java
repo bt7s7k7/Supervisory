@@ -1,5 +1,6 @@
 package bt7s7k7.supervisory.blocks.programmableLogicController;
 
+import bt7s7k7.supervisory.I18n;
 import bt7s7k7.supervisory.blocks.AllBlockEntities;
 import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlock;
 import bt7s7k7.supervisory.configuration.ConfigurationManager;
@@ -23,6 +24,11 @@ public class ProgrammableLogicControllerBlock extends DirectControlDeviceBlock<P
 	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
 		if (player instanceof ServerPlayer serverPlayer) {
 			level.getBlockEntity(pos, this.blockEntityType.get()).ifPresent(be -> {
+				if (be.failed) {
+					serverPlayer.sendSystemMessage(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_FAILED.toComponent(), true);
+					return;
+				}
+
 				LogEventRouter.getInstance().subscribePlayer(serverPlayer, level, pos);
 				ConfigurationManager.requestConfiguration(serverPlayer, pos, be);
 			});

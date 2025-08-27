@@ -35,6 +35,7 @@ public class I18n {
 	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_COMPILE = register(new Key("gui.programmable_logic_controller.compile", "Compile"));
 	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_COMMAND = register(new Key("gui.programmable_logic_controller.command", "Enter command..."));
 	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_CODE = register(new Key("gui.programmable_logic_controller.code", "Enter code..."));
+	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_FAILED = register(new Key("gui.programmable_logic_controller.failed", "This block failed to load and cannot be accessed"));
 
 	public static final Key DONE = register(new Key("gui.done", "Done"));
 	public static final Key APPLY = register(new Key("gui.apply", "Apply"));
