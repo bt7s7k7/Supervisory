@@ -10,8 +10,10 @@ import java.util.function.Consumer;
 import bt7s7k7.treeburst.runtime.ExpressionResult;
 import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
+import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.runtime.Scope;
+import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Position;
@@ -19,21 +21,27 @@ import bt7s7k7.treeburst.support.Position;
 public class ReactivityManager {
 	public boolean ready = false;
 	public final GlobalScope globalScope;
+	public final ManagedTable reactiveDependencyPrototype;
+
+	@SuppressWarnings("rawtypes")
+	protected static final NativeHandleWrapper<ReactiveDependency> REACTIVE_DEPENDENCY_HANDLE_WRAPPER = new NativeHandleWrapper<ReactiveDependency>(ReactiveDependency.class)
+			.addGetter("value", v -> v.value);
 
 	public ReactivityManager(GlobalScope globalScope) {
 		this.globalScope = globalScope;
 
 		globalScope.declareGlobal("reactive", NativeFunction.simple(globalScope, List.of("callback"), List.of(ManagedFunction.class), (args, scope, result) -> {
 			if (this.ready == true) {
-				result.value = new Diagnostic("Cannot create more reactive scopes after initialization", Position.INTRINSIC);
-				result.label = ExpressionResult.LABEL_EXCEPTION;
+				result.setException(new Diagnostic("Cannot create more reactive scopes after initialization", Position.INTRINSIC));
 			}
 
-			var callback = (ManagedFunction) args.get(0);
+			var callback = args.get(0).getFunctionValue();
 			var reactiveScope = new ReactiveScope(this, globalScope, callback);
 			this.queueReaction(reactiveScope);
 			reactiveScope.run(scope, result);
 		}));
+
+		this.reactiveDependencyPrototype = REACTIVE_DEPENDENCY_HANDLE_WRAPPER.buildPrototype(globalScope);
 	}
 
 	protected Stack<ReactiveScope> scopeStack = new Stack<>();

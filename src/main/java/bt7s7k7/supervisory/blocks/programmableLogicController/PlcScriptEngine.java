@@ -41,7 +41,7 @@ public class PlcScriptEngine extends ScriptEngine {
 
 	protected ManagedFunction createStateAccessor(GlobalScope globalScope, Function<String, ManagedValue> getter, BiConsumer<String, ManagedValue> setter) {
 		return NativeFunction.simple(globalScope, List.of("name", "value?"), List.of(Primitive.String.class, ManagedValue.class), (args, scope, result) -> {
-			var key = ((Primitive.String) args.get(0)).value;
+			var key = args.get(0).getStringValue();
 			if (args.size() == 1) {
 				result.value = getter.apply(key);
 				return;
@@ -115,7 +115,7 @@ public class PlcScriptEngine extends ScriptEngine {
 				reactiveRedstone[direction.index] = dependency;
 				redstoneTable.declareProperty(direction.name, dependency.getHandle());
 				redstoneTable.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> {
-					var strength = ((Primitive.Number) args.get(0)).value;
+					var strength = args.get(0).getNumberValue();
 					this.owner.setOutput(absoluteDirection, (int) strength);
 					result.value = null;
 				}));
@@ -153,7 +153,7 @@ public class PlcScriptEngine extends ScriptEngine {
 				return;
 			}
 
-			device.domain = ((Primitive.String) args.get(0)).value;
+			device.domain = args.get(0).getStringValue();
 			result.value = null;
 		}));
 

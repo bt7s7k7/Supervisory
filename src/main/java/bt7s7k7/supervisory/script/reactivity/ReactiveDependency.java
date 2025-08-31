@@ -2,9 +2,7 @@ package bt7s7k7.supervisory.script.reactivity;
 
 import java.util.HashSet;
 
-import bt7s7k7.treeburst.runtime.ExpressionResult;
-import bt7s7k7.treeburst.runtime.ManagedObject;
-import bt7s7k7.treeburst.runtime.UnmanagedHandle;
+import bt7s7k7.treeburst.runtime.NativeHandle;
 import bt7s7k7.treeburst.support.ManagedValue;
 
 public abstract class ReactiveDependency<T extends ManagedValue> {
@@ -50,28 +48,12 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 		}
 	}
 
-	public class Handle extends UnmanagedHandle {
-		@Override
-		public boolean getProperty(String name, ExpressionResult result) {
-			if (name.equals("value")) {
-				result.value = ReactiveDependency.this.value;
-				return true;
-			}
+	private NativeHandle cachedHandle;
 
-			return super.getProperty(name, result);
-		}
-
-		public Handle(ManagedObject prototype) {
-			super(prototype, ReactiveDependency.this);
-			this.name = ReactiveDependency.this.name;
-		}
-	}
-
-	private Handle cachedHandle;
-
-	public Handle getHandle() {
+	public NativeHandle getHandle() {
 		if (this.cachedHandle == null) {
-			this.cachedHandle = new Handle(this.owner.globalScope.TablePrototype);
+			this.cachedHandle = new NativeHandle(this.owner.reactiveDependencyPrototype, this);
+			this.cachedHandle.name = this.name;
 		}
 
 		return this.cachedHandle;

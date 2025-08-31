@@ -11,9 +11,6 @@ import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.runtime.Scope;
-import bt7s7k7.treeburst.runtime.UnmanagedHandle;
-import bt7s7k7.treeburst.support.Diagnostic;
-import bt7s7k7.treeburst.support.Position;
 import bt7s7k7.treeburst.support.Primitive;
 
 public class ReactiveScope {
@@ -29,11 +26,8 @@ public class ReactiveScope {
 		this.owner = owner;
 
 		this.context = new ManagedTable(globalScope.TablePrototype, Map.of(
-				"use", NativeFunction.simple(globalScope, List.of("dependency"), List.of(UnmanagedHandle.class), (args, scope, result) -> {
-					if (!(((UnmanagedHandle) args.get(0)).value instanceof ReactiveDependency<?> dependency)) {
-						result.value = new Diagnostic("Invalid dependency object", Position.INTRINSIC);
-						return;
-					}
+				"use", NativeFunction.simple(globalScope, List.of("dependency"), List.of(ReactiveDependency.class), (args, scope, result) -> {
+					var dependency = args.get(0).getNativeValue(ReactiveDependency.class);
 
 					if (!this.dependencies.contains(dependency)) {
 						this.dependencies.add(dependency);
