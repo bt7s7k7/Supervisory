@@ -14,55 +14,55 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
 public abstract class ScriptEngine {
-    private GlobalScope globalScope;
+	private GlobalScope globalScope;
 
-    protected abstract void handleError(Diagnostic error);
+	protected abstract void handleError(Diagnostic error);
 
-    protected abstract void initializeGlobals(GlobalScope globalScope);
+	protected abstract void initializeGlobals(GlobalScope globalScope);
 
-    public GlobalScope getGlobalScope() {
-        if (this.globalScope == null) {
-            this.globalScope = new GlobalScope();
-            this.initializeGlobals(globalScope);
-        }
+	public GlobalScope getGlobalScope() {
+		if (this.globalScope == null) {
+			this.globalScope = new GlobalScope();
+			this.initializeGlobals(globalScope);
+		}
 
-        return this.globalScope;
-    }
+		return this.globalScope;
+	}
 
-    public ManagedValue executeCode(String path, String code) {
-        var globalScope = this.getGlobalScope();
-        var inputDocument = new InputDocument(path, code);
-        var parser = new TreeBurstParser(inputDocument);
-        var root = parser.parse();
-        if (!parser.diagnostics.isEmpty()) {
-            parser.diagnostics.forEach(this::handleError);
-            return null;
-        }
+	public ManagedValue executeCode(String path, String code) {
+		var globalScope = this.getGlobalScope();
+		var inputDocument = new InputDocument(path, code);
+		var parser = new TreeBurstParser(inputDocument);
+		var root = parser.parse();
+		if (!parser.diagnostics.isEmpty()) {
+			parser.diagnostics.forEach(this::handleError);
+			return null;
+		}
 
-        var result = new ExpressionResult();
-        result.executionLimit = 5000;
-        try {
-            ExpressionEvaluator.evaluateExpression(root, globalScope, result);
-        } catch (ExecutionLimitReachedException exception) {
-            this.handleError(new Diagnostic(exception.getMessage(), Position.INTRINSIC));
-            return null;
-        }
+		var result = new ExpressionResult();
+		result.executionLimit = 5000;
+		try {
+			ExpressionEvaluator.evaluateExpression(root, globalScope, result);
+		} catch (ExecutionLimitReachedException exception) {
+			this.handleError(new Diagnostic(exception.getMessage(), Position.INTRINSIC));
+			return null;
+		}
 
-        var diagnostic = result.terminate();
-        if (diagnostic != null) {
-            this.handleError(diagnostic);
-        }
+		var diagnostic = result.terminate();
+		if (diagnostic != null) {
+			this.handleError(diagnostic);
+		}
 
-        return result.value;
-    }
+		return result.value;
+	}
 
-    public void clear() {
-        this.globalScope = null;
-    }
+	public void clear() {
+		this.globalScope = null;
+	}
 
-    public boolean isEmpty() {
-        return this.globalScope == null;
-    }
+	public boolean isEmpty() {
+		return this.globalScope == null;
+	}
 
 	public static Component formatValue(ManagedValue value, GlobalScope globalScope) {
 		if (value == Primitive.VOID || value == Primitive.NULL) {
