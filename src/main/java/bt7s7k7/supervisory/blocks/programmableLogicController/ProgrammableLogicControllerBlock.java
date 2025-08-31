@@ -3,6 +3,7 @@ package bt7s7k7.supervisory.blocks.programmableLogicController;
 import bt7s7k7.supervisory.I18n;
 import bt7s7k7.supervisory.blocks.AllBlockEntities;
 import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlock;
+import bt7s7k7.supervisory.blocks.programmableLogicController.support.LogEventRouter;
 import bt7s7k7.supervisory.configuration.ConfigurationManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;

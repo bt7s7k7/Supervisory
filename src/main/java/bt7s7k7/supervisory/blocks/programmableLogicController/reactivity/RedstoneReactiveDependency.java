@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.blocks.programmableLogicController;
+package bt7s7k7.supervisory.blocks.programmableLogicController.reactivity;
 
 import bt7s7k7.supervisory.script.reactivity.ReactiveDependency;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;

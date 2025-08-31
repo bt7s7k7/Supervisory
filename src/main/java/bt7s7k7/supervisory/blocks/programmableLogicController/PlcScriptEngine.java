@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import bt7s7k7.supervisory.blocks.programmableLogicController.reactivity.RedstoneReactiveDependency;
+import bt7s7k7.supervisory.blocks.programmableLogicController.reactivity.RemoteValueReactiveDependency;
+import bt7s7k7.supervisory.blocks.programmableLogicController.reactivity.TickReactiveDependency;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.script.ScriptEngine;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;

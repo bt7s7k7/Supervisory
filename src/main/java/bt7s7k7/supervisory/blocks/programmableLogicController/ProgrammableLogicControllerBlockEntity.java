@@ -9,6 +9,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlockEntity;
+import bt7s7k7.supervisory.blocks.programmableLogicController.reactivity.RemoteValueReactiveDependency;
+import bt7s7k7.supervisory.blocks.programmableLogicController.support.LogEventRouter;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.support.RelativeDirection;
