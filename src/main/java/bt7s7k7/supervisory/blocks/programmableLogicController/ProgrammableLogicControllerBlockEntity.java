@@ -176,6 +176,7 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 			this.configuration.log.clear();
 			this.scriptEngine.clear();
 		} else {
+			this.log(Component.literal("> ").withStyle(ChatFormatting.GREEN).append(Component.literal(configuration.command).withStyle(ChatFormatting.BLUE)));
 			this.scriptEngine.executeCode("command", configuration.command);
 		}
 

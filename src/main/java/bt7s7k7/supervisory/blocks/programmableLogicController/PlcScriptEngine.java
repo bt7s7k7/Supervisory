@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,8 @@ import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.ManagedMap;
 import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
+import bt7s7k7.treeburst.runtime.NativeHandle;
+import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Position;
@@ -38,6 +41,19 @@ public class PlcScriptEngine extends ScriptEngine {
 	protected void handleError(Diagnostic error) {
 		this.owner.log(Component.literal(error.format()).withStyle(ChatFormatting.RED));
 	}
+
+	protected static class StateHandle {
+		public Supplier<Map<String, ManagedValue>> state;
+
+		public StateHandle(Supplier<Map<String, ManagedValue>> state) {
+			this.state = state;
+		}
+	}
+
+	protected static final NativeHandleWrapper<StateHandle> STATE_HANDLE_WRAPPER = new NativeHandleWrapper<>(StateHandle.class)
+			.addMapAccess(v -> v.state.get(), Primitive.String.class, ManagedValue.class,
+					k -> Primitive.from(k), k -> k.getStringValue(),
+					Function.identity(), Function.identity());
 
 	protected ManagedFunction createStateAccessor(GlobalScope globalScope, Function<String, ManagedValue> getter, BiConsumer<String, ManagedValue> setter) {
 		return NativeFunction.simple(globalScope, List.of("name", "value?"), List.of(Primitive.String.class, ManagedValue.class), (args, scope, result) -> {
@@ -137,13 +153,23 @@ public class PlcScriptEngine extends ScriptEngine {
 		globalScope.declareGlobal("print", NativeFunction.simple(globalScope, List.of("message"), (args, scope, result) -> {
 			var message = args.get(0);
 
-			this.owner.log(formatValue(message));
+			if (message instanceof Primitive.String stringMessage) {
+				this.owner.log(Component.literal(stringMessage.value));
+				return;
+			}
+
+			this.owner.log(formatValue(message, scope.globalScope));
 		}));
 
 		globalScope.declareGlobal("s", createStateAccessor(globalScope, (key) -> getDevice().getState(key), (key, value) -> {
 			getDevice().setState(key, value);
 			this.owner.setChanged();
 		}));
+
+		globalScope.declareGlobal("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> {
+			this.owner.setChanged();
+			return getDevice().state;
+		})));
 
 		globalScope.declareGlobal("setDomain", NativeFunction.simple(globalScope, List.of("name"), List.of(Primitive.String.class), (args, scope, result) -> {
 			var device = getDevice();
@@ -197,7 +223,7 @@ public class PlcScriptEngine extends ScriptEngine {
 		var result = super.executeCode(path, code);
 
 		if (result != null && path.equals("command")) {
-			this.owner.log(formatValue(result));
+			this.owner.log(formatValue(result, this.getGlobalScope()));
 		}
 
 		return result;

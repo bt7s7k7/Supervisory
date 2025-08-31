@@ -64,23 +64,11 @@ public abstract class ScriptEngine {
         return this.globalScope == null;
     }
 
-    public static Component formatValue(ManagedValue value) {
-        if (value == Primitive.VOID || value == Primitive.NULL) {
-            return Component.literal(ExpressionEvaluator.getValueName(value)).withStyle(ChatFormatting.GRAY);
-        }
+	public static Component formatValue(ManagedValue value, GlobalScope globalScope) {
+		if (value == Primitive.VOID || value == Primitive.NULL) {
+			return Component.literal(ExpressionEvaluator.getValueName(value)).withStyle(ChatFormatting.GRAY);
+		}
 
-        if (value instanceof Primitive.Boolean booleanValue) {
-            return Component.literal(Boolean.toString(booleanValue.value)).withStyle(ChatFormatting.GOLD);
-        }
-
-        if (value instanceof Primitive.Number numberValue) {
-            return Component.literal(Double.toString(numberValue.value)).withStyle(ChatFormatting.GOLD);
-        }
-
-        if (value instanceof Primitive.String stringValue) {
-            return Component.literal(stringValue.value);
-        }
-
-        return Component.literal(value.toString()).withStyle(ChatFormatting.BLUE);
-    }
+		return Component.literal(globalScope.inspect(value)).withStyle(ChatFormatting.GOLD);
+	}
 }
