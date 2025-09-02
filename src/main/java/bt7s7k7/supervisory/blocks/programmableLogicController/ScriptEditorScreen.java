@@ -6,10 +6,10 @@ import com.mojang.blaze3d.platform.InputConstants;
 
 import bt7s7k7.supervisory.I18n;
 import bt7s7k7.supervisory.Supervisory;
-import bt7s7k7.supervisory.blocks.programmableLogicController.support.CodeEditorWidget;
-import bt7s7k7.supervisory.blocks.programmableLogicController.support.LogEventRouter;
 import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
+import bt7s7k7.supervisory.script.CodeEditorWidget;
 import bt7s7k7.supervisory.support.GridLayout;
+import bt7s7k7.supervisory.support.LogEventRouter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -24,13 +24,13 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class ProgrammableLogicControllerScreen extends Screen {
+public class ScriptEditorScreen extends Screen {
 	public final ScriptedDeviceHost host;
 	public final ScriptedDeviceHost.Configuration configuration;
 
 	public String commandInput = "";
 
-	protected ProgrammableLogicControllerScreen(ScriptedDeviceHost blockEntity, ScriptedDeviceHost.Configuration configuration) {
+	public ScriptEditorScreen(ScriptedDeviceHost blockEntity, ScriptedDeviceHost.Configuration configuration) {
 		super(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_TITLE.toComponent());
 		this.host = blockEntity;
 		this.configuration = configuration;

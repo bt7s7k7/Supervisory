@@ -8,14 +8,14 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import bt7s7k7.supervisory.Supervisory;
-import bt7s7k7.supervisory.blocks.programmableLogicController.reactivity.RemoteValueReactiveDependency;
-import bt7s7k7.supervisory.blocks.programmableLogicController.support.LogEventRouter;
 import bt7s7k7.supervisory.composition.BlockEntityComponent;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
+import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
 import bt7s7k7.supervisory.redstone.RedstoneStateComponent;
+import bt7s7k7.supervisory.support.LogEventRouter;
 import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.ChatFormatting;
@@ -188,7 +188,7 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 
 	@OnlyIn(Dist.CLIENT)
 	private void displayScreen(Configuration configuration) {
-		Minecraft.getInstance().setScreen(new ProgrammableLogicControllerScreen(this, configuration));
+		Minecraft.getInstance().setScreen(new ScriptEditorScreen(this, configuration));
 	}
 
 	@Override

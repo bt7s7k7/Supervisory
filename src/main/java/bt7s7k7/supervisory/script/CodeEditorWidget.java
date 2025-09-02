@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.blocks.programmableLogicController.support;
+package bt7s7k7.supervisory.script;
 
 import java.util.function.Function;
 

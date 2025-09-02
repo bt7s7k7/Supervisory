@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.blocks.programmableLogicController.support;
+package bt7s7k7.supervisory.support;
 
 import java.util.HashMap;
 import java.util.HashSet;
