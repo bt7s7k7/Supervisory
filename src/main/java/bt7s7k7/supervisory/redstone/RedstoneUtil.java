@@ -29,7 +29,9 @@ public class RedstoneUtil {
 	}
 
 	public static void sendOutputSignal(BlockPos pos, BlockState state, Level level, Direction direction, int strength) {
-		BlockPos targetPosition = pos.relative(direction);
+		// Level can be null if this function is executed when an BlockEntity is created, but before the level is loaded
+		if (level == null) return;
+		var targetPosition = pos.relative(direction);
 
 		if (EventHooks.onNeighborNotify(level, pos, state, EnumSet.of(direction), false).isCanceled()) {
 			return;
