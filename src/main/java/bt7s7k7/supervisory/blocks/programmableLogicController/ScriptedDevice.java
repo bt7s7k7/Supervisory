@@ -33,16 +33,16 @@ import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
-public class PlcScriptEngine extends ScriptEngine {
-	protected final ProgrammableLogicControllerBlockEntity owner;
+public class ScriptedDevice extends ScriptEngine {
+	protected final ScriptedDeviceHost host;
 
-	public PlcScriptEngine(ProgrammableLogicControllerBlockEntity owner) {
-		this.owner = owner;
+	public ScriptedDevice(ScriptedDeviceHost host) {
+		this.host = host;
 	}
 
 	@Override
 	protected void handleError(Diagnostic error) {
-		this.owner.log(Component.literal(error.format()).withStyle(ChatFormatting.RED));
+		this.host.log(Component.literal(error.format()).withStyle(ChatFormatting.RED));
 	}
 
 	protected static class StateHandle {
@@ -116,7 +116,7 @@ public class PlcScriptEngine extends ScriptEngine {
 
 	@Override
 	protected void initializeGlobals(GlobalScope globalScope) {
-		this.owner.log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
+		this.host.log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
 
 		this.reactivityManager = new ReactivityManager(globalScope);
 		this.reactivityTick = TickReactiveDependency.get(reactivityManager);
@@ -125,17 +125,17 @@ public class PlcScriptEngine extends ScriptEngine {
 		{
 			this.reactiveRedstone = new RedstoneReactiveDependency[6];
 			var redstoneTable = globalScope.declareGlobal("redstone", new ManagedTable(globalScope.TablePrototype));
-			var front = this.owner.getFront();
+			var front = this.host.entity.getFront();
 
 			for (var direction : Side.values()) {
 				var absoluteDirection = direction.getDirection(front);
-				var redstoneValue = this.owner.getInput(absoluteDirection);
+				var redstoneValue = this.host.redstone.getInput(absoluteDirection);
 				var dependency = RedstoneReactiveDependency.get(this.reactivityManager, direction, redstoneValue);
 				reactiveRedstone[direction.index] = dependency;
 				redstoneTable.declareProperty(direction.name, dependency.getHandle());
 				redstoneTable.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> {
 					var strength = args.get(0).getNumberValue();
-					this.owner.setOutput(absoluteDirection, (int) strength);
+					this.host.redstone.setOutput(absoluteDirection, (int) strength);
 					result.value = null;
 				}));
 			}
@@ -146,7 +146,7 @@ public class PlcScriptEngine extends ScriptEngine {
 			for (var key : device.getStateKeys()) {
 				var result = this.importValue(device.getState(key));
 				if (result == null) {
-					this.owner.log(Component.literal("Failed to import state value: " + key).withStyle(ChatFormatting.RED));
+					this.host.log(Component.literal("Failed to import state value: " + key).withStyle(ChatFormatting.RED));
 					continue;
 				}
 				device.setState(key, result);
@@ -157,20 +157,20 @@ public class PlcScriptEngine extends ScriptEngine {
 			var message = args.get(0);
 
 			if (message instanceof Primitive.String stringMessage) {
-				this.owner.log(Component.literal(stringMessage.value));
+				this.host.log(Component.literal(stringMessage.value));
 				return;
 			}
 
-			this.owner.log(formatValue(message, scope.globalScope));
+			this.host.log(formatValue(message, scope.globalScope));
 		}));
 
 		globalScope.declareGlobal("s", createStateAccessor(globalScope, (key) -> getDevice().getState(key), (key, value) -> {
 			getDevice().setState(key, value);
-			this.owner.setChanged();
+			this.host.entity.setChanged();
 		}));
 
 		globalScope.declareGlobal("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> {
-			this.owner.setChanged();
+			this.host.entity.setChanged();
 			return getDevice().state;
 		})));
 
@@ -208,12 +208,12 @@ public class PlcScriptEngine extends ScriptEngine {
 	}
 
 	private NetworkDevice getDevice() {
-		return this.owner.getDevice();
+		return this.host.deviceHost.getDevice();
 	}
 
 	public void processTasks() {
 		if (this.reactivityTick != null) {
-			this.reactivityTick.updateValue(Primitive.from((double) this.owner.getLevel().getGameTime()));
+			this.reactivityTick.updateValue(Primitive.from((double) this.host.entity.getLevel().getGameTime()));
 		}
 
 		if (this.reactivityManager != null) {
@@ -226,7 +226,7 @@ public class PlcScriptEngine extends ScriptEngine {
 		var result = super.executeCode(path, code);
 
 		if (result != null && path.equals("command")) {
-			this.owner.log(formatValue(result, this.getGlobalScope()));
+			this.host.log(formatValue(result, this.getGlobalScope()));
 		}
 
 		return result;

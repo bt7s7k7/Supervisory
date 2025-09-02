@@ -16,13 +16,13 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RemoteTerminalUnitScreen extends Screen {
-	public final RemoteTerminalUnitBlockEntity blockEntity;
-	public final RemoteTerminalUnitBlockEntity.Configuration configuration;
+	public final RemoteTerminalUnitBehaviour host;
+	public final RemoteTerminalUnitBehaviour.Configuration configuration;
 
-	protected RemoteTerminalUnitScreen(RemoteTerminalUnitBlockEntity blockEntity, RemoteTerminalUnitBlockEntity.Configuration configuration) {
+	protected RemoteTerminalUnitScreen(RemoteTerminalUnitBehaviour blockEntity, RemoteTerminalUnitBehaviour.Configuration configuration) {
 		super(I18n.REMOTE_TERMINAL_UNIT_TITLE.toComponent());
 
-		this.blockEntity = blockEntity;
+		this.host = blockEntity;
 		this.configuration = configuration;
 	}
 
@@ -74,11 +74,11 @@ public class RemoteTerminalUnitScreen extends Screen {
 								layout_1.next();
 
 								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.APPLY.toComponent(), e -> {
-									ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, this.configuration);
+									ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, this.configuration);
 								}).build()));
 
 								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.DONE.toComponent(), e -> {
-									ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, this.configuration);
+									ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, this.configuration);
 									this.onClose();
 								}).build()));
 							})

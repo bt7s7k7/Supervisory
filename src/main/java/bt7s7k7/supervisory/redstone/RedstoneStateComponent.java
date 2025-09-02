@@ -1,22 +1,28 @@
-package bt7s7k7.supervisory.blocks.smartRedstoneComponent;
+package bt7s7k7.supervisory.redstone;
 
+import bt7s7k7.supervisory.composition.BlockEntityComponent;
+import bt7s7k7.supervisory.composition.ComponentSignal;
+import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class SmartRedstoneComponentBlockEntity extends BlockEntity {
-	public SmartRedstoneComponentBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
-		super(type, pos, blockState);
+public class RedstoneStateComponent extends BlockEntityComponent {
+
+	public RedstoneStateComponent(CompositeBlockEntity entity) {
+		super(entity);
 	}
 
 	private int[] inputs = new int[6];
 	private int[] outputs = new int[6];
+
+	public static record RedstoneInputChangedEvent(Direction direction, int strength) {}
+
+	public final ComponentSignal.Emitter<RedstoneInputChangedEvent> onRedstoneInputChanged = new ComponentSignal.Emitter<>();
 
 	public int getInput(Direction direction) {
 		return this.inputs[direction.get3DDataValue()];
@@ -25,10 +31,8 @@ public abstract class SmartRedstoneComponentBlockEntity extends BlockEntity {
 	public void setInput(Direction direction, int strength) {
 		if (strength == this.getInput(direction)) return;
 		this.inputs[direction.get3DDataValue()] = strength;
-		this.handleRedstoneInputChange(direction, strength);
+		this.onRedstoneInputChanged.emit(new RedstoneInputChangedEvent(direction, strength));
 	}
-
-	protected abstract void handleRedstoneInputChange(Direction direction, int strength);
 
 	public int getOutput(Direction direction) {
 		return this.outputs[direction.get3DDataValue()];
@@ -40,12 +44,12 @@ public abstract class SmartRedstoneComponentBlockEntity extends BlockEntity {
 		if (strength == this.getOutput(direction)) return;
 		this.outputs[direction.get3DDataValue()] = strength;
 
-		RedstoneUtil.sendOutputSignal(this.worldPosition, this.getBlockState(), this.level, direction, strength);
+		RedstoneUtil.sendOutputSignal(this.entity.getBlockPos(), this.entity.getBlockState(), this.entity.getLevel(), direction, strength);
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, Provider registries) {
-		super.loadAdditional(tag, registries);
+	public void read(CompoundTag tag, Provider registries) {
+		super.read(tag, registries);
 
 		var inputs = tag.getIntArray("redstone_input");
 		if (inputs.length == 6) this.inputs = inputs;
@@ -55,13 +59,14 @@ public abstract class SmartRedstoneComponentBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag, Provider registries) {
-		super.saveAdditional(tag, registries);
+	public void write(CompoundTag tag, Provider registries) {
+		super.write(tag, registries);
 
 		tag.putIntArray("redstone_input", this.inputs);
 		tag.putIntArray("redstone_output", this.outputs);
 	}
 
+	@Override
 	public void handleNeighbourChange(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
 		var delta = fromPos.subtract(pos);
 		var towardsNeighbour = Direction.fromDelta(delta.getX(), delta.getY(), delta.getZ());
@@ -69,4 +74,11 @@ public abstract class SmartRedstoneComponentBlockEntity extends BlockEntity {
 
 		this.setInput(towardsNeighbour, signal);
 	}
+
+	@Override
+	public void teardown() {
+		super.teardown();
+		this.onRedstoneInputChanged.teardown();
+	}
+
 }

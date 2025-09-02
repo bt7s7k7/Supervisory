@@ -8,94 +8,99 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import bt7s7k7.supervisory.Supervisory;
-import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlockEntity;
 import bt7s7k7.supervisory.blocks.programmableLogicController.reactivity.RemoteValueReactiveDependency;
 import bt7s7k7.supervisory.blocks.programmableLogicController.support.LogEventRouter;
+import bt7s7k7.supervisory.composition.BlockEntityComponent;
+import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
+import bt7s7k7.supervisory.network.NetworkDeviceHost;
+import bt7s7k7.supervisory.redstone.RedstoneStateComponent;
 import bt7s7k7.supervisory.support.Side;
-import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.loading.FMLLoader;
 
-public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceBlockEntity implements Configurable<ProgrammableLogicControllerBlockEntity.Configuration> {
-
-	public ProgrammableLogicControllerBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
-		super(type, pos, blockState);
-	}
-
-	protected NetworkDevice savedState = null;
-	protected String desiredDomain = null;
-	protected boolean failed = false;
+public class ScriptedDeviceHost extends BlockEntityComponent implements Configurable<ScriptedDeviceHost.Configuration> {
+	public final NetworkDeviceHost deviceHost;
+	public final RedstoneStateComponent redstone;
 
 	@Override
-	public void setDevice(NetworkDevice device, boolean fresh) {
-		var oldDevice = this.tryGetDevice();
-		if (oldDevice != null) {
-			savedState = oldDevice;
-		}
-
-		super.setDevice(device, fresh);
-
-		if (device.isConnected()) {
-			this.log(Component.literal("Connected to domain: " + device.domain).withStyle(ChatFormatting.BLUE));
-		}
+	public EventPriority priority() {
+		// Because our code is executed during NetworkDevice initialization, ensure our code is
+		// loaded before the NetworkDevice is loaded.
+		return EventPriority.HIGH;
 	}
 
-	@Override
-	protected void initializeNetworkDevice(NetworkDevice device, boolean fresh) {
-		if (savedState != null) {
-			device.state.putAll(savedState.state);
-			device.cache.putAll(savedState.cache);
-			savedState = null;
-		}
+	public ScriptedDeviceHost(CompositeBlockEntity entity) {
+		super(entity);
 
-		this.scriptEngine.clear();
-		this.scriptEngine.executeCode("code", this.configuration.code);
+		this.deviceHost = entity.useComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
+		this.redstone = entity.useComponent(RedstoneStateComponent.class, RedstoneStateComponent::new);
 
-		// Remove entries that are not longer subscribed to from the cache
-		for (var it = device.cache.keySet().iterator(); it.hasNext();) {
-			var key = it.next();
-			if (!device.subscriptions.contains(key)) {
-				it.remove();
+		this.connect(deviceHost.onInitializeNetworkDevice, event -> {
+			var savedState = event.oldDevice();
+			var device = event.device();
+
+			if (savedState != null) {
+				device.state.putAll(savedState.state);
+				device.cache.putAll(savedState.cache);
 			}
-		}
 
-		if (desiredDomain != null) {
-			device.domain = desiredDomain;
-		}
+			this.scriptEngine.clear();
+			this.scriptEngine.executeCode("code", this.configuration.code);
+
+			// Remove entries that are not longer subscribed to from the cache
+			for (var it = device.cache.keySet().iterator(); it.hasNext();) {
+				var key = it.next();
+				if (!device.subscriptions.contains(key)) {
+					it.remove();
+				}
+			}
+
+			if (desiredDomain != null) {
+				device.domain = desiredDomain;
+			}
+		});
+
+		this.connect(deviceHost.onDeviceInitialized, device -> {
+			if (device.isConnected()) {
+				this.log(Component.literal("Connected to domain: " + device.domain).withStyle(ChatFormatting.BLUE));
+			}
+		});
+
+		this.connect(deviceHost.onNetworkUpdate, event -> {
+			var key = event.key();
+			var value = event.value();
+
+			var reactivityManager = this.scriptEngine.reactivityManager;
+			if (reactivityManager == null) return;
+
+			var dependency = RemoteValueReactiveDependency.get(reactivityManager, key, value);
+			dependency.updateValue(value);
+		});
+
+		this.connect(redstone.onRedstoneInputChanged, event -> {
+			var direction = event.direction();
+			var strength = event.strength();
+
+			var handlers = this.scriptEngine.reactiveRedstone;
+			if (handlers == null) return;
+			var relative = Side.from(this.entity.getFront(), direction);
+			handlers[relative.index].updateValue(Primitive.from(strength));
+		});
 	}
 
-	@Override
-	protected void handleNetworkUpdate(String key, ManagedValue value) {
-		var reactivityManager = this.scriptEngine.reactivityManager;
-		if (reactivityManager == null) return;
-
-		var dependency = RemoteValueReactiveDependency.get(reactivityManager, key, value);
-		dependency.updateValue(value);
-	}
-
-	@Override
-	protected void handleRedstoneInputChange(Direction direction, int strength) {
-		var handlers = this.scriptEngine.reactiveRedstone;
-		if (handlers == null) return;
-		var relative = Side.from(this.getFront(), direction);
-		handlers[relative.index].updateValue(Primitive.from(strength));
-	}
+	protected String desiredDomain = null;
 
 	public static class Configuration {
 		public String command = "";
@@ -125,7 +130,7 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 	private ArrayList<Component> pendingLogEntries = new ArrayList<>();
 
 	public void log(Component message) {
-		if (this.level == null) {
+		if (this.entity.getLevel() == null) {
 			this.pendingLogEntries.add(message);
 			return;
 		}
@@ -135,35 +140,25 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 			this.configuration.log.removeFirst();
 		}
 
-		LogEventRouter.getInstance().sendLogEvent(level, worldPosition, message);
-		this.setChanged();
+		LogEventRouter.getInstance().sendLogEvent(this.entity.getLevel(), this.entity.getBlockPos(), message);
+		this.entity.setChanged();
 	}
 
 	public Configuration configuration = new Configuration();
-	public PlcScriptEngine scriptEngine = new PlcScriptEngine(this);
+	public ScriptedDevice scriptEngine = new ScriptedDevice(this);
 
 	@Override
-	public void saveAdditional(CompoundTag tag, Provider registries) {
+	public void write(CompoundTag tag, Provider registries) {
 		var result = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow();
 		result.remove("command");
 		tag.merge(result);
-
-		super.saveAdditional(tag, registries);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, Provider registries) {
+	public void read(CompoundTag tag, Provider registries) {
 		Configuration.CODEC.parse(NbtOps.INSTANCE, tag).ifSuccess(configuration -> {
 			this.configuration = configuration;
 		});
-
-		try {
-			// Load Configuration before NetworkDevice so the code is already loaded when it's executed during initializeNetworkDevice()
-			super.loadAdditional(tag, registries);
-		} catch (Exception exception) {
-			this.failed = true;
-			Supervisory.LOGGER.error("Failed to load ProgrammableLogicControllerBlockEntity at " + this.getBlockPos(), exception);
-		}
 	}
 
 	@Override
@@ -179,10 +174,11 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 			this.scriptEngine.clear();
 		} else {
 			this.log(Component.literal("> ").withStyle(ChatFormatting.GREEN).append(Component.literal(configuration.command).withStyle(ChatFormatting.BLUE)));
+			Supervisory.LOGGER.debug("Executed command: " + configuration.command);
 			this.scriptEngine.executeCode("command", configuration.command);
 		}
 
-		this.setChanged();
+		this.entity.setChanged();
 	}
 
 	@Override
@@ -203,9 +199,7 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 	}
 
 	@Override
-	public void tick(Level level, BlockPos pos, BlockState state) {
-		if (this.failed) return;
-
+	public void tick() {
 		if (!this.pendingLogEntries.isEmpty()) {
 			for (var entry : this.pendingLogEntries) {
 				this.log(entry);
@@ -214,17 +208,10 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 			this.pendingLogEntries.clear();
 		}
 
-		try {
-			super.tick(level, pos, state);
-
-			if (this.scriptEngine.isEmpty()) {
-				this.setDevice(new NetworkDevice(""), true);
-			}
-
-			this.scriptEngine.processTasks();
-		} catch (Exception exception) {
-			this.failed = true;
-			Supervisory.LOGGER.error("Failed to process tick for ProgrammableLogicControllerBlockEntity at " + this.getBlockPos(), exception);
+		if (this.scriptEngine.isEmpty()) {
+			this.deviceHost.setDevice(new NetworkDevice(""), true);
 		}
+
+		this.scriptEngine.processTasks();
 	}
 }

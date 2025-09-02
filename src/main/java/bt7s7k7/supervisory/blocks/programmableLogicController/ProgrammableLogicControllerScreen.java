@@ -25,14 +25,14 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ProgrammableLogicControllerScreen extends Screen {
-	public final ProgrammableLogicControllerBlockEntity blockEntity;
-	public final ProgrammableLogicControllerBlockEntity.Configuration configuration;
+	public final ScriptedDeviceHost host;
+	public final ScriptedDeviceHost.Configuration configuration;
 
 	public String commandInput = "";
 
-	protected ProgrammableLogicControllerScreen(ProgrammableLogicControllerBlockEntity blockEntity, ProgrammableLogicControllerBlockEntity.Configuration configuration) {
+	protected ProgrammableLogicControllerScreen(ScriptedDeviceHost blockEntity, ScriptedDeviceHost.Configuration configuration) {
 		super(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_TITLE.toComponent());
-		this.blockEntity = blockEntity;
+		this.host = blockEntity;
 		this.configuration = configuration;
 		LogEventRouter.getInstance().onLogReceived = this::handleLogReceived;
 	}
@@ -196,8 +196,8 @@ public class ProgrammableLogicControllerScreen extends Screen {
 		this.configuration.log.clear();
 		this.rebuildLogView();
 
-		var configuration = new ProgrammableLogicControllerBlockEntity.Configuration("", this.configuration.code, Collections.emptyList());
-		ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, configuration);
+		var configuration = new ScriptedDeviceHost.Configuration("", this.configuration.code, Collections.emptyList());
+		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
 	}
 
 	protected void submitCommand() {
@@ -205,8 +205,8 @@ public class ProgrammableLogicControllerScreen extends Screen {
 			return;
 		}
 
-		var configuration = new ProgrammableLogicControllerBlockEntity.Configuration(this.commandInput, "", Collections.emptyList());
-		ConfigurationScreenManager.submitConfiguration(this.blockEntity.getBlockPos(), this.blockEntity, configuration);
+		var configuration = new ScriptedDeviceHost.Configuration(this.commandInput, "", Collections.emptyList());
+		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
 		this.commandInput = "";
 	}
 

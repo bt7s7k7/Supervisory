@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.blocks.smartRedstoneComponent;
+package bt7s7k7.supervisory.redstone;
 
 import java.util.EnumSet;
 
