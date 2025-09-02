@@ -33,10 +33,11 @@ public class ReactiveScope {
 						this.dependencies.add(dependency);
 					}
 
-					result.value = dependency.getValue();
-					if (result.value == Primitive.VOID) {
+					if (!dependency.isReady()) {
 						this.missingDependency = true;
 					}
+
+					result.value = dependency.getValue();
 
 					return;
 				}),

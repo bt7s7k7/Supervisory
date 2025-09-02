@@ -9,8 +9,13 @@ public class TickReactiveDependency extends ReactiveDependency<Primitive.Number>
 		super(owner, name, value);
 	}
 
-	public static TickReactiveDependency get(ReactivityManager manager, double value) {
-		var instance = manager.ensureDependency("tick", TickReactiveDependency.class, Primitive.from(value));
+	@Override
+	public boolean isReady() {
+		return !this.value.equals(Primitive.ZERO);
+	}
+
+	public static TickReactiveDependency get(ReactivityManager manager) {
+		var instance = manager.ensureDependency("tick", TickReactiveDependency.class, Primitive.ZERO);
 		return instance;
 	}
 }

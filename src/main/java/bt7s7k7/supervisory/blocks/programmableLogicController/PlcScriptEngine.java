@@ -119,7 +119,7 @@ public class PlcScriptEngine extends ScriptEngine {
 		this.owner.log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
 
 		this.reactivityManager = new ReactivityManager(globalScope);
-		this.reactivityTick = TickReactiveDependency.get(reactivityManager, this.owner.getLevel() == null ? 0 : (double) this.owner.getLevel().getGameTime());
+		this.reactivityTick = TickReactiveDependency.get(reactivityManager);
 		globalScope.declareGlobal("tick", this.reactivityTick.getHandle());
 
 		{

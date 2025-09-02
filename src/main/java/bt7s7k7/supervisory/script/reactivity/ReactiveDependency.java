@@ -16,6 +16,10 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 
 	protected T value;
 
+	public boolean isReady() {
+		return true;
+	}
+
 	public T getValue() {
 		return value;
 	}

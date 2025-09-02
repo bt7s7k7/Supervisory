@@ -25,7 +25,7 @@ public class ReactivityManager {
 
 	@SuppressWarnings("rawtypes")
 	protected static final NativeHandleWrapper<ReactiveDependency> REACTIVE_DEPENDENCY_HANDLE_WRAPPER = new NativeHandleWrapper<ReactiveDependency>(ReactiveDependency.class)
-			.addGetter("value", v -> v.value);
+			.addGetter("value", v -> v.getValue());
 
 	public ReactivityManager(GlobalScope globalScope) {
 		this.globalScope = globalScope;
