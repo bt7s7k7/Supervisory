@@ -1,5 +1,10 @@
 package bt7s7k7.supervisory.blocks.remoteTerminalUnit;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -8,9 +13,8 @@ import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
-import bt7s7k7.supervisory.redstone.RedstoneStateComponent;
+import bt7s7k7.supervisory.redstone.RedstoneState;
 import bt7s7k7.supervisory.support.Side;
-import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -18,61 +22,24 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.loading.FMLLoader;
 
-public class RemoteTerminalUnitBehaviour extends BlockEntityComponent implements Configurable<RemoteTerminalUnitBehaviour.Configuration> {
-	public final NetworkDeviceHost deviceHost;
-	public final RedstoneStateComponent redstone;
+public class IOManager extends BlockEntityComponent implements Configurable<IOManager.Configuration> {
+	protected final NetworkDeviceHost deviceHost;
 
-	public RemoteTerminalUnitBehaviour(CompositeBlockEntity entity) {
-		super(entity);
-
-		this.deviceHost = entity.useComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
-		this.redstone = entity.useComponent(RedstoneStateComponent.class, RedstoneStateComponent::new);
-
-		this.connect(this.deviceHost.onInitializeNetworkDevice, event -> {
-			var device = event.device();
-			var fresh = event.fresh();
-
-			if (fresh) {
-				if (!this.configuration.output.isEmpty()) {
-					for (var direction : Direction.values()) {
-						this.handleRedstoneInputChange(direction, this.redstone.getInput(direction));
-					}
-				}
-			}
-
-			if (!this.configuration.input.isEmpty()) {
-				for (var direction : Side.values()) {
-					device.subscribe(this.configuration.input + "." + direction.name);
-				}
-			}
-		});
-
-		this.connect(this.deviceHost.onNetworkUpdate, event -> {
-			var value = event.value();
-			var key = event.key();
-
-			if (value instanceof Primitive.Number numberValue && !this.configuration.input.isEmpty()) {
-				for (var direction : Side.values()) {
-					var name = this.configuration.input + "." + direction.name;
-					if (name.equals(key)) {
-						this.redstone.setOutput(direction.getDirection(this.entity.getFront()), (int) numberValue.value);
-					}
-				}
-			}
-		});
-
-		this.connect(this.redstone.onRedstoneInputChanged, event -> {
-			this.handleRedstoneInputChange(event.direction(), event.strength());
-		});
+	@Override
+	public EventPriority priority() {
+		// Make sure our configuration is loaded before NetworkDevice, so we can set the domain,
+		// setup subscriptions and publish resources before we are connected
+		return EventPriority.HIGH;
 	}
 
-	private void handleRedstoneInputChange(Direction direction, int strength) {
-		if (this.configuration.output.isEmpty()) return;
-		if (!this.deviceHost.hasDevice()) return;
-		var relativeDirection = Side.from(this.entity.getFront(), direction);
-		this.deviceHost.getDevice().publishResource(this.configuration.output + "." + relativeDirection.name, Primitive.from(strength));
+	public IOManager(CompositeBlockEntity entity) {
+		super(entity);
+
+		this.deviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
+		entity.ensureComponent(RedstoneState.class, RedstoneState::new);
 	}
 
 	public static class Configuration implements Cloneable {
@@ -108,7 +75,55 @@ public class RemoteTerminalUnitBehaviour extends BlockEntityComponent implements
 				.apply(instance, Configuration::new)));
 	}
 
-	public Configuration configuration = new Configuration();
+	protected Configuration configuration = new Configuration();
+
+	protected static List<Map.Entry<Direction, String>> parseLinkage(Direction front, String linkage) {
+		var result = new ArrayList<Map.Entry<Direction, String>>();
+
+		for (var input : linkage.split(",")) {
+			input = input.trim();
+			if (input.isEmpty()) continue;
+
+			var tokens = input.split(":", 2);
+			if (tokens.length == 1) {
+				for (var side : Side.values()) {
+					var direction = side.getDirection(front);
+					result.add(new AbstractMap.SimpleEntry<>(direction, tokens[0] + "." + side.name));
+					continue;
+				}
+			}
+
+			var sideToken = tokens[0].trim();
+			var side = Side.getByName(sideToken);
+			if (side != null) {
+				var direction = side.getDirection(front);
+				result.add(new AbstractMap.SimpleEntry<>(direction, tokens[1].trim()));
+				continue;
+			}
+
+			var direction = Direction.byName(sideToken);
+			if (direction != null) {
+				result.add(new AbstractMap.SimpleEntry<>(direction, tokens[1].trim()));
+				continue;
+			}
+		}
+
+		return result;
+	}
+
+	protected void updateIOComponents() {
+		this.entity.deleteComponents(IOComponent.class::isInstance);
+
+		var front = this.entity.getFront();
+
+		for (var kv : parseLinkage(front, this.configuration.input)) {
+			this.entity.addComponent(new IOComponent.RedstoneInput(entity, kv.getValue(), kv.getKey()));
+		}
+
+		for (var kv : parseLinkage(front, this.configuration.output)) {
+			this.entity.addComponent(new IOComponent.RedstoneOutput(entity, kv.getValue(), kv.getKey()));
+		}
+	}
 
 	@Override
 	public void read(CompoundTag tag, HolderLookup.Provider registries) {
@@ -116,6 +131,7 @@ public class RemoteTerminalUnitBehaviour extends BlockEntityComponent implements
 
 		Configuration.CODEC.parse(NbtOps.INSTANCE, tag).ifSuccess(configuration -> {
 			this.configuration = configuration;
+			this.updateIOComponents();
 		});
 	}
 
@@ -143,6 +159,7 @@ public class RemoteTerminalUnitBehaviour extends BlockEntityComponent implements
 		}
 
 		this.configuration = configuration;
+		this.updateIOComponents();
 		this.deviceHost.setDevice(new NetworkDevice(configuration.domain), true);
 		this.entity.setChanged();
 	}

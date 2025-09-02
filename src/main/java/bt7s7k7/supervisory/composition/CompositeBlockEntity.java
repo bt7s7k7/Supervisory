@@ -1,7 +1,9 @@
 package bt7s7k7.supervisory.composition;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -39,7 +41,7 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 		return component;
 	}
 
-	public <T extends BlockEntityComponent> T useComponent(Class<T> type, Function<CompositeBlockEntity, T> ctor) {
+	public <T extends BlockEntityComponent> T ensureComponent(Class<T> type, Function<CompositeBlockEntity, T> ctor) {
 		var existing = this.components.stream().filter(type::isInstance).findFirst();
 		if (existing.isPresent()) return type.cast(existing.get());
 
@@ -52,6 +54,10 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 
 	public <T> Optional<T> getComponent(Class<T> type) {
 		return this.components.stream().filter(type::isInstance).map(type::cast).findFirst();
+	}
+
+	public List<BlockEntityComponent> getComponents() {
+		return Collections.unmodifiableList(this.components);
 	}
 
 	public void deleteComponents(Predicate<BlockEntityComponent> predicate) {
@@ -70,7 +76,9 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 		if (this.failed) return;
 
 		try {
-			for (var component : components) {
+			// Create a copy of the current components, so components can create or delete component
+			// during their tick handler
+			for (var component : new ArrayList<>(components)) {
 				component.tick();
 			}
 		} catch (Exception exception) {
@@ -108,7 +116,9 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 		try {
 			super.loadAdditional(tag, registries);
 
-			for (var component : this.components) {
+			// Create copy of the current components, since some component would like to create
+			// components based on loaded data
+			for (var component : new ArrayList<>(this.components)) {
 				component.read(tag, registries);
 			}
 		} catch (Exception exception) {

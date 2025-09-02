@@ -5,9 +5,9 @@ import java.util.Optional;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 
 import bt7s7k7.supervisory.I18n;
-import bt7s7k7.supervisory.blocks.programmableLogicController.support.LogEventRouter;
 import bt7s7k7.supervisory.configuration.ConfigurationManager;
-import bt7s7k7.supervisory.redstone.RedstoneStateComponent;
+import bt7s7k7.supervisory.redstone.RedstoneState;
+import bt7s7k7.supervisory.support.LogEventRouter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -62,9 +62,9 @@ public abstract class CompositeBlock extends Block implements EntityBlock {
 		};
 	}
 
-	private Optional<RedstoneStateComponent> getRedstoneState(BlockGetter level, BlockPos pos) {
+	private Optional<RedstoneState> getRedstoneState(BlockGetter level, BlockPos pos) {
 		if (level.getBlockEntity(pos) instanceof CompositeBlockEntity blockEntity) {
-			return blockEntity.getComponent(RedstoneStateComponent.class);
+			return blockEntity.getComponent(RedstoneState.class);
 		}
 
 		return Optional.empty();

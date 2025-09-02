@@ -14,7 +14,7 @@ import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
 import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
-import bt7s7k7.supervisory.redstone.RedstoneStateComponent;
+import bt7s7k7.supervisory.redstone.RedstoneState;
 import bt7s7k7.supervisory.support.LogEventRouter;
 import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.support.Primitive;
@@ -32,7 +32,7 @@ import net.neoforged.fml.loading.FMLLoader;
 
 public class ScriptedDeviceHost extends BlockEntityComponent implements Configurable<ScriptedDeviceHost.Configuration> {
 	public final NetworkDeviceHost deviceHost;
-	public final RedstoneStateComponent redstone;
+	public final RedstoneState redstone;
 
 	@Override
 	public EventPriority priority() {
@@ -44,8 +44,8 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 	public ScriptedDeviceHost(CompositeBlockEntity entity) {
 		super(entity);
 
-		this.deviceHost = entity.useComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
-		this.redstone = entity.useComponent(RedstoneStateComponent.class, RedstoneStateComponent::new);
+		this.deviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
+		this.redstone = entity.ensureComponent(RedstoneState.class, RedstoneState::new);
 
 		this.connect(deviceHost.onInitializeNetworkDevice, event -> {
 			var savedState = event.oldDevice();

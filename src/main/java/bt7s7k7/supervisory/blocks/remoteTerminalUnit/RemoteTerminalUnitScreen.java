@@ -16,10 +16,10 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class RemoteTerminalUnitScreen extends Screen {
-	public final RemoteTerminalUnitBehaviour host;
-	public final RemoteTerminalUnitBehaviour.Configuration configuration;
+	public final IOManager host;
+	public final IOManager.Configuration configuration;
 
-	protected RemoteTerminalUnitScreen(RemoteTerminalUnitBehaviour blockEntity, RemoteTerminalUnitBehaviour.Configuration configuration) {
+	protected RemoteTerminalUnitScreen(IOManager blockEntity, IOManager.Configuration configuration) {
 		super(I18n.REMOTE_TERMINAL_UNIT_TITLE.toComponent());
 
 		this.host = blockEntity;
