@@ -17,7 +17,7 @@ import bt7s7k7.supervisory.blocks.programmableLogicController.reactivity.TickRea
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.script.ScriptEngine;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
-import bt7s7k7.supervisory.support.RelativeDirection;
+import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
@@ -127,8 +127,8 @@ public class PlcScriptEngine extends ScriptEngine {
 			var redstoneTable = globalScope.declareGlobal("redstone", new ManagedTable(globalScope.TablePrototype));
 			var front = this.owner.getFront();
 
-			for (var direction : RelativeDirection.values()) {
-				var absoluteDirection = direction.getAbsolute(front);
+			for (var direction : Side.values()) {
+				var absoluteDirection = direction.getDirection(front);
 				var redstoneValue = this.owner.getInput(absoluteDirection);
 				var dependency = RedstoneReactiveDependency.get(this.reactivityManager, direction, redstoneValue);
 				reactiveRedstone[direction.index] = dependency;

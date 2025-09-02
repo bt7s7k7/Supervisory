@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import bt7s7k7.supervisory.blocks.directControlDevice.DirectControlDeviceBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
-import bt7s7k7.supervisory.support.RelativeDirection;
+import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.client.Minecraft;
@@ -72,7 +72,7 @@ public class RemoteTerminalUnitBlockEntity extends DirectControlDeviceBlockEntit
 		}
 
 		if (!this.configuration.input.isEmpty()) {
-			for (var direction : RelativeDirection.values()) {
+			for (var direction : Side.values()) {
 				device.subscribe(this.configuration.input + "." + direction.name);
 			}
 		}
@@ -81,10 +81,10 @@ public class RemoteTerminalUnitBlockEntity extends DirectControlDeviceBlockEntit
 	@Override
 	protected void handleNetworkUpdate(String key, ManagedValue value) {
 		if (value instanceof Primitive.Number numberValue && !this.configuration.input.isEmpty()) {
-			for (var direction : RelativeDirection.values()) {
+			for (var direction : Side.values()) {
 				var name = this.configuration.input + "." + direction.name;
 				if (name.equals(key)) {
-					this.setOutput(direction.getAbsolute(this.getFront()), (int) numberValue.value);
+					this.setOutput(direction.getDirection(this.getFront()), (int) numberValue.value);
 				}
 			}
 		}
@@ -148,7 +148,7 @@ public class RemoteTerminalUnitBlockEntity extends DirectControlDeviceBlockEntit
 	protected void handleRedstoneInputChange(Direction direction, int strength) {
 		if (this.configuration.output.isEmpty()) return;
 		if (!this.hasDevice()) return;
-		var relativeDirection = RelativeDirection.from(this.getFront(), direction);
+		var relativeDirection = Side.from(this.getFront(), direction);
 		this.getDevice().publishResource(this.configuration.output + "." + relativeDirection.name, Primitive.from(strength));
 	}
 }

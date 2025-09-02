@@ -13,7 +13,7 @@ import bt7s7k7.supervisory.blocks.programmableLogicController.reactivity.RemoteV
 import bt7s7k7.supervisory.blocks.programmableLogicController.support.LogEventRouter;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
-import bt7s7k7.supervisory.support.RelativeDirection;
+import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.ChatFormatting;
@@ -93,7 +93,7 @@ public class ProgrammableLogicControllerBlockEntity extends DirectControlDeviceB
 	protected void handleRedstoneInputChange(Direction direction, int strength) {
 		var handlers = this.scriptEngine.reactiveRedstone;
 		if (handlers == null) return;
-		var relative = RelativeDirection.from(this.getFront(), direction);
+		var relative = Side.from(this.getFront(), direction);
 		handlers[relative.index].updateValue(Primitive.from(strength));
 	}
 
