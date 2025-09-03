@@ -16,6 +16,10 @@ import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
 import bt7s7k7.supervisory.redstone.RedstoneReactiveDependency;
 import bt7s7k7.supervisory.script.ScriptEngine;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
+import bt7s7k7.supervisory.storage.ItemReport;
+import bt7s7k7.supervisory.storage.StackReport;
+import bt7s7k7.supervisory.storage.StorageAPI;
+import bt7s7k7.supervisory.storage.StorageReport;
 import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
@@ -33,7 +37,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
 public class ScriptedDevice extends ScriptEngine {
-	protected final ScriptedDeviceHost host;
+	public final ScriptedDeviceHost host;
 
 	public ScriptedDevice(ScriptedDeviceHost host) {
 		this.host = host;
@@ -54,7 +58,7 @@ public class ScriptedDevice extends ScriptEngine {
 
 	protected static final NativeHandleWrapper<StateHandle> STATE_HANDLE_WRAPPER = new NativeHandleWrapper<>(StateHandle.class)
 			.addMapAccess(v -> v.state.get(), Primitive.String.class, ManagedValue.class,
-					k -> Primitive.from(k), k -> k.getStringValue(),
+					Primitive::from, ManagedValue::getStringValue,
 					Function.identity(), Function.identity());
 
 	protected ManagedFunction createStateAccessor(GlobalScope globalScope, Function<String, ManagedValue> getter, BiConsumer<String, ManagedValue> setter) {
@@ -112,6 +116,7 @@ public class ScriptedDevice extends ScriptEngine {
 	public ReactivityManager reactivityManager;
 	public RedstoneReactiveDependency[] reactiveRedstone;
 	public TickReactiveDependency reactivityTick;
+	public StorageAPI storage;
 
 	@Override
 	protected void initializeGlobals(GlobalScope globalScope) {
@@ -138,6 +143,17 @@ public class ScriptedDevice extends ScriptEngine {
 					result.value = null;
 				}));
 			}
+		}
+
+		this.storage = new StorageAPI(globalScope.TablePrototype, globalScope, this.host.entity, this.reactivityManager);
+		globalScope.declareGlobal("storage", this.storage);
+
+		StorageReport.WRAPPER.ensurePrototype(globalScope);
+		StackReport.WRAPPER.ensurePrototype(globalScope);
+		ItemReport.WRAPPER.ensurePrototype(globalScope);
+
+		for (var side : Side.values()) {
+			globalScope.declareGlobal(side.name, Primitive.from(side.name));
 		}
 
 		{
@@ -217,6 +233,10 @@ public class ScriptedDevice extends ScriptEngine {
 
 		if (this.reactivityManager != null) {
 			this.reactivityManager.executePendingReactions(this::handleError, getGlobalScope());
+		}
+
+		if (this.storage != null) {
+			this.storage.tick();
 		}
 	}
 

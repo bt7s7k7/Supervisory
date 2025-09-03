@@ -25,7 +25,13 @@ public class ReactivityManager {
 
 	@SuppressWarnings("rawtypes")
 	protected static final NativeHandleWrapper<ReactiveDependency> REACTIVE_DEPENDENCY_HANDLE_WRAPPER = new NativeHandleWrapper<ReactiveDependency>(ReactiveDependency.class)
-			.addGetter("value", v -> v.getValue());
+			.addName("ReactiveDependency")
+			.addGetter("value", v -> v.getValue())
+			.addDumpMethod((self, depth, scope, result) -> {
+				var value = scope.globalScope.tryInspect(self.value, depth, result);
+				if (value == null) return null;
+				return self.name + "[" + value + "]";
+			});
 
 	public ReactivityManager(GlobalScope globalScope) {
 		this.globalScope = globalScope;
@@ -73,6 +79,13 @@ public class ReactivityManager {
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
 			throw new RuntimeException("Cannot create an instance of " + type.getName(), exception);
 		}
+	}
+
+	public <T extends ReactiveDependency<?>> T addDependency(String name, T dependency) {
+		if (this.dependencies.putIfAbsent(name, dependency) != null) {
+			throw new IllegalArgumentException("Duplicate addition of dependency '" + name + "'");
+		}
+		return dependency;
 	}
 
 	public void queueReaction(ReactiveScope scope) {
