@@ -24,7 +24,7 @@ public class NetworkDevice {
 	private boolean isConnected = false;
 
 	public boolean isConnected() {
-		return isConnected;
+		return this.isConnected;
 	}
 
 	public String domain;
@@ -100,7 +100,7 @@ public class NetworkDevice {
 				.map(key -> new UpdateSubmission.Update(key, this.published.getOrDefault(key, Primitive.VOID)))
 				.toList());
 
-		NetworkManager.getInstance().send(domain, update);
+		NetworkManager.getInstance().send(this.domain, update);
 	}
 
 	public void publishResource(String key, ManagedValue value) {

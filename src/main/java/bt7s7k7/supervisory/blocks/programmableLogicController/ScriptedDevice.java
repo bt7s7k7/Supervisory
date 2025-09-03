@@ -123,7 +123,7 @@ public class ScriptedDevice extends ScriptEngine {
 		this.host.log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
 
 		this.reactivityManager = new ReactivityManager(globalScope);
-		this.reactivityTick = TickReactiveDependency.get(reactivityManager);
+		this.reactivityTick = TickReactiveDependency.get(this.reactivityManager);
 		globalScope.declareGlobal("tick", this.reactivityTick.getHandle());
 
 		{
@@ -135,7 +135,7 @@ public class ScriptedDevice extends ScriptEngine {
 				var absoluteDirection = direction.getDirection(front);
 				var redstoneValue = this.host.redstone.getInput(absoluteDirection);
 				var dependency = RedstoneReactiveDependency.get(this.reactivityManager, direction, redstoneValue);
-				reactiveRedstone[direction.index] = dependency;
+				this.reactiveRedstone[direction.index] = dependency;
 				redstoneTable.declareProperty(direction.name, dependency.getHandle());
 				redstoneTable.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> {
 					var strength = args.get(0).getNumberValue();
@@ -157,7 +157,7 @@ public class ScriptedDevice extends ScriptEngine {
 		}
 
 		{
-			var device = getDevice();
+			var device = this.getDevice();
 			for (var key : device.getStateKeys()) {
 				var result = this.importValue(device.getState(key));
 				if (result == null) {
@@ -179,18 +179,18 @@ public class ScriptedDevice extends ScriptEngine {
 			this.host.log(formatValue(message, scope.globalScope));
 		}));
 
-		globalScope.declareGlobal("s", createStateAccessor(globalScope, (key) -> getDevice().getState(key), (key, value) -> {
-			getDevice().setState(key, value);
+		globalScope.declareGlobal("s", this.createStateAccessor(globalScope, key -> this.getDevice().getState(key), (key, value) -> {
+			this.getDevice().setState(key, value);
 			this.host.entity.setChanged();
 		}));
 
 		globalScope.declareGlobal("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> {
 			this.host.entity.setChanged();
-			return getDevice().state;
+			return this.getDevice().state;
 		})));
 
 		globalScope.declareGlobal("setDomain", NativeFunction.simple(globalScope, List.of("name"), List.of(Primitive.String.class), (args, scope, result) -> {
-			var device = getDevice();
+			var device = this.getDevice();
 			if (device.isConnected()) {
 				result.value = new Diagnostic("Cannot change the domain after already connected", Position.INTRINSIC);
 				result.label = LABEL_EXCEPTION;
@@ -201,16 +201,16 @@ public class ScriptedDevice extends ScriptEngine {
 			result.value = null;
 		}));
 
-		globalScope.declareGlobal("r", createStateAccessor(globalScope, (key) -> {
-			var imported = this.importValue(getDevice().readCachedValue(key));
+		globalScope.declareGlobal("r", this.createStateAccessor(globalScope, key -> {
+			var imported = this.importValue(this.getDevice().readCachedValue(key));
 			if (imported == null) imported = Primitive.VOID;
 			var dependency = RemoteValueReactiveDependency.get(this.reactivityManager, key, imported);
-			getDevice().subscribe(key);
+			this.getDevice().subscribe(key);
 			return dependency.getHandle();
 		}, (key, value) -> {
 			var exported = this.exportValue(value);
 			if (exported == null) return;
-			getDevice().publishResource(key, exported);
+			this.getDevice().publishResource(key, exported);
 		}));
 	}
 
@@ -232,7 +232,7 @@ public class ScriptedDevice extends ScriptEngine {
 		}
 
 		if (this.reactivityManager != null) {
-			this.reactivityManager.executePendingReactions(this::handleError, getGlobalScope());
+			this.reactivityManager.executePendingReactions(this::handleError, this.getGlobalScope());
 		}
 
 		if (this.storage != null) {

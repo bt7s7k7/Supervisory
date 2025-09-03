@@ -127,10 +127,10 @@ public class CodeEditorWidget extends MultiLineEditBox {
 
 			@Override
 			public int drawString(Font font, String text, int x, int y, int color) {
-				if (x == getX() + 4) {
-					var lineIndex = (y - getY()) / 9;
+				if (x == CodeEditorWidget.this.getX() + 4) {
+					var lineIndex = (y - CodeEditorWidget.this.getY()) / 9;
 					var lineString = Integer.toString(lineIndex + 1);
-					var lineStringWidth = defaultFont.width(lineString);
+					var lineStringWidth = CodeEditorWidget.this.defaultFont.width(lineString);
 
 					var lineNumberStyle = LINE_NUMBER_STYLE;
 					if (lineIndex == currentLine) {
@@ -138,10 +138,10 @@ public class CodeEditorWidget extends MultiLineEditBox {
 					}
 
 					super.drawString(font, FormattedCharSequence.forward(lineString, lineNumberStyle), x + LINE_NUMBER_WIDTH - lineStringWidth - 5, y, color);
-					return super.drawString(font, Component.literal(text).withStyle(style), x + LINE_NUMBER_WIDTH, y, color);
+					return super.drawString(font, Component.literal(text).withStyle(CodeEditorWidget.this.style), x + LINE_NUMBER_WIDTH, y, color);
 				}
 
-				return super.drawString(font, Component.literal(text).withStyle(style), x, y, color);
+				return super.drawString(font, Component.literal(text).withStyle(CodeEditorWidget.this.style), x, y, color);
 			}
 		};
 

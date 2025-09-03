@@ -78,7 +78,7 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 		try {
 			// Create a copy of the current components, so components can create or delete component
 			// during their tick handler
-			for (var component : new ArrayList<>(components)) {
+			for (var component : new ArrayList<>(this.components)) {
 				component.tick();
 			}
 		} catch (Exception exception) {
@@ -91,7 +91,7 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 	public void setRemoved() {
 		super.setRemoved();
 
-		for (var component : components) {
+		for (var component : this.components) {
 			component.teardown();
 		}
 	}
@@ -100,7 +100,7 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 	public void onChunkUnloaded() {
 		super.onChunkUnloaded();
 
-		for (var component : components) {
+		for (var component : this.components) {
 			component.teardown();
 		}
 	}

@@ -77,12 +77,12 @@ public class GridLayout {
 
 		public int getWidth() {
 			if (this.columns.isEmpty()) return 0;
-			return columns.stream().filter(v -> v > 0).mapToInt(Integer::intValue).sum() + this.gap * (this.columns.size() - 1);
+			return this.columns.stream().filter(v -> v > 0).mapToInt(Integer::intValue).sum() + this.gap * (this.columns.size() - 1);
 		}
 
 		public int getHeight() {
 			if (this.rows.isEmpty()) return 0;
-			return rows.stream().filter(v -> v > 0).mapToInt(Integer::intValue).sum() + this.gap * (this.rows.size() - 1);
+			return this.rows.stream().filter(v -> v > 0).mapToInt(Integer::intValue).sum() + this.gap * (this.rows.size() - 1);
 		}
 
 		public Builder setOffset(int x, int y) {
@@ -187,7 +187,7 @@ public class GridLayout {
 	protected Cell current = null;
 
 	public Cell cell() {
-		return current;
+		return this.current;
 	}
 
 	public GridLayout apply(AbstractWidget target) {

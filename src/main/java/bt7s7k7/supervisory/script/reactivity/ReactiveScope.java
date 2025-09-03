@@ -59,7 +59,7 @@ public class ReactiveScope {
 		this.missingDependency = false;
 
 		// Leave the error handling to the caller of this method
-		callback.invoke(List.of(this.context), scope, result);
+		this.callback.invoke(List.of(this.context), scope, result);
 
 		for (var dependency : this.dependencies) {
 			dependency.subscribe(this);

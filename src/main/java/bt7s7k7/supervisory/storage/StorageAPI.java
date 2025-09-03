@@ -31,7 +31,7 @@ public class StorageAPI extends LazyTable {
 
 	@Override
 	protected void initialize() {
-		this.declareProperty("connect", NativeFunction.simple(globalScope, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
+		this.declareProperty("connect", NativeFunction.simple(this.globalScope, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
 			var target = args.get(0).getStringValue();
 
 			var dependency = this.connect(target);
@@ -43,7 +43,7 @@ public class StorageAPI extends LazyTable {
 	public void tick() {
 		if (!this.initialized) return;
 
-		for (var dependency : connected.values()) {
+		for (var dependency : this.connected.values()) {
 			this.updateDependency(dependency);
 		}
 	}
@@ -73,7 +73,7 @@ public class StorageAPI extends LazyTable {
 			do {
 				var side = Side.getByName(name);
 				if (side != null) {
-					var front = owner.getFront();
+					var front = this.owner.getFront();
 					var directionToward = side.getDirection(front);
 					position = this.owner.getBlockPos().relative(directionToward);
 					break;

@@ -47,7 +47,7 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 		this.deviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
 		this.redstone = entity.ensureComponent(RedstoneState.class, RedstoneState::new);
 
-		this.connect(deviceHost.onInitializeNetworkDevice, event -> {
+		this.connect(this.deviceHost.onInitializeNetworkDevice, event -> {
 			var savedState = event.oldDevice();
 			var device = event.device();
 
@@ -67,18 +67,18 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 				}
 			}
 
-			if (desiredDomain != null) {
-				device.domain = desiredDomain;
+			if (this.desiredDomain != null) {
+				device.domain = this.desiredDomain;
 			}
 		});
 
-		this.connect(deviceHost.onDeviceInitialized, device -> {
+		this.connect(this.deviceHost.onDeviceInitialized, device -> {
 			if (device.isConnected()) {
 				this.log(Component.literal("Connected to domain: " + device.domain).withStyle(ChatFormatting.BLUE));
 			}
 		});
 
-		this.connect(deviceHost.onNetworkUpdate, event -> {
+		this.connect(this.deviceHost.onNetworkUpdate, event -> {
 			var key = event.key();
 			var value = event.value();
 
@@ -89,7 +89,7 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 			dependency.updateValue(value);
 		});
 
-		this.connect(redstone.onRedstoneInputChanged, event -> {
+		this.connect(this.redstone.onRedstoneInputChanged, event -> {
 			var direction = event.direction();
 			var strength = event.strength();
 

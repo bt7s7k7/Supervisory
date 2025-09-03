@@ -23,7 +23,7 @@ public class ItemReport {
 	}
 
 	public String code() {
-		var code = stack.getComponents().hashCode();
+		var code = this.stack.getComponents().hashCode();
 		var codeString = Integer.toUnsignedString(code, Character.MAX_RADIX);
 		return codeString;
 	}
@@ -33,7 +33,7 @@ public class ItemReport {
 		if (obj == this) return true;
 
 		if (obj instanceof ItemReport other) {
-			return ItemStack.isSameItemSameComponents(stack, other.stack);
+			return ItemStack.isSameItemSameComponents(this.stack, other.stack);
 		}
 
 		return super.equals(obj);

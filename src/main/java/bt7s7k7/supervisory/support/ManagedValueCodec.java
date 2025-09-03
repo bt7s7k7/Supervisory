@@ -36,9 +36,9 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 
 	public static final ManagedValueCodec INSTANCE = new ManagedValueCodec();
 
-	public static final Codec<ManagedValue> NUMBER_CODEC = createPrimitiveCodec(EncodedType.NUMBER, Codec.DOUBLE, v -> ((Primitive.Number) v).value, v -> Primitive.from(v));
-	public static final Codec<ManagedValue> STRING_CODEC = createPrimitiveCodec(EncodedType.STRING, Codec.STRING, v -> ((Primitive.String) v).value, v -> Primitive.from(v));
-	public static final Codec<ManagedValue> BOOLEAN_CODEC = createPrimitiveCodec(EncodedType.BOOLEAN, Codec.BOOL, v -> ((Primitive.Boolean) v).value, v -> Primitive.from(v));
+	public static final Codec<ManagedValue> NUMBER_CODEC = createPrimitiveCodec(EncodedType.NUMBER, Codec.DOUBLE, v -> ((Primitive.Number) v).value, Primitive::from);
+	public static final Codec<ManagedValue> STRING_CODEC = createPrimitiveCodec(EncodedType.STRING, Codec.STRING, v -> ((Primitive.String) v).value, Primitive::from);
+	public static final Codec<ManagedValue> BOOLEAN_CODEC = createPrimitiveCodec(EncodedType.BOOLEAN, Codec.BOOL, v -> ((Primitive.Boolean) v).value, Primitive::from);
 
 	public static final Codec<ManagedValue> ARRAY_CODEC = createPrimitiveCodec(EncodedType.ARRAY, Codec.list(INSTANCE), v -> ((ManagedArray) v).elements, v -> new ManagedArray(null, new ArrayList<>(v)));
 

@@ -23,22 +23,15 @@ public enum Side {
 	}
 
 	public Direction getDirection(Direction front) {
-		switch (this) {
-			case FORWARD:
-				return front;
-			case BACK:
-				return front.getOpposite();
-			case LEFT:
-				return front.getCounterClockWise();
-			case RIGHT:
-				return front.getClockWise();
-			case UP:
-				return Direction.UP;
-			case DOWN:
-				return Direction.DOWN;
-			default:
-				throw new IllegalArgumentException("Unsupported relative direction");
-		}
+		return switch (this) {
+			case FORWARD -> front;
+			case BACK -> front.getOpposite();
+			case LEFT -> front.getCounterClockWise();
+			case RIGHT -> front.getClockWise();
+			case UP -> Direction.UP;
+			case DOWN -> Direction.DOWN;
+			default -> throw new IllegalArgumentException("Unsupported relative direction");
+		};
 	}
 
 	private Side(int index, String name) {

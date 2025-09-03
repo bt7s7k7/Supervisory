@@ -23,7 +23,7 @@ public abstract class ScriptEngine {
 	public GlobalScope getGlobalScope() {
 		if (this.globalScope == null) {
 			this.globalScope = new GlobalScope();
-			this.initializeGlobals(globalScope);
+			this.initializeGlobals(this.globalScope);
 		}
 
 		return this.globalScope;

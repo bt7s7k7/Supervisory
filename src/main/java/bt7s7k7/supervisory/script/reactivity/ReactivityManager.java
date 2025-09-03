@@ -26,7 +26,7 @@ public class ReactivityManager {
 	@SuppressWarnings("rawtypes")
 	protected static final NativeHandleWrapper<ReactiveDependency> REACTIVE_DEPENDENCY_HANDLE_WRAPPER = new NativeHandleWrapper<ReactiveDependency>(ReactiveDependency.class)
 			.addName("ReactiveDependency")
-			.addGetter("value", v -> v.getValue())
+			.addGetter("value", ReactiveDependency::getValue)
 			.addDumpMethod((self, depth, scope, result) -> {
 				var value = scope.globalScope.tryInspect(self.value, depth, result);
 				if (value == null) return null;

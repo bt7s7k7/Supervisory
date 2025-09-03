@@ -111,7 +111,7 @@ public class ScriptEditorScreen extends Screen {
 
 		logContent = logContent.withStyle(EDITOR_STYLE);
 
-		this.logView = this.addRenderableWidget(new LogView(logViewPosition.x(), logViewPosition.y(), logViewPosition.width(), logViewPosition.height(), logContent, this.font));
+		this.logView = this.addRenderableWidget(new LogView(this.logViewPosition.x(), this.logViewPosition.y(), this.logViewPosition.width(), this.logViewPosition.height(), logContent, this.font));
 		this.logView.setScrollAmount(targetScrollAmount);
 	}
 
@@ -145,7 +145,7 @@ public class ScriptEditorScreen extends Screen {
 							.build();
 				})
 				.addGrowRow().renderRow(layout -> {
-					var editBox = this.addRenderableWidget(new CodeEditorWidget(font,
+					var editBox = this.addRenderableWidget(new CodeEditorWidget(this.font,
 							layout.cell().x(), layout.cell().y(),
 							layout.cell().width(), layout.cell().height(),
 							I18n.PROGRAMMABLE_LOGIC_CONTROLLER_CODE.toComponent(),
@@ -158,16 +158,16 @@ public class ScriptEditorScreen extends Screen {
 					layout.next();
 
 					this.logViewPosition = layout.cell();
-					rebuildLogView();
+					this.rebuildLogView();
 				})
 				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
 					layout.next();
 
-					var commandField = this.addRenderableWidget(new EditBox(font, 0, 0, Component.empty()) {
+					var commandField = this.addRenderableWidget(new EditBox(this.font, 0, 0, Component.empty()) {
 						@Override
 						public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 							if (this.isActive() && this.isFocused() && (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER)) {
-								submitCommand();
+								ScriptEditorScreen.this.submitCommand();
 								this.setValue("");
 							}
 
@@ -178,7 +178,7 @@ public class ScriptEditorScreen extends Screen {
 						public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 							super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
 							if (this.getValue().isEmpty() && !this.isFocused()) {
-								guiGraphics.drawString(font, I18n.PROGRAMMABLE_LOGIC_CONTROLLER_COMMAND.toComponent(), this.getX() + 4, this.getY() + (this.height - 8) / 2, -8355712, false);
+								guiGraphics.drawString(ScriptEditorScreen.this.font, I18n.PROGRAMMABLE_LOGIC_CONTROLLER_COMMAND.toComponent(), this.getX() + 4, this.getY() + (this.height - 8) / 2, -8355712, false);
 							}
 						}
 					});

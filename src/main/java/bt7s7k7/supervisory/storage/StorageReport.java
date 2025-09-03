@@ -74,7 +74,7 @@ public class StorageReport {
 			.addMethod("countItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
 				result.value = Primitive.from(self.countItems(args.get(0).getStringValue()));
 			})
-			.addMapAccess(v -> v.getItems(), Primitive.Number.class, StackReport.class,
+			.addMapAccess(StorageReport::getItems, Primitive.Number.class, StackReport.class,
 					(v, __) -> v, v -> (Primitive.Number) v,
 					(value, scope) -> StackReport.WRAPPER.getHandle(value, scope.globalScope), null);
 }

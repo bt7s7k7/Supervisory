@@ -72,7 +72,7 @@ public abstract class CompositeBlock extends Block implements EntityBlock {
 
 	@Override
 	protected int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
-		var redstone = getRedstoneState(level, pos);
+		var redstone = this.getRedstoneState(level, pos);
 		if (redstone.isPresent()) return redstone.get().getOutput(direction.getOpposite());
 
 		return super.getDirectSignal(state, level, pos, direction);

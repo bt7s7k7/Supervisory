@@ -11,7 +11,7 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 	protected final ReactivityManager owner;
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	protected T value;
@@ -21,7 +21,7 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 	}
 
 	public T getValue() {
-		return value;
+		return this.value;
 	}
 
 	public ReactiveDependency(ReactivityManager owner, String name, T value) {

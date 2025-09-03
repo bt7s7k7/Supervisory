@@ -60,6 +60,7 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 			return CODEC.encodeStart(NbtOps.INSTANCE, this).getOrThrow().toString();
 		}
 
+		@Override
 		public Configuration clone() {
 			try {
 				return (Configuration) super.clone();
@@ -117,11 +118,11 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 		var front = this.entity.getFront();
 
 		for (var kv : parseLinkage(front, this.configuration.input)) {
-			this.entity.addComponent(new IOComponent.RedstoneInput(entity, kv.getValue(), kv.getKey()));
+			this.entity.addComponent(new IOComponent.RedstoneInput(this.entity, kv.getValue(), kv.getKey()));
 		}
 
 		for (var kv : parseLinkage(front, this.configuration.output)) {
-			this.entity.addComponent(new IOComponent.RedstoneOutput(entity, kv.getValue(), kv.getKey()));
+			this.entity.addComponent(new IOComponent.RedstoneOutput(this.entity, kv.getValue(), kv.getKey()));
 		}
 	}
 
@@ -177,7 +178,7 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 	@Override
 	public void openConfigurationScreen(Configuration configuration) {
 		if (FMLLoader.getDist() == Dist.CLIENT) {
-			displayScreen(configuration);
+			this.displayScreen(configuration);
 		}
 	}
 }

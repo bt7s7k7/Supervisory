@@ -85,7 +85,7 @@ public class RemoteTerminalUnitScreen extends Screen {
 							.build();
 				})
 				.setGap(5)
-				.centerAround(width / 2, height / 2)
+				.centerAround(this.width / 2, this.height / 2)
 				.build();
 	}
 }

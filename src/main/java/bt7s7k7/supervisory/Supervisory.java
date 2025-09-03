@@ -48,7 +48,7 @@ public class Supervisory {
 
 		var main = Commands.literal("supervisory");
 
-		commands.register(main.executes((ctx) -> {
+		commands.register(main.executes(ctx -> {
 			var source = ctx.getSource();
 			source.sendSuccess(() -> Component.literal("Supervisory running"), true);
 			return 0;
