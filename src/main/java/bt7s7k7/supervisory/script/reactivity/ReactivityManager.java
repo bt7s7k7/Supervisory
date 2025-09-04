@@ -24,14 +24,13 @@ public class ReactivityManager {
 	public final ManagedTable reactiveDependencyPrototype;
 
 	@SuppressWarnings("rawtypes")
-	protected static final NativeHandleWrapper<ReactiveDependency> REACTIVE_DEPENDENCY_HANDLE_WRAPPER = new NativeHandleWrapper<ReactiveDependency>(ReactiveDependency.class)
-			.addName("ReactiveDependency")
+	protected static final NativeHandleWrapper<ReactiveDependency> REACTIVE_DEPENDENCY_HANDLE_WRAPPER = new NativeHandleWrapper<ReactiveDependency>("ReactiveDependency", ReactiveDependency.class, ctx -> ctx
 			.addGetter("value", ReactiveDependency::getValue)
 			.addDumpMethod((self, depth, scope, result) -> {
 				var value = scope.globalScope.tryInspect(self.value, depth, result);
 				if (value == null) return null;
 				return self.name + "[" + value + "]";
-			});
+			}));
 
 	public ReactivityManager(GlobalScope globalScope) {
 		this.globalScope = globalScope;

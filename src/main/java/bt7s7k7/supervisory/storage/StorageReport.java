@@ -69,12 +69,11 @@ public class StorageReport {
 		return this.cachedItems;
 	}
 
-	public static final NativeHandleWrapper<StorageReport> WRAPPER = new NativeHandleWrapper<>(StorageReport.class)
-			.addName("StorageReport")
+	public static final NativeHandleWrapper<StorageReport> WRAPPER = new NativeHandleWrapper<>("StorageReport", StorageReport.class, ctx -> ctx
 			.addMethod("countItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
 				result.value = Primitive.from(self.countItems(args.get(0).getStringValue()));
 			})
 			.addMapAccess(StorageReport::getItems, Primitive.Number.class, StackReport.class,
-					(v, __) -> v, v -> (Primitive.Number) v,
-					(value, scope) -> StackReport.WRAPPER.getHandle(value, scope.globalScope), null);
+					v -> v, v -> (Primitive.Number) v,
+					value -> StackReport.WRAPPER.getHandle(value, ctx.globalScope), null));
 }

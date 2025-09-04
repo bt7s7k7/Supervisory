@@ -26,11 +26,10 @@ public class StackReport {
 		return this.stack.getCount();
 	}
 
-	public static NativeHandleWrapper<StackReport> WRAPPER = new NativeHandleWrapper<>(StackReport.class)
-			.addName("StackReport")
+	public static NativeHandleWrapper<StackReport> WRAPPER = new NativeHandleWrapper<>("StackReport", StackReport.class, ctx -> ctx
 			.addGetter("count", v -> Primitive.from(v.count()))
 			.addGetter("id", v -> Primitive.from(v.item().id()))
 			.addGetter("code", v -> Primitive.from(v.item().code()))
-			.addGetter("item", (v, scope) -> ItemReport.WRAPPER.getHandle(v.item(), scope.globalScope))
-			.addDumpMethod((self, depth, scope, result) -> self.count() + "*" + self.item().id());
+			.addGetter("item", v -> ItemReport.WRAPPER.getHandle(v.item(), ctx.globalScope))
+			.addDumpMethod((self, depth, scope, result) -> self.count() + "*" + self.item().id()));
 }

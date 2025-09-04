@@ -56,10 +56,10 @@ public class ScriptedDevice extends ScriptEngine {
 		}
 	}
 
-	protected static final NativeHandleWrapper<StateHandle> STATE_HANDLE_WRAPPER = new NativeHandleWrapper<>(StateHandle.class)
+	protected static final NativeHandleWrapper<StateHandle> STATE_HANDLE_WRAPPER = new NativeHandleWrapper<>("StateHandle", StateHandle.class, ctx -> ctx
 			.addMapAccess(v -> v.state.get(), Primitive.String.class, ManagedValue.class,
 					Primitive::from, ManagedValue::getStringValue,
-					Function.identity(), Function.identity());
+					Function.identity(), Function.identity()));
 
 	protected ManagedFunction createStateAccessor(GlobalScope globalScope, Function<String, ManagedValue> getter, BiConsumer<String, ManagedValue> setter) {
 		return NativeFunction.simple(globalScope, List.of("name", "value?"), List.of(Primitive.String.class, ManagedValue.class), (args, scope, result) -> {

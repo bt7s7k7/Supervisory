@@ -75,8 +75,7 @@ public class ItemReport {
 		return super.equals(obj);
 	}
 
-	public static NativeHandleWrapper<ItemReport> WRAPPER = new NativeHandleWrapper<>(ItemReport.class)
-			.addName("ItemReport")
+	public static NativeHandleWrapper<ItemReport> WRAPPER = new NativeHandleWrapper<>("ItemReport", ItemReport.class, ctx -> ctx
 			.addGetter("id", v -> Primitive.from(v.id()))
 			.addGetter("code", v -> Primitive.from(v.code()))
 			.addMethod("getComponents", Collections.emptyList(), Collections.emptyList(), (self, args, scope, result) -> {
@@ -88,5 +87,5 @@ public class ItemReport {
 				var name = args.get(0).getStringValue();
 				result.value = self.getComponent(name, scope.globalScope);
 			})
-			.addDumpMethod((self, depth, scope, result) -> self.id());
+			.addDumpMethod((self, depth, scope, result) -> self.id()));
 }
