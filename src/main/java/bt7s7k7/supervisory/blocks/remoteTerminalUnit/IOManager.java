@@ -14,6 +14,7 @@ import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
 import bt7s7k7.supervisory.redstone.RedstoneState;
+import bt7s7k7.supervisory.storage.StorageProvider;
 import bt7s7k7.supervisory.support.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
@@ -46,11 +47,13 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 		public String domain = "";
 		public String input = "";
 		public String output = "";
+		public String storage = "";
 
-		public Configuration(String domain, String input, String output) {
+		public Configuration(String domain, String input, String output, String storage) {
 			this.domain = domain;
 			this.input = input;
 			this.output = output;
+			this.storage = storage;
 		}
 
 		public Configuration() {};
@@ -72,7 +75,8 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 		public static final Codec<Configuration> CODEC = RecordCodecBuilder.create(instance -> (instance.group(
 				Codec.STRING.fieldOf("domain").orElse("").forGetter(v -> v.domain),
 				Codec.STRING.fieldOf("input").orElse("").forGetter(v -> v.input),
-				Codec.STRING.fieldOf("output").orElse("").forGetter(v -> v.output))
+				Codec.STRING.fieldOf("output").orElse("").forGetter(v -> v.output),
+				Codec.STRING.fieldOf("storage").orElse("").forGetter(v -> v.storage))
 				.apply(instance, Configuration::new)));
 	}
 
@@ -123,6 +127,10 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 
 		for (var kv : parseLinkage(front, this.configuration.output)) {
 			this.entity.addComponent(new IOComponent.RedstoneOutput(this.entity, kv.getValue(), kv.getKey()));
+		}
+
+		for (var kv : parseLinkage(front, this.configuration.storage)) {
+			this.entity.addComponent(new StorageProvider(this.entity, kv.getValue(), kv.getKey()));
 		}
 	}
 

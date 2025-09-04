@@ -9,7 +9,8 @@ import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.items.IItemHandler;
 
 public class StorageReactiveDependency extends ReactiveDependency<ManagedValue> {
-	public BlockCapabilityCache<IItemHandler, Direction> target;
+	public BlockCapabilityCache<IItemHandler, Direction> capabilityCache;
+	public StorageProvider provider;
 
 	public StorageReactiveDependency(ReactivityManager owner, String name) {
 		super(owner, name, Primitive.VOID);

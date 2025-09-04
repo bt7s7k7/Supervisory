@@ -168,4 +168,16 @@ public class NetworkDevice {
 			}
 		}
 	}
+
+	protected ArrayList<NetworkService> services;
+
+	public void addService(NetworkService service) {
+		if (this.services == null) this.services = new ArrayList<>();
+		this.services.add(service);
+	}
+
+	public List<NetworkService> getServices() {
+		if (this.services == null) return Collections.emptyList();
+		return this.services;
+	}
 }

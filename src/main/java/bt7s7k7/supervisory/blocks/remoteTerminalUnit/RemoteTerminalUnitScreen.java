@@ -63,6 +63,9 @@ public class RemoteTerminalUnitScreen extends Screen {
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
 					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_OUTPUT.toComponent(), this.configuration.output, v -> this.configuration.output = v);
 				})
+				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
+					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_STORAGE.toComponent(), this.configuration.storage, v -> this.configuration.storage = v);
+				})
 				.addRow(5)
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
 					layout.nextRow().colspan(2).cell().childLayout()

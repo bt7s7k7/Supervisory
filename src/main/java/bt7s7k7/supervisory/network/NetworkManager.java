@@ -1,9 +1,11 @@
 package bt7s7k7.supervisory.network;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.mojang.datafixers.util.Pair;
 
@@ -45,7 +47,12 @@ public class NetworkManager {
 		instance = null;
 	}
 
-	private Map<String, HashSet<NetworkDevice>> devices = new HashMap<>();
+	public static class Domain {
+		public final HashSet<NetworkDevice> devices = new HashSet<>();
+		public final HashMap<String, HashSet<NetworkService>> services = new HashMap<>();
+	}
+
+	private Map<String, Domain> domains = new HashMap<>();
 	private ArrayList<Pair<String, Object>> pendingPackets = new ArrayList<>();
 
 	public void connectDevice(NetworkDevice device) {
@@ -53,9 +60,14 @@ public class NetworkManager {
 			throw new IllegalArgumentException("Cannot connect a device to an empty domain");
 		}
 
-		var domain = this.devices.computeIfAbsent(device.domain, __ -> new HashSet<>());
+		var domain = this.domains.computeIfAbsent(device.domain, __ -> new Domain());
 		Supervisory.LOGGER.info("Connected device to domain " + device.domain);
-		domain.add(device);
+		domain.devices.add(device);
+
+		for (var service : device.getServices()) {
+			var services = domain.services.computeIfAbsent(service.getName(), __ -> new HashSet<>());
+			services.add(service);
+		}
 	}
 
 	public void disconnectDevice(NetworkDevice device) {
@@ -63,10 +75,19 @@ public class NetworkManager {
 			throw new IllegalArgumentException("Cannot disconnect a device from an empty domain");
 		}
 
-		var domain = this.devices.get(device.domain);
-		if (domain != null) {
-			Supervisory.LOGGER.info("Disconnected device to domain " + device.domain);
-			domain.remove(device);
+		var domain = this.domains.get(device.domain);
+		if (domain == null) return;
+
+		Supervisory.LOGGER.info("Disconnected device from domain " + device.domain);
+		domain.devices.remove(device);
+
+		for (var service : device.getServices()) {
+			var services = domain.services.get(service.getName());
+			services.remove(service);
+
+			if (services.isEmpty()) {
+				domain.services.remove(service.getName());
+			}
 		}
 	}
 
@@ -81,16 +102,30 @@ public class NetworkManager {
 			var domainName = packet.getFirst();
 			var packetValue = packet.getSecond();
 
-			var domain = this.devices.get(domainName);
+			var domain = this.domains.get(domainName);
 			Supervisory.LOGGER.info("Sending message to domain " + domainName + ": " + packetValue);
 
 			if (domain == null) {
 				return;
 			}
 
-			for (var device : domain) {
+			for (var device : domain.devices) {
 				device.receive(packetValue);
 			}
 		}
+	}
+
+	public Set<NetworkService> getServices(String domainName, String serviceName) {
+		var domain = this.domains.get(domainName);
+		if (domain == null) return Collections.emptySet();
+
+		var services = domain.services.get(serviceName);
+		if (services == null) return Collections.emptySet();
+
+		return Collections.unmodifiableSet(services);
+	}
+
+	public <T extends NetworkService> T findService(String domainName, Class<T> type, String serviceName) {
+		return this.getServices(domainName, serviceName).stream().filter(type::isInstance).map(type::cast).findFirst().orElse(null);
 	}
 }

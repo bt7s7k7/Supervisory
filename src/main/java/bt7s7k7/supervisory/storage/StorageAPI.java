@@ -2,8 +2,11 @@ package bt7s7k7.supervisory.storage;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
+import bt7s7k7.supervisory.network.NetworkDevice;
+import bt7s7k7.supervisory.network.NetworkManager;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.runtime.GlobalScope;
@@ -22,11 +25,13 @@ public class StorageAPI extends LazyTable {
 	public final ReactivityManager reactivityManager;
 
 	protected final HashMap<String, StorageReactiveDependency> connected = new HashMap<>();
+	protected final Supplier<NetworkDevice> deviceGetter;
 
-	public StorageAPI(ManagedObject prototype, GlobalScope globalScope, CompositeBlockEntity entity, ReactivityManager reactivityManager) {
+	public StorageAPI(ManagedObject prototype, GlobalScope globalScope, CompositeBlockEntity entity, ReactivityManager reactivityManager, Supplier<NetworkDevice> deviceGetter) {
 		super(prototype, globalScope);
 		this.owner = entity;
 		this.reactivityManager = reactivityManager;
+		this.deviceGetter = deviceGetter;
 	}
 
 	@Override
@@ -61,10 +66,16 @@ public class StorageAPI extends LazyTable {
 		var name = dependency.getName();
 
 		IItemHandler handler = null;
+		if (dependency.provider != null && !dependency.provider.isValid()) {
+			// If the dependency used a remote StorageProvider, and that provider was destroyed,
+			// clear the values and try to acquire another provider
+			dependency.provider = null;
+			dependency.capabilityCache = null;
+		}
 
 		loadHandler: do {
-			if (dependency.target != null) {
-				handler = dependency.target.getCapability();
+			if (dependency.capabilityCache != null) {
+				handler = dependency.capabilityCache.getCapability();
 				break;
 			}
 
@@ -79,13 +90,23 @@ public class StorageAPI extends LazyTable {
 					break;
 				}
 
+				var networkDevice = this.deviceGetter.get();
+				if (networkDevice != null && !networkDevice.domain.isEmpty()) {
+					var provider = NetworkManager.getInstance().findService(networkDevice.domain, StorageProvider.class, name);
+					if (provider == null) break loadHandler;
+
+					dependency.provider = provider;
+					position = provider.getTarget();
+					break;
+				}
+
 				// Failed to acquire capability
 				break loadHandler;
 			} while (false);
 
 			// Load the newly acquired capability
-			dependency.target = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, (ServerLevel) this.owner.getLevel(), position, null);
-			handler = dependency.target.getCapability();
+			dependency.capabilityCache = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, (ServerLevel) this.owner.getLevel(), position, null);
+			handler = dependency.capabilityCache.getCapability();
 		} while (false);
 
 		if (handler == null) {

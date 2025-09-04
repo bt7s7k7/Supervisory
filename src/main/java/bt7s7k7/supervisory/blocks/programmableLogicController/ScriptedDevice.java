@@ -145,7 +145,7 @@ public class ScriptedDevice extends ScriptEngine {
 			}
 		}
 
-		this.storage = new StorageAPI(globalScope.TablePrototype, globalScope, this.host.entity, this.reactivityManager);
+		this.storage = new StorageAPI(globalScope.TablePrototype, globalScope, this.host.entity, this.reactivityManager, this::getDevice);
 		globalScope.declareGlobal("storage", this.storage);
 
 		StorageReport.WRAPPER.ensurePrototype(globalScope);
