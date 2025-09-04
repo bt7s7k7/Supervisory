@@ -1,7 +1,10 @@
 package bt7s7k7.supervisory.support;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -12,9 +15,16 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import bt7s7k7.supervisory.Supervisory;
+import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
+import bt7s7k7.treeburst.runtime.ManagedMap;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 
 public class ManagedValueCodec implements Codec<ManagedValue> {
 	public enum EncodedType {
@@ -105,5 +115,22 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 
 			return codec.decode(ops, input);
 		}
+	}
+
+	public static ManagedValue importNbtData(Tag root, GlobalScope globalScope, ManagedValue defaultValue) {
+		if (root == null) return defaultValue;
+
+		return switch (root) {
+			case StringTag string -> Primitive.from(string.getAsString());
+			case NumericTag number -> Primitive.from(number.getAsDouble());
+			case ListTag list -> new ManagedArray(globalScope == null ? null : globalScope.ArrayPrototype, list.stream()
+					.map(v -> importNbtData(v, globalScope, Primitive.NULL))
+					.toList());
+			case CompoundTag compound -> new ManagedMap(globalScope == null ? null : globalScope.MapPrototype, compound.getAllKeys().stream()
+					.map(key -> new AbstractMap.SimpleEntry<>(Primitive.from(key), importNbtData(compound.get(key), globalScope, Primitive.VOID)))
+					.filter(v -> v.getValue() != Primitive.VOID)
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+			default -> defaultValue;
+		};
 	}
 }
