@@ -231,12 +231,12 @@ public class ScriptedDevice extends ScriptEngine {
 			this.reactivityTick.updateValue(Primitive.from((double) this.host.entity.getLevel().getGameTime()));
 		}
 
-		if (this.reactivityManager != null) {
-			this.reactivityManager.executePendingReactions(this::handleError, this.getGlobalScope());
-		}
-
 		if (this.storage != null) {
 			this.storage.tick();
+		}
+
+		if (this.reactivityManager != null) {
+			this.reactivityManager.executePendingReactions(this::handleError, this.getGlobalScope());
 		}
 	}
 
