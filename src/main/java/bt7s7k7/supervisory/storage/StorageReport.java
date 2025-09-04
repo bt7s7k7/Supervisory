@@ -6,16 +6,24 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import bt7s7k7.supervisory.Support;
+import bt7s7k7.treeburst.runtime.GlobalScope;
+import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.Primitive;
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.items.IItemHandler;
 
 public class StorageReport {
-	protected final IItemHandler handler;
+	protected IItemHandler handler;
+
+	public final BlockCapabilityCache<IItemHandler, Direction> source;
+
 	protected final Map<Integer, ItemStack> items;
 
-	public StorageReport(IItemHandler handler) {
+	public StorageReport(BlockCapabilityCache<IItemHandler, Direction> source, IItemHandler handler) {
+		this.source = source;
 		this.handler = handler;
 		var items = this.items = new HashMap<>();
 
@@ -24,6 +32,14 @@ public class StorageReport {
 			if (stack.isEmpty()) continue;
 			items.put(i, stack.copy());
 		}
+	}
+
+	public void ensureHandlerStillValid() {
+		this.handler = this.source.getCapability();
+	}
+
+	public IItemHandler getHandler() {
+		return this.handler;
 	}
 
 	public boolean itemsChanged(StorageReport previous) {
@@ -48,12 +64,20 @@ public class StorageReport {
 		var count = 0;
 
 		for (var stack : this.getItems().values()) {
-			if (stack.item().id().equals(id)) {
+			if (id.isEmpty() || stack.item().id().equals(id)) {
 				count += stack.count();
 			}
 		}
 
 		return count;
+	}
+
+	public void findItems(String id, ManagedArray output, GlobalScope globalScope) {
+		for (var stack : this.getItems().values()) {
+			if (id.isEmpty() || stack.item().id().equals(id)) {
+				output.elements.add(StackReport.WRAPPER.getHandle(stack, globalScope));
+			}
+		}
 	}
 
 	protected Map<Primitive.Number, StackReport> cachedItems;
@@ -63,7 +87,7 @@ public class StorageReport {
 		this.cachedItems = new HashMap<>();
 
 		for (var kv : this.items.entrySet()) {
-			this.cachedItems.put(Primitive.from(kv.getKey()), new StackReport(this, kv.getValue()));
+			this.cachedItems.put(Primitive.from(kv.getKey()), new StackReport(kv.getKey(), this, kv.getValue()));
 		}
 
 		return this.cachedItems;
@@ -72,6 +96,11 @@ public class StorageReport {
 	public static final NativeHandleWrapper<StorageReport> WRAPPER = new NativeHandleWrapper<>("StorageReport", StorageReport.class, ctx -> ctx
 			.addMethod("countItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
 				result.value = Primitive.from(self.countItems(args.get(0).getStringValue()));
+			})
+			.addMethod("findItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
+				var array = new ManagedArray(scope.globalScope.ArrayPrototype);
+				self.findItems(args.get(0).getStringValue(), array, scope.globalScope);
+				result.value = array;
 			})
 			.addMapAccess(StorageReport::getItems, Primitive.Number.class, StackReport.class,
 					v -> v, v -> (Primitive.Number) v,

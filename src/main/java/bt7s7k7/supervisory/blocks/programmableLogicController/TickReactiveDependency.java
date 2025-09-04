@@ -14,8 +14,8 @@ public class TickReactiveDependency extends ReactiveDependency<Primitive.Number>
 		return !this.value.equals(Primitive.ZERO);
 	}
 
-	public static TickReactiveDependency get(ReactivityManager manager) {
-		var instance = manager.ensureDependency("tick", TickReactiveDependency.class, Primitive.ZERO);
+	public static TickReactiveDependency get(String name, ReactivityManager manager) {
+		var instance = manager.ensureDependency(name, TickReactiveDependency.class, Primitive.ZERO);
 		return instance;
 	}
 }

@@ -123,7 +123,7 @@ public class ScriptedDevice extends ScriptEngine {
 		this.host.log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
 
 		this.reactivityManager = new ReactivityManager(globalScope);
-		this.reactivityTick = TickReactiveDependency.get(this.reactivityManager);
+		this.reactivityTick = TickReactiveDependency.get("tick", this.reactivityManager);
 		globalScope.declareGlobal("tick", this.reactivityTick.getHandle());
 
 		{

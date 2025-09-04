@@ -5,11 +5,14 @@ import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.world.item.ItemStack;
 
 public class StackReport {
-	protected final StorageReport source;
+	public final StorageReport source;
+	public final int slot;
+
 	protected final ItemStack stack;
 	protected ItemReport item;
 
-	public StackReport(StorageReport source, ItemStack stack) {
+	public StackReport(int slot, StorageReport source, ItemStack stack) {
+		this.slot = slot;
 		this.source = source;
 		this.stack = stack;
 	}
@@ -28,6 +31,7 @@ public class StackReport {
 
 	public static NativeHandleWrapper<StackReport> WRAPPER = new NativeHandleWrapper<>("StackReport", StackReport.class, ctx -> ctx
 			.addGetter("count", v -> Primitive.from(v.count()))
+			.addGetter("slot", v -> Primitive.from(v.slot))
 			.addGetter("id", v -> Primitive.from(v.item().id()))
 			.addGetter("code", v -> Primitive.from(v.item().code()))
 			.addGetter("item", v -> ItemReport.WRAPPER.getHandle(v.item(), ctx.globalScope))
