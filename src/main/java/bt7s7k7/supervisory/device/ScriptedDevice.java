@@ -16,10 +16,6 @@ import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
 import bt7s7k7.supervisory.script.ScriptEngine;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
-import bt7s7k7.supervisory.storage.ItemReport;
-import bt7s7k7.supervisory.storage.StackReport;
-import bt7s7k7.supervisory.storage.StorageAPI;
-import bt7s7k7.supervisory.storage.StorageReport;
 import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
@@ -115,7 +111,6 @@ public class ScriptedDevice extends ScriptEngine {
 
 	public ReactivityManager reactivityManager;
 	public TickReactiveDependency reactivityTick;
-	public StorageAPI storage;
 
 	public final MutableClassToInstanceMap<ScriptedDeviceIntegration> integrations = MutableClassToInstanceMap.create();
 
@@ -126,13 +121,6 @@ public class ScriptedDevice extends ScriptEngine {
 		this.reactivityManager = new ReactivityManager(globalScope);
 		this.reactivityTick = TickReactiveDependency.get("tick", this.reactivityManager);
 		globalScope.declareGlobal("tick", this.reactivityTick.getHandle());
-
-		this.storage = new StorageAPI(globalScope.TablePrototype, globalScope, this.host.entity, this.reactivityManager, this::getDevice);
-		globalScope.declareGlobal("storage", this.storage);
-
-		StorageReport.WRAPPER.ensurePrototype(globalScope);
-		StackReport.WRAPPER.ensurePrototype(globalScope);
-		ItemReport.WRAPPER.ensurePrototype(globalScope);
 
 		for (var side : Side.values()) {
 			globalScope.declareGlobal(side.name, Primitive.from(side.name));
@@ -211,17 +199,13 @@ public class ScriptedDevice extends ScriptEngine {
 		this.integrations.clear();
 	}
 
-	private NetworkDevice getDevice() {
+	public NetworkDevice getDevice() {
 		return this.host.deviceHost.getDevice();
 	}
 
 	public void processTasks() {
 		if (this.reactivityTick != null) {
 			this.reactivityTick.updateValue(Primitive.from((double) this.host.entity.getLevel().getGameTime()));
-		}
-
-		if (this.storage != null) {
-			this.storage.tick();
 		}
 
 		for (var integration : this.integrations.values()) {
