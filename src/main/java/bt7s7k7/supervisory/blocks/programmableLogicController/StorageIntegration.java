@@ -30,7 +30,7 @@ public final class StorageIntegration implements ScriptedDeviceIntegration {
 
 			var storage = new StorageAPI(globalScope.TablePrototype, globalScope, init.deviceHost.entity, device.reactivityManager, device::getDevice);
 
-			globalScope.declareGlobal("storage", storage);
+			globalScope.declareGlobal("Storage", storage);
 			StorageReport.WRAPPER.ensurePrototype(globalScope);
 			StackReport.WRAPPER.ensurePrototype(globalScope);
 			ItemReport.WRAPPER.ensurePrototype(globalScope);

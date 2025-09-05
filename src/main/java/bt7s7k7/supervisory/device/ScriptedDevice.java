@@ -120,10 +120,12 @@ public class ScriptedDevice extends ScriptEngine {
 
 		this.reactivityManager = new ReactivityManager(globalScope);
 		this.reactivityTick = TickReactiveDependency.get("tick", this.reactivityManager);
-		globalScope.declareGlobal("tick", this.reactivityTick.getHandle());
+
+		var sys = globalScope.declareGlobal("SYS", new ManagedTable(globalScope.TablePrototype));
+		sys.declareProperty("tick", this.reactivityTick.getHandle());
 
 		for (var side : Side.values()) {
-			globalScope.declareGlobal(side.name, Primitive.from(side.name));
+			globalScope.declareGlobal(side.name.toUpperCase(), Primitive.from(side.name));
 		}
 
 		{
@@ -156,12 +158,12 @@ public class ScriptedDevice extends ScriptEngine {
 			this.host.entity.setChanged();
 		}));
 
-		globalScope.declareGlobal("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> {
+		sys.declareProperty("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> {
 			this.host.entity.setChanged();
 			return this.getDevice().state;
 		})));
 
-		globalScope.declareGlobal("setDomain", NativeFunction.simple(globalScope, List.of("name"), List.of(Primitive.String.class), (args, scope, result) -> {
+		globalScope.declareGlobal("setDomain", NativeFunction.simple(globalScope, List.of("domain"), List.of(Primitive.String.class), (args, scope, result) -> {
 			var device = this.getDevice();
 			if (device.isConnected()) {
 				result.value = new Diagnostic("Cannot change the domain after already connected", Position.INTRINSIC);

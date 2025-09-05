@@ -74,7 +74,7 @@ public class RedstoneIntegration extends LazyTable implements ScriptedDeviceInte
 			var globalScope = event.device().getGlobalScope();
 			var integration = new RedstoneIntegration(event.device(), globalScope, redstone);
 			event.device().integrations.putInstance(RedstoneIntegration.class, integration);
-			globalScope.declareGlobal("redstone", integration);
+			globalScope.declareGlobal("Redstone", integration);
 		});
 	}
 }
