@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import bt7s7k7.supervisory.blocks.programmableLogicController.TickReactiveDependency;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
+import bt7s7k7.supervisory.device.TickReactiveDependency;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkManager;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;

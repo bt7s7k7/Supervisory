@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.MutableClassToInstanceMap;
 
-import bt7s7k7.supervisory.blocks.programmableLogicController.TickReactiveDependency;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
 import bt7s7k7.supervisory.script.ScriptEngine;

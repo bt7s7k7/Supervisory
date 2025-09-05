@@ -8,7 +8,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import bt7s7k7.supervisory.Supervisory;
-import bt7s7k7.supervisory.blocks.programmableLogicController.ScriptEditorScreen;
 import bt7s7k7.supervisory.composition.BlockEntityComponent;
 import bt7s7k7.supervisory.composition.ComponentSignal;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;

@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.blocks.programmableLogicController;
+package bt7s7k7.supervisory.device;
 
 import java.util.Collections;
 
@@ -7,7 +7,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import bt7s7k7.supervisory.I18n;
 import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
-import bt7s7k7.supervisory.device.ScriptedDeviceHost;
 import bt7s7k7.supervisory.script.CodeEditorWidget;
 import bt7s7k7.supervisory.support.GridLayout;
 import bt7s7k7.supervisory.support.LogEventRouter;
