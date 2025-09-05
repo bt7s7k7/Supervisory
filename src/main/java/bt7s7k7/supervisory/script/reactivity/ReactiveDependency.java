@@ -3,6 +3,7 @@ package bt7s7k7.supervisory.script.reactivity;
 import java.util.HashSet;
 
 import bt7s7k7.treeburst.runtime.NativeHandle;
+import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.ManagedValue;
 
 public abstract class ReactiveDependency<T extends ManagedValue> {
@@ -56,10 +57,19 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 
 	public NativeHandle getHandle() {
 		if (this.cachedHandle == null) {
-			this.cachedHandle = new NativeHandle(this.owner.reactiveDependencyPrototype, this);
+			this.cachedHandle = WRAPPER.getHandle(this, this.owner.globalScope);
 			this.cachedHandle.name = this.name;
 		}
 
 		return this.cachedHandle;
 	}
+
+	@SuppressWarnings("rawtypes")
+	protected static final NativeHandleWrapper<ReactiveDependency> WRAPPER = new NativeHandleWrapper<ReactiveDependency>("ReactiveDependency", ReactiveDependency.class, ctx -> ctx
+			.addGetter("value", ReactiveDependency::getValue)
+			.addDumpMethod((self, depth, scope, result) -> {
+				var value = scope.globalScope.tryInspect(self.value, depth, result);
+				if (value == null) return null;
+				return self.name + "[" + value + "]";
+			}));
 }
