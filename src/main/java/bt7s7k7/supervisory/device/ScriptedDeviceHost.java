@@ -171,6 +171,11 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 		return this.configuration;
 	}
 
+	public void executeCommand(String command) {
+
+		this.scriptEngine.executeCode("command", command);
+	}
+
 	@Override
 	public void setConfiguration(Configuration configuration) {
 		if (configuration.command.isEmpty()) {
@@ -180,7 +185,7 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 		} else {
 			this.log(Component.literal("> ").withStyle(ChatFormatting.GREEN).append(Component.literal(configuration.command).withStyle(ChatFormatting.BLUE)));
 			Supervisory.LOGGER.debug("Executed command: " + configuration.command);
-			this.scriptEngine.executeCode("command", configuration.command);
+			this.executeCommand(configuration.command);
 		}
 
 		this.entity.setChanged();

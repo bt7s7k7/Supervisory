@@ -30,7 +30,17 @@ public class Supervisory {
 
 	public static final Registrate REGISTRATE = Registrate.create(MOD_ID);
 
+	private static Supervisory instance;
+	public final IEventBus bus;
+
+	public static Supervisory getInstance() {
+		return instance;
+	}
+
 	public Supervisory(IEventBus modEventBus, ModContainer modContainer) {
+		this.bus = modEventBus;
+		instance = this;
+
 		modContainer.registerConfig(Type.COMMON, Config.SPEC);
 
 		AllBlocks.register();

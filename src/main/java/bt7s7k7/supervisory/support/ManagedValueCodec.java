@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -33,9 +31,7 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 
 	public static final Codec<EncodedType> ENCODED_TYPE_FIELD = Codec.stringResolver(EncodedType::toString, EncodedType::valueOf);
 	public static final Codec<EncodedType> ENCODED_HEADER = RecordCodecBuilder.create(instance -> (instance.group(
-			ENCODED_TYPE_FIELD.fieldOf("type").forGetter(v -> {
-				throw new NotImplementedException();
-			})).apply(instance, v -> v)));
+			ENCODED_TYPE_FIELD.fieldOf("type").forGetter(v -> v)).apply(instance, v -> v)));
 
 	private static <T, U> Codec<U> createPrimitiveCodec(EncodedType encodedType, Codec<T> valueCodec, Function<U, T> valueGetter, Function<T, U> primitiveCreator) {
 		return RecordCodecBuilder.create(instance -> instance.group(

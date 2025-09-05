@@ -20,6 +20,12 @@ group = mod_group_id
 repositories {
     // Add here additional repositories if required by some of the dependencies below.
     maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
+
+	maven {
+		// CC: Tweaked
+		url "https://maven.squiddev.cc"
+		content { includeGroup("cc.tweaked") }
+	} 
 }
 
 base {
@@ -131,6 +137,16 @@ dependencies {
 
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")
+
+	// Dynamic enabling of compat mods inspired by Create [https://github.com/Creators-of-Create/Create/blob/mc1.21.1/dev/build.gradle]
+	
+	// CC: Tweaked compatibility
+	compileOnly("cc.tweaked:cc-tweaked-$minecraft_version-core-api:$cc_tweaked_version")
+	compileOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge-api:$cc_tweaked_version")
+	if (cc_tweaked_enabled.toBoolean()) {
+		runtimeOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge:$cc_tweaked_version")
+	}
+	
 
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
