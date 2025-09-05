@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.blocks.programmableLogicController;
+package bt7s7k7.supervisory.device;
 
 import static bt7s7k7.treeburst.runtime.ExpressionResult.LABEL_EXCEPTION;
 
@@ -9,11 +9,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.collect.MutableClassToInstanceMap;
 
+import bt7s7k7.supervisory.blocks.programmableLogicController.TickReactiveDependency;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
-import bt7s7k7.supervisory.redstone.RedstoneReactiveDependency;
 import bt7s7k7.supervisory.script.ScriptEngine;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.storage.ItemReport;
@@ -114,9 +114,10 @@ public class ScriptedDevice extends ScriptEngine {
 	}
 
 	public ReactivityManager reactivityManager;
-	public RedstoneReactiveDependency[] reactiveRedstone;
 	public TickReactiveDependency reactivityTick;
 	public StorageAPI storage;
+
+	public final MutableClassToInstanceMap<ScriptedDeviceIntegration> integrations = MutableClassToInstanceMap.create();
 
 	@Override
 	protected void initializeGlobals(GlobalScope globalScope) {
@@ -125,25 +126,6 @@ public class ScriptedDevice extends ScriptEngine {
 		this.reactivityManager = new ReactivityManager(globalScope);
 		this.reactivityTick = TickReactiveDependency.get("tick", this.reactivityManager);
 		globalScope.declareGlobal("tick", this.reactivityTick.getHandle());
-
-		{
-			this.reactiveRedstone = new RedstoneReactiveDependency[6];
-			var redstoneTable = globalScope.declareGlobal("redstone", new ManagedTable(globalScope.TablePrototype));
-			var front = this.host.entity.getFront();
-
-			for (var direction : Side.values()) {
-				var absoluteDirection = direction.getDirection(front);
-				var redstoneValue = this.host.redstone.getInput(absoluteDirection);
-				var dependency = RedstoneReactiveDependency.get(this.reactivityManager, direction, redstoneValue);
-				this.reactiveRedstone[direction.index] = dependency;
-				redstoneTable.declareProperty(direction.name, dependency.getHandle());
-				redstoneTable.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> {
-					var strength = args.get(0).getNumberValue();
-					this.host.redstone.setOutput(absoluteDirection, (int) strength);
-					result.value = null;
-				}));
-			}
-		}
 
 		this.storage = new StorageAPI(globalScope.TablePrototype, globalScope, this.host.entity, this.reactivityManager, this::getDevice);
 		globalScope.declareGlobal("storage", this.storage);
@@ -167,6 +149,8 @@ public class ScriptedDevice extends ScriptEngine {
 				device.setState(key, result);
 			}
 		}
+
+		this.host.onScopeInitialization.emit(new ScriptedDeviceHost.ScopeInitializationEvent(this));
 
 		globalScope.declareGlobal("print", NativeFunction.simple(globalScope, List.of("message"), (args, scope, result) -> {
 			var message = args.get(0);
@@ -219,7 +203,12 @@ public class ScriptedDevice extends ScriptEngine {
 		super.clear();
 
 		this.reactivityManager = null;
-		this.reactiveRedstone = null;
+
+		for (var integration : this.integrations.values()) {
+			integration.teardown();
+		}
+
+		this.integrations.clear();
 	}
 
 	private NetworkDevice getDevice() {
@@ -233,6 +222,10 @@ public class ScriptedDevice extends ScriptEngine {
 
 		if (this.storage != null) {
 			this.storage.tick();
+		}
+
+		for (var integration : this.integrations.values()) {
+			integration.tick();
 		}
 
 		if (this.reactivityManager != null) {

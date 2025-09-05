@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.blocks.programmableLogicController;
+package bt7s7k7.supervisory.device;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,16 +8,16 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import bt7s7k7.supervisory.Supervisory;
+import bt7s7k7.supervisory.blocks.programmableLogicController.ScriptEditorScreen;
 import bt7s7k7.supervisory.composition.BlockEntityComponent;
+import bt7s7k7.supervisory.composition.ComponentSignal;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
 import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
-import bt7s7k7.supervisory.redstone.RedstoneState;
 import bt7s7k7.supervisory.support.LogEventRouter;
-import bt7s7k7.supervisory.support.Side;
-import bt7s7k7.treeburst.support.Primitive;
+import bt7s7k7.treeburst.runtime.GlobalScope;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup.Provider;
@@ -29,10 +29,18 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.common.NeoForge;
 
 public class ScriptedDeviceHost extends BlockEntityComponent implements Configurable<ScriptedDeviceHost.Configuration> {
 	public final NetworkDeviceHost deviceHost;
-	public final RedstoneState redstone;
+
+	public static record ScopeInitializationEvent(ScriptedDevice device) {
+		public GlobalScope getGlobalScope() {
+			return this.device.getGlobalScope();
+		}
+	}
+
+	public final ComponentSignal.Emitter<ScopeInitializationEvent> onScopeInitialization = new ComponentSignal.Emitter<>();
 
 	@Override
 	public EventPriority priority() {
@@ -41,11 +49,16 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 		return EventPriority.HIGH;
 	}
 
+	@Override
+	public void teardown() {
+		super.teardown();
+		this.onScopeInitialization.teardown();
+	}
+
 	public ScriptedDeviceHost(CompositeBlockEntity entity) {
 		super(entity);
 
 		this.deviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
-		this.redstone = entity.ensureComponent(RedstoneState.class, RedstoneState::new);
 
 		this.connect(this.deviceHost.onInitializeNetworkDevice, event -> {
 			var savedState = event.oldDevice();
@@ -89,15 +102,7 @@ public class ScriptedDeviceHost extends BlockEntityComponent implements Configur
 			dependency.updateValue(value);
 		});
 
-		this.connect(this.redstone.onRedstoneInputChanged, event -> {
-			var direction = event.direction();
-			var strength = event.strength();
-
-			var handlers = this.scriptEngine.reactiveRedstone;
-			if (handlers == null) return;
-			var relative = Side.from(this.entity.getFront(), direction);
-			handlers[relative.index].updateValue(Primitive.from(strength));
-		});
+		NeoForge.EVENT_BUS.post(new ScriptedDeviceInitializationEvent(this, this::connect));
 	}
 
 	protected String desiredDomain = null;

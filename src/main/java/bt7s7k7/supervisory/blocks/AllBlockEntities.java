@@ -3,9 +3,9 @@ package bt7s7k7.supervisory.blocks;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 
 import bt7s7k7.supervisory.Supervisory;
-import bt7s7k7.supervisory.blocks.programmableLogicController.ScriptedDeviceHost;
 import bt7s7k7.supervisory.blocks.remoteTerminalUnit.IOManager;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
+import bt7s7k7.supervisory.device.ScriptedDeviceHost;
 
 public class AllBlockEntities {
 	public static final BlockEntityEntry<CompositeBlockEntity> REMOTE_TERMINAL_UNIT = Supervisory.REGISTRATE.blockEntity("remote_terminal_unit", CompositeBlockEntity.createFactory(instance -> {

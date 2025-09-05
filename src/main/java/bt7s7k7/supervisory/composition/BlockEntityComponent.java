@@ -48,4 +48,9 @@ public class BlockEntityComponent {
 		this.signals.add(signal);
 		return signal;
 	}
+
+	@FunctionalInterface
+	public interface EventConnectionDelegate {
+		<T> ComponentSignal<T> connect(ComponentSignal.Emitter<T> emitter, Consumer<T> handler);
+	}
 }
