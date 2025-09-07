@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.storage;
+package bt7s7k7.supervisory.sockets;
 
 import bt7s7k7.supervisory.blocks.remoteTerminalUnit.IOComponent;
 import bt7s7k7.supervisory.composition.BlockEntityComponent;
@@ -8,12 +8,12 @@ import bt7s7k7.supervisory.network.NetworkService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
-public class StorageProvider extends BlockEntityComponent implements NetworkService, IOComponent {
+public class SocketProvider extends BlockEntityComponent implements NetworkService, IOComponent {
 	protected String name;
 	protected Direction direction;
 	protected boolean valid;
 
-	public StorageProvider(CompositeBlockEntity entity, String name, Direction direction) {
+	public SocketProvider(CompositeBlockEntity entity, String name, Direction direction) {
 		super(entity);
 		this.name = name;
 		this.direction = direction;

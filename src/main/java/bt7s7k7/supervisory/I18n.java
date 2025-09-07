@@ -30,7 +30,7 @@ public class I18n {
 	public static final Key REMOTE_TERMINAL_UNIT_DOMAIN = register(new Key("gui.remote_terminal_unit.domain", "Domain"));
 	public static final Key REMOTE_TERMINAL_UNIT_INPUT = register(new Key("gui.remote_terminal_unit.input", "Input"));
 	public static final Key REMOTE_TERMINAL_UNIT_OUTPUT = register(new Key("gui.remote_terminal_unit.output", "Output"));
-	public static final Key REMOTE_TERMINAL_UNIT_STORAGE = register(new Key("gui.remote_terminal_unit.storage", "Storage"));
+	public static final Key REMOTE_TERMINAL_UNIT_SOCKETS = register(new Key("gui.remote_terminal_unit.sockets", "Sockets"));
 
 	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_TITLE = register(new Key("gui.programmable_logic_controller.title", "PLC Configuration"));
 	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_COMPILE = register(new Key("gui.programmable_logic_controller.compile", "Compile"));

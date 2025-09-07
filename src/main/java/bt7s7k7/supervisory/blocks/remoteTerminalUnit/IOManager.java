@@ -14,7 +14,7 @@ import bt7s7k7.supervisory.configuration.Configurable;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
 import bt7s7k7.supervisory.redstone.RedstoneState;
-import bt7s7k7.supervisory.storage.StorageProvider;
+import bt7s7k7.supervisory.sockets.SocketProvider;
 import bt7s7k7.supervisory.support.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
@@ -47,13 +47,13 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 		public String domain = "";
 		public String input = "";
 		public String output = "";
-		public String storage = "";
+		public String socket = "";
 
 		public Configuration(String domain, String input, String output, String storage) {
 			this.domain = domain;
 			this.input = input;
 			this.output = output;
-			this.storage = storage;
+			this.socket = storage;
 		}
 
 		public Configuration() {};
@@ -76,7 +76,7 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 				Codec.STRING.fieldOf("domain").orElse("").forGetter(v -> v.domain),
 				Codec.STRING.fieldOf("input").orElse("").forGetter(v -> v.input),
 				Codec.STRING.fieldOf("output").orElse("").forGetter(v -> v.output),
-				Codec.STRING.fieldOf("storage").orElse("").forGetter(v -> v.storage))
+				Codec.STRING.fieldOf("socket").orElse("").forGetter(v -> v.socket))
 				.apply(instance, Configuration::new)));
 	}
 
@@ -129,14 +129,19 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 			this.entity.addComponent(new IOComponent.RedstoneOutput(this.entity, kv.getValue(), kv.getKey()));
 		}
 
-		for (var kv : parseLinkage(front, this.configuration.storage)) {
-			this.entity.addComponent(new StorageProvider(this.entity, kv.getValue(), kv.getKey()));
+		for (var kv : parseLinkage(front, this.configuration.socket)) {
+			this.entity.addComponent(new SocketProvider(this.entity, kv.getValue(), kv.getKey()));
 		}
 	}
 
 	@Override
 	public void read(CompoundTag tag, HolderLookup.Provider registries) {
 		super.read(tag, registries);
+
+		// Migration
+		if (tag.contains("storage") && !tag.contains("socket")) {
+			tag.put("socket", tag.get("storage"));
+		}
 
 		Configuration.CODEC.parse(NbtOps.INSTANCE, tag).ifSuccess(configuration -> {
 			this.configuration = configuration;
