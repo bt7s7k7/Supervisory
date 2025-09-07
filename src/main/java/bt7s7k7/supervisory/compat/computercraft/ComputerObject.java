@@ -97,6 +97,14 @@ public class ComputerObject implements LuaTable<Object, Object> {
 
 				yield result;
 			}
+			case Object[] multiple -> {
+				var result = new ManagedArray(globalScope == null ? null : globalScope.ArrayPrototype);
+				for (var i = 0; i < multiple.length; i++) {
+					var managedElement = toManagedValue(multiple[i], globalScope);
+					result.elements.add(managedElement);
+				}
+				yield result;
+			}
 			case null -> Primitive.NULL;
 			default -> Primitive.VOID;
 		};

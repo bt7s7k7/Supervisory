@@ -8,22 +8,22 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
 public abstract class SocketBasedDependency<TCapability> extends ReactiveDependency<ManagedValue> {
-    public SocketProvider provider;
+	public SocketProvider provider;
 
-    public SocketBasedDependency(ReactivityManager owner, String name) {
-        super(owner, name, Primitive.VOID);
-    }
+	public SocketBasedDependency(ReactivityManager owner, String name) {
+		super(owner, name, Primitive.VOID);
+	}
 
-    @Override
-    public boolean isReady() {
-        return this.value != Primitive.VOID;
-    }
+	@Override
+	public boolean isReady() {
+		return this.getValue() != Primitive.VOID;
+	}
 
-    public abstract TCapability tryGetCachedCapability();
+	public abstract TCapability tryGetCachedCapability();
 
-    public abstract TCapability tryAcquireCapability(ServerLevel level, BlockPos position);
+	public abstract TCapability tryAcquireCapability(ServerLevel level, BlockPos position);
 
-    public void reset() {
-        this.provider = null;
-    }
+	public void reset() {
+		this.provider = null;
+	}
 }

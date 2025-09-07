@@ -11,7 +11,7 @@ import net.minecraft.core.Direction;
 public class SocketProvider extends BlockEntityComponent implements NetworkService, IOComponent {
 	protected String name;
 	protected Direction direction;
-	protected boolean valid;
+	protected boolean valid = true;
 
 	public SocketProvider(CompositeBlockEntity entity, String name, Direction direction) {
 		super(entity);

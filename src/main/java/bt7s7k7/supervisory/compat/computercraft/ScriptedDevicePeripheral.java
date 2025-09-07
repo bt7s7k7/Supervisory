@@ -34,6 +34,11 @@ public class ScriptedDevicePeripheral implements IPeripheral {
 		this.host.attachedComputers.remove(computer);
 	}
 
+	@Override
+	public Object getTarget() {
+		return this.host.entity;
+	}
+
 	@LuaFunction(mainThread = true)
 	public final void writeln(String text) {
 		this.host.deviceHost.log(Component.literal(text));

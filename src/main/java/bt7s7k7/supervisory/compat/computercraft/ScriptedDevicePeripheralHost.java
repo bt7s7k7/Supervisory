@@ -15,8 +15,12 @@ public class ScriptedDevicePeripheralHost extends BlockEntityComponent {
 
 		this.connect(device.onScopeInitialization, event -> {
 			var globalScope = event.getGlobalScope();
-			var interop = new InteropAPI(this, globalScope);
+			var interop = new InteropAPI(this, event.device(), globalScope);
+
 			globalScope.declareGlobal("Interop", interop);
+			PeripheralConnection.WRAPPER.ensurePrototype(globalScope);
+
+			event.device().integrations.putInstance(InteropAPI.class, interop);
 		});
 	}
 }

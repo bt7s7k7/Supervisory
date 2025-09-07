@@ -143,10 +143,7 @@ dependencies {
 	// CC: Tweaked compatibility
 	compileOnly("cc.tweaked:cc-tweaked-$minecraft_version-core-api:$cc_tweaked_version")
 	compileOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge-api:$cc_tweaked_version")
-	if (cc_tweaked_enabled.toBoolean()) {
-		runtimeOnly("cc.tweaked:cc-tweaked-$minecraft_version-forge:$cc_tweaked_version")
-	}
-	
+	implementation("cc.tweaked:cc-tweaked-$minecraft_version-forge:$cc_tweaked_version")
 
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html

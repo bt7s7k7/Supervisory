@@ -88,6 +88,8 @@ public abstract class SocketConnectionManager<TCapability, THandle extends Socke
 					var front = this.owner.getFront();
 					var directionToward = side.getDirection(front);
 					position = this.owner.getBlockPos().relative(directionToward);
+					// Create an ephemeral provider only to provide information to the dependency
+					dependency.provider = new SocketProvider(this.owner, name, directionToward);
 					break;
 				}
 

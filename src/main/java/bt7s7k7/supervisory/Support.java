@@ -1,5 +1,9 @@
 package bt7s7k7.supervisory;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 import net.minecraft.resources.ResourceKey;
@@ -19,5 +23,22 @@ public final class Support {
 	public static void executeIfModInstalled(String id, Supplier<Runnable> callback) {
 		if (LoadingModList.get().getModFileById(id) == null) return;
 		callback.get().run();
+	}
+
+	public static record AnnotatedMethodInfo<T extends Annotation>(Method method, T annotation) {}
+
+	public static <T extends Annotation> List<AnnotatedMethodInfo<T>> getMethodsAnnotatedWith(Class<?> type, Class<T> annotationType) {
+		var methods = new ArrayList<AnnotatedMethodInfo<T>>();
+
+		for (; type != Object.class; type = type.getSuperclass()) {
+			for (var method : type.getDeclaredMethods()) {
+				var annotation = method.getAnnotation(annotationType);
+				if (annotation != null) {
+					methods.add(new AnnotatedMethodInfo<>(method, annotation));
+				}
+			}
+		}
+
+		return methods;
 	}
 }
