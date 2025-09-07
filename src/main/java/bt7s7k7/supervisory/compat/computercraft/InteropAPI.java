@@ -27,7 +27,7 @@ public class InteropAPI extends LazyTable implements ScriptedDeviceIntegration {
 		this.connectionManager = new SocketConnectionManager<>("interop", 1, peripheralHost.entity, scriptedDevice.reactivityManager, scriptedDevice::getDevice) {
 			@Override
 			protected PeripheralReactiveDependency makeHandle(String name) {
-				return new PeripheralReactiveDependency(this.reactivityManager, name, scriptedDevice::handleError);
+				return new PeripheralReactiveDependency(this.reactivityManager, name, scriptedDevice::handleError, peripheralHost::getComputerContext);
 			}
 
 			@Override

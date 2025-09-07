@@ -4,6 +4,7 @@ import static bt7s7k7.treeburst.runtime.ExpressionEvaluator.evaluateInvocation;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.sockets.SocketBasedDependency;
@@ -14,6 +15,7 @@ import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Position;
 import bt7s7k7.treeburst.support.Primitive;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.core.ComputerContext;
 import dan200.computercraft.shared.platform.ComponentAccess;
 import dan200.computercraft.shared.platform.PlatformHelper;
 import net.minecraft.core.BlockPos;
@@ -26,6 +28,8 @@ public class PeripheralReactiveDependency extends SocketBasedDependency<IPeriphe
 	protected IPeripheral cachedPeripheral = null;
 
 	public ManagedFunction eventHandler = null;
+
+	public final Supplier<ComputerContext> computerContextSupplier;
 
 	public void handleEvent(String name, Object[] arguments) {
 		if (this.eventHandler == null) return;
@@ -41,9 +45,10 @@ public class PeripheralReactiveDependency extends SocketBasedDependency<IPeriphe
 		}
 	}
 
-	public PeripheralReactiveDependency(ReactivityManager owner, String name, Consumer<Diagnostic> errorHandler) {
+	public PeripheralReactiveDependency(ReactivityManager owner, String name, Consumer<Diagnostic> errorHandler, Supplier<ComputerContext> computerContextSupplier) {
 		super(owner, name);
 		this.errorHandler = errorHandler;
+		this.computerContextSupplier = computerContextSupplier;
 	}
 
 	@Override
