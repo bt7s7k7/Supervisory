@@ -39,7 +39,7 @@ public class ScriptedDevice extends ScriptEngine {
 	}
 
 	@Override
-	protected void handleError(Diagnostic error) {
+	public void handleError(Diagnostic error) {
 		this.host.log(Component.literal(error.format()).withStyle(ChatFormatting.RED));
 	}
 

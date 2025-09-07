@@ -8,8 +8,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.jspecify.annotations.Nullable;
 
 import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.Support;
@@ -23,14 +26,18 @@ import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Position;
 import bt7s7k7.treeburst.support.Primitive;
+import dan200.computercraft.api.filesystem.Mount;
+import dan200.computercraft.api.filesystem.WritableMount;
 import dan200.computercraft.api.lua.Coerced;
 import dan200.computercraft.api.lua.IArguments;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.lua.ObjectArguments;
+import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.api.peripheral.WorkMonitor;
 
-public class PeripheralConnection {
+public class PeripheralConnection implements IComputerAccess {
 	public static class Adapter {
 		@FunctionalInterface
 		public interface BindingCallback {
@@ -232,4 +239,64 @@ public class PeripheralConnection {
 	public static NativeHandleWrapper<PeripheralConnection> WRAPPER = new NativeHandleWrapper<>("PeripheralConnection", PeripheralConnection.class, ctx -> ctx
 			.addGetter("valid", v -> Primitive.from(v.peripheral.getType()))
 			.addGetter("type", v -> Primitive.from(v.peripheral.getType())));
+
+	@Override
+	public String getAttachmentName() {
+		return this.source.getName();
+	}
+
+	@Override
+	public @Nullable IPeripheral getAvailablePeripheral(String arg0) {
+		if (this.source.getName().equals(arg0)) return this.peripheral;
+		return null;
+	}
+
+	@Override
+	public Map<String, IPeripheral> getAvailablePeripherals() {
+		return Map.of(this.source.getName(), this.peripheral);
+	}
+
+	@Override
+	public int getID() {
+		Supervisory.LOGGER.warn("Something used the IComputerAccess.getID of a PeripheralConnection object. This is not supported and returns an invalid value.");
+		return 0;
+	}
+
+	@Override
+	public WorkMonitor getMainThreadMonitor() {
+		// Unlink CC computers, our script execution does not have time limits
+		return new WorkMonitor() {
+			@Override
+			public boolean canWork() {
+				return true;
+			}
+
+			@Override
+			public boolean shouldWork() {
+				return true;
+			}
+
+			@Override
+			public void trackWork(long arg0, TimeUnit arg1) {}
+		};
+	}
+
+	@Override
+	public @Nullable String mount(String arg0, Mount arg1, String arg2) {
+		return "";
+	}
+
+	@Override
+	public @Nullable String mountWritable(String arg0, WritableMount arg1, String arg2) {
+		return "";
+	}
+
+	@Override
+	public void queueEvent(String arg0, @Nullable Object... arg1) {
+		Supervisory.LOGGER.debug("Executed queueEvent on thread " + Thread.currentThread().getName());
+		this.source.handleEvent(arg0, arg1);
+	}
+
+	@Override
+	public void unmount(@Nullable String arg0) {}
 }

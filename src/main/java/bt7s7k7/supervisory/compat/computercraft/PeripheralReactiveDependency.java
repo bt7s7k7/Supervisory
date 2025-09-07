@@ -1,8 +1,17 @@
 package bt7s7k7.supervisory.compat.computercraft;
 
+import static bt7s7k7.treeburst.runtime.ExpressionEvaluator.evaluateInvocation;
+
+import java.util.List;
+import java.util.function.Consumer;
+
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.sockets.SocketBasedDependency;
+import bt7s7k7.treeburst.runtime.ExpressionResult;
+import bt7s7k7.treeburst.runtime.ManagedFunction;
+import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
+import bt7s7k7.treeburst.support.Position;
 import bt7s7k7.treeburst.support.Primitive;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import dan200.computercraft.shared.platform.ComponentAccess;
@@ -11,11 +20,30 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
 public class PeripheralReactiveDependency extends SocketBasedDependency<IPeripheral> {
+	protected final Consumer<Diagnostic> errorHandler;
+
 	protected ComponentAccess<IPeripheral> peripheralAccess;
 	protected IPeripheral cachedPeripheral = null;
 
-	public PeripheralReactiveDependency(ReactivityManager owner, String name) {
+	public ManagedFunction eventHandler = null;
+
+	public void handleEvent(String name, Object[] arguments) {
+		if (this.eventHandler == null) return;
+
+		var result = new ExpressionResult();
+		result.executionLimit = 5000;
+
+		var scope = this.owner.globalScope;
+		evaluateInvocation(Primitive.VOID, Primitive.VOID, this.eventHandler, Position.INTRINSIC, List.of(Primitive.from(name), ComputerObject.toManagedValue(arguments, scope)), scope, result);
+		var diagnostic = result.terminate();
+		if (diagnostic != null) {
+			this.errorHandler.accept(diagnostic);
+		}
+	}
+
+	public PeripheralReactiveDependency(ReactivityManager owner, String name, Consumer<Diagnostic> errorHandler) {
 		super(owner, name);
+		this.errorHandler = errorHandler;
 	}
 
 	@Override

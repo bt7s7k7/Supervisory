@@ -8,6 +8,7 @@ import bt7s7k7.supervisory.device.ScriptedDeviceIntegration;
 import bt7s7k7.supervisory.sockets.SocketConnectionManager;
 import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
+import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.runtime.NativeHandle;
@@ -26,7 +27,7 @@ public class InteropAPI extends LazyTable implements ScriptedDeviceIntegration {
 		this.connectionManager = new SocketConnectionManager<>("interop", 1, peripheralHost.entity, scriptedDevice.reactivityManager, scriptedDevice::getDevice) {
 			@Override
 			protected PeripheralReactiveDependency makeHandle(String name) {
-				return new PeripheralReactiveDependency(this.reactivityManager, name);
+				return new PeripheralReactiveDependency(this.reactivityManager, name, scriptedDevice::handleError);
 			}
 
 			@Override
@@ -36,6 +37,7 @@ public class InteropAPI extends LazyTable implements ScriptedDeviceIntegration {
 				if (capability == null) {
 					if (oldValue == Primitive.VOID) return;
 					dependency.updateValue(Primitive.VOID);
+					dependency.handleEvent("__disconnected__", new Object[0]);
 					return;
 				}
 
@@ -46,7 +48,10 @@ public class InteropAPI extends LazyTable implements ScriptedDeviceIntegration {
 					return;
 				}
 
-				dependency.updateValue(new PeripheralConnection(capability, dependency).buildWrappingTable(this.reactivityManager.globalScope));
+				var connection = new PeripheralConnection(capability, dependency);
+				dependency.updateValue(connection.buildWrappingTable(this.reactivityManager.globalScope));
+				dependency.handleEvent("__connected__", new Object[0]);
+				capability.attach(connection);
 			}
 		};
 	}
@@ -103,6 +108,14 @@ public class InteropAPI extends LazyTable implements ScriptedDeviceIntegration {
 		this.declareProperty("GREEN", Primitive.from(8192));
 		this.declareProperty("RED", Primitive.from(16384));
 		this.declareProperty("BLACK", Primitive.from(32768));
+
+		this.declareProperty("setEventHandler", NativeFunction.simple(this.globalScope, List.of("peripheral", "handler"), List.of(PeripheralReactiveDependency.class, ManagedFunction.class), (args, scope, result) -> {
+			var dependency = args.get(0).getNativeValue(PeripheralReactiveDependency.class);
+			var handler = args.get(1).getFunctionValue();
+
+			dependency.eventHandler = handler;
+			result.value = Primitive.VOID;
+		}));
 	}
 
 	@Override

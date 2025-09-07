@@ -16,7 +16,7 @@ import net.minecraft.network.chat.Component;
 public abstract class ScriptEngine {
 	private GlobalScope globalScope;
 
-	protected abstract void handleError(Diagnostic error);
+	public abstract void handleError(Diagnostic error);
 
 	protected abstract void initializeGlobals(GlobalScope globalScope);
 
