@@ -1,16 +1,16 @@
 package bt7s7k7.supervisory.blocks.programmableLogicController;
 
-import bt7s7k7.supervisory.device.ScriptedDeviceInitializationEvent;
-import bt7s7k7.supervisory.device.ScriptedDeviceIntegration;
 import bt7s7k7.supervisory.storage.ItemReport;
 import bt7s7k7.supervisory.storage.StackReport;
 import bt7s7k7.supervisory.storage.StorageAPI;
 import bt7s7k7.supervisory.storage.StorageReport;
+import bt7s7k7.supervisory.system.ScriptedSystemInitializationEvent;
+import bt7s7k7.supervisory.system.ScriptedSystemIntegration;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 @EventBusSubscriber
-public final class StorageIntegration implements ScriptedDeviceIntegration {
+public final class StorageIntegration implements ScriptedSystemIntegration {
 	protected final StorageAPI storage;
 
 	private StorageIntegration(StorageAPI storage) {
@@ -23,12 +23,12 @@ public final class StorageIntegration implements ScriptedDeviceIntegration {
 	}
 
 	@SubscribeEvent
-	public static void registerIntegration(ScriptedDeviceInitializationEvent init) {
-		init.signalConnector.connect(init.deviceHost.onScopeInitialization, event -> {
+	public static void registerIntegration(ScriptedSystemInitializationEvent init) {
+		init.signalConnector.connect(init.systemHost.onScopeInitialization, event -> {
 			var globalScope = event.getGlobalScope();
-			var device = event.device();
+			var system = event.system();
 
-			var storage = new StorageAPI(globalScope.TablePrototype, globalScope, init.deviceHost.entity, device.reactivityManager, device::getDevice);
+			var storage = new StorageAPI(globalScope.TablePrototype, globalScope, init.systemHost.entity, system.reactivityManager, system::getNetworkDevice);
 
 			globalScope.declareGlobal("Storage", storage);
 			StorageReport.WRAPPER.ensurePrototype(globalScope);
@@ -36,7 +36,7 @@ public final class StorageIntegration implements ScriptedDeviceIntegration {
 			ItemReport.WRAPPER.ensurePrototype(globalScope);
 
 			var integration = new StorageIntegration(storage);
-			device.integrations.putInstance(StorageIntegration.class, integration);
+			system.integrations.putInstance(StorageIntegration.class, integration);
 		});
 	}
 }

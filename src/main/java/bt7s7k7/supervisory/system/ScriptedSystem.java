@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.device;
+package bt7s7k7.supervisory.system;
 
 import static bt7s7k7.treeburst.runtime.ExpressionResult.LABEL_EXCEPTION;
 
@@ -31,10 +31,10 @@ import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
-public class ScriptedDevice extends ScriptEngine {
-	public final ScriptedDeviceHost host;
+public class ScriptedSystem extends ScriptEngine {
+	public final ScriptedSystemHost host;
 
-	public ScriptedDevice(ScriptedDeviceHost host) {
+	public ScriptedSystem(ScriptedSystemHost host) {
 		this.host = host;
 	}
 
@@ -111,7 +111,7 @@ public class ScriptedDevice extends ScriptEngine {
 	public ReactivityManager reactivityManager;
 	public TickReactiveDependency reactivityTick;
 
-	public final MutableClassToInstanceMap<ScriptedDeviceIntegration> integrations = MutableClassToInstanceMap.create();
+	public final MutableClassToInstanceMap<ScriptedSystemIntegration> integrations = MutableClassToInstanceMap.create();
 
 	@Override
 	protected void initializeGlobals(GlobalScope globalScope) {
@@ -128,7 +128,7 @@ public class ScriptedDevice extends ScriptEngine {
 		}
 
 		{
-			var device = this.getDevice();
+			var device = this.getNetworkDevice();
 			for (var key : device.getStateKeys()) {
 				var result = this.importValue(device.getState(key));
 				if (result == null) {
@@ -139,7 +139,7 @@ public class ScriptedDevice extends ScriptEngine {
 			}
 		}
 
-		this.host.onScopeInitialization.emit(new ScriptedDeviceHost.ScopeInitializationEvent(this));
+		this.host.onScopeInitialization.emit(new ScriptedSystemHost.ScopeInitializationEvent(this));
 
 		globalScope.declareGlobal("print", NativeFunction.simple(globalScope, List.of("message"), (args, scope, result) -> {
 			var message = args.get(0);
@@ -152,18 +152,18 @@ public class ScriptedDevice extends ScriptEngine {
 			this.host.log(formatValue(message, scope.globalScope));
 		}));
 
-		globalScope.declareGlobal("s", this.createStateAccessor(globalScope, key -> this.getDevice().getState(key), (key, value) -> {
-			this.getDevice().setState(key, value);
+		globalScope.declareGlobal("s", this.createStateAccessor(globalScope, key -> this.getNetworkDevice().getState(key), (key, value) -> {
+			this.getNetworkDevice().setState(key, value);
 			this.host.entity.setChanged();
 		}));
 
 		sys.declareProperty("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> {
 			this.host.entity.setChanged();
-			return this.getDevice().state;
+			return this.getNetworkDevice().state;
 		})));
 
 		globalScope.declareGlobal("setDomain", NativeFunction.simple(globalScope, List.of("domain"), List.of(Primitive.String.class), (args, scope, result) -> {
-			var device = this.getDevice();
+			var device = this.getNetworkDevice();
 			if (device.isConnected()) {
 				result.value = new Diagnostic("Cannot change the domain after already connected", Position.INTRINSIC);
 				result.label = LABEL_EXCEPTION;
@@ -175,15 +175,15 @@ public class ScriptedDevice extends ScriptEngine {
 		}));
 
 		globalScope.declareGlobal("r", this.createStateAccessor(globalScope, key -> {
-			var imported = this.importValue(this.getDevice().readCachedValue(key));
+			var imported = this.importValue(this.getNetworkDevice().readCachedValue(key));
 			if (imported == null) imported = Primitive.VOID;
 			var dependency = RemoteValueReactiveDependency.get(this.reactivityManager, key, imported);
-			this.getDevice().subscribe(key);
+			this.getNetworkDevice().subscribe(key);
 			return dependency.getHandle();
 		}, (key, value) -> {
 			var exported = this.exportValue(value);
 			if (exported == null) return;
-			this.getDevice().publishResource(key, exported);
+			this.getNetworkDevice().publishResource(key, exported);
 		}));
 	}
 
@@ -200,8 +200,8 @@ public class ScriptedDevice extends ScriptEngine {
 		this.integrations.clear();
 	}
 
-	public NetworkDevice getDevice() {
-		return this.host.deviceHost.getDevice();
+	public NetworkDevice getNetworkDevice() {
+		return this.host.networkDeviceHost.getDevice();
 	}
 
 	public void processTasks() {

@@ -5,12 +5,12 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import bt7s7k7.supervisory.device.ScriptedDevice;
-import bt7s7k7.supervisory.device.ScriptedDeviceInitializationEvent;
-import bt7s7k7.supervisory.device.ScriptedDeviceIntegration;
 import bt7s7k7.supervisory.redstone.RedstoneReactiveDependency;
 import bt7s7k7.supervisory.redstone.RedstoneState;
 import bt7s7k7.supervisory.support.Side;
+import bt7s7k7.supervisory.system.ScriptedSystem;
+import bt7s7k7.supervisory.system.ScriptedSystemInitializationEvent;
+import bt7s7k7.supervisory.system.ScriptedSystemIntegration;
 import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.standard.LazyTable;
@@ -19,25 +19,25 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 @EventBusSubscriber
-public class RedstoneIntegration extends LazyTable implements ScriptedDeviceIntegration {
-	protected final ScriptedDevice device;
+public class RedstoneIntegration extends LazyTable implements ScriptedSystemIntegration {
+	protected final ScriptedSystem system;
 	protected final RedstoneState redstone;
 	protected final RedstoneReactiveDependency[] handlers = new RedstoneReactiveDependency[Side.values().length];
 
-	public RedstoneIntegration(ScriptedDevice device, GlobalScope globalScope, RedstoneState redstone) {
+	public RedstoneIntegration(ScriptedSystem system, GlobalScope globalScope, RedstoneState redstone) {
 		super(globalScope.TablePrototype, globalScope);
-		this.device = device;
+		this.system = system;
 		this.redstone = redstone;
 	}
 
 	@Override
 	protected void initialize() {
-		var front = this.device.host.entity.getFront();
+		var front = this.system.host.entity.getFront();
 
 		for (var direction : Side.values()) {
 			var absoluteDirection = direction.getDirection(front);
 			var redstoneValue = this.redstone.getInput(absoluteDirection);
-			var dependency = RedstoneReactiveDependency.get(this.device.reactivityManager, direction, redstoneValue);
+			var dependency = RedstoneReactiveDependency.get(this.system.reactivityManager, direction, redstoneValue);
 			this.handlers[direction.index] = dependency;
 
 			this.declareProperty(direction.name, dependency.getHandle());
@@ -56,7 +56,7 @@ public class RedstoneIntegration extends LazyTable implements ScriptedDeviceInte
 	}
 
 	@SubscribeEvent
-	public static void registerIntegration(ScriptedDeviceInitializationEvent init) {
+	public static void registerIntegration(ScriptedSystemInitializationEvent init) {
 		var redstone = init.entity.ensureComponent(RedstoneState.class, RedstoneState::new);
 
 		init.signalConnector.connect(redstone.onRedstoneInputChanged, event -> {
@@ -70,10 +70,10 @@ public class RedstoneIntegration extends LazyTable implements ScriptedDeviceInte
 			integration.handlers[relative.index].updateValue(Primitive.from(strength));
 		});
 
-		init.signalConnector.connect(init.deviceHost.onScopeInitialization, event -> {
-			var globalScope = event.device().getGlobalScope();
-			var integration = new RedstoneIntegration(event.device(), globalScope, redstone);
-			event.device().integrations.putInstance(RedstoneIntegration.class, integration);
+		init.signalConnector.connect(init.systemHost.onScopeInitialization, event -> {
+			var globalScope = event.system().getGlobalScope();
+			var integration = new RedstoneIntegration(event.system(), globalScope, redstone);
+			event.system().integrations.putInstance(RedstoneIntegration.class, integration);
 			globalScope.declareGlobal("Redstone", integration);
 		});
 	}

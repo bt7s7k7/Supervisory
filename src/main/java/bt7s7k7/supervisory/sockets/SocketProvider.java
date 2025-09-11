@@ -18,9 +18,9 @@ public class SocketProvider extends BlockEntityComponent implements NetworkServi
 		this.name = name;
 		this.direction = direction;
 
-		var deviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
+		var networkDeviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
 
-		this.connect(deviceHost.onInitializeNetworkDevice, event -> {
+		this.connect(networkDeviceHost.onInitializeDevice, event -> {
 			event.device().addService(this);
 		});
 	}

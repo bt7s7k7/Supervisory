@@ -3,9 +3,9 @@ package bt7s7k7.supervisory.compat.computercraft;
 import java.util.Collections;
 import java.util.List;
 
-import bt7s7k7.supervisory.device.ScriptedDevice;
-import bt7s7k7.supervisory.device.ScriptedDeviceIntegration;
 import bt7s7k7.supervisory.sockets.SocketConnectionManager;
+import bt7s7k7.supervisory.system.ScriptedSystem;
+import bt7s7k7.supervisory.system.ScriptedSystemIntegration;
 import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
@@ -16,18 +16,18 @@ import bt7s7k7.treeburst.standard.LazyTable;
 import bt7s7k7.treeburst.support.Primitive;
 import dan200.computercraft.api.peripheral.IPeripheral;
 
-public class InteropAPI extends LazyTable implements ScriptedDeviceIntegration {
-	protected final ScriptedDevicePeripheralHost peripheralHost;
+public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
+	protected final PeripheralConnectionController connectionController;
 	protected final SocketConnectionManager<IPeripheral, PeripheralReactiveDependency> connectionManager;
 
-	public InteropAPI(ScriptedDevicePeripheralHost peripheralHost, ScriptedDevice scriptedDevice, GlobalScope globalScope) {
+	public InteropAPI(PeripheralConnectionController connectionController, ScriptedSystem system, GlobalScope globalScope) {
 		super(globalScope.TablePrototype, globalScope);
-		this.peripheralHost = peripheralHost;
+		this.connectionController = connectionController;
 
-		this.connectionManager = new SocketConnectionManager<>("interop", 1, peripheralHost.entity, scriptedDevice.reactivityManager, scriptedDevice::getDevice) {
+		this.connectionManager = new SocketConnectionManager<>("interop", 1, connectionController.entity, system.reactivityManager, system::getNetworkDevice) {
 			@Override
 			protected PeripheralReactiveDependency makeHandle(String name) {
-				return new PeripheralReactiveDependency(this.reactivityManager, name, scriptedDevice::handleError, peripheralHost::getComputerContext);
+				return new PeripheralReactiveDependency(this.reactivityManager, name, system::handleError, connectionController::getComputerContext);
 			}
 
 			@Override
@@ -59,7 +59,7 @@ public class InteropAPI extends LazyTable implements ScriptedDeviceIntegration {
 	@Override
 	protected void initialize() {
 		this.declareProperty("isAttached", NativeFunction.simple(this.globalScope, Collections.emptyList(), (args, scope, result) -> {
-			result.value = Primitive.from(this.peripheralHost.attachedComputers.hasComputers());
+			result.value = Primitive.from(this.connectionController.attachedComputers.hasComputers());
 		}));
 
 		this.declareProperty("emitEvent", NativeFunction.simple(this.globalScope, List.of("name", "arguments?"), List.of(Primitive.String.class, ManagedArray.class), (args, scope, result) -> {
@@ -77,7 +77,7 @@ public class InteropAPI extends LazyTable implements ScriptedDeviceIntegration {
 				eventArguments = null;
 			}
 
-			this.peripheralHost.attachedComputers.forEach(computer -> {
+			this.connectionController.attachedComputers.forEach(computer -> {
 				computer.queueEvent(name, eventArguments);
 			});
 

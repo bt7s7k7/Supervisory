@@ -23,7 +23,7 @@ public class NetworkDeviceHost extends BlockEntityComponent {
 		}
 		this.device = device;
 
-		this.onInitializeNetworkDevice.emit(new InitializeNetworkDeviceEvent(oldDevice, device, fresh));
+		this.onInitializeDevice.emit(new InitializeDeviceEvent(oldDevice, device, fresh));
 
 		device.onUpdate = (key, value) -> this.onNetworkUpdate.emit(new NetworkUpdateEvent(key, value));
 
@@ -35,9 +35,9 @@ public class NetworkDeviceHost extends BlockEntityComponent {
 		this.onDeviceInitialized.emit(device);
 	}
 
-	public static record InitializeNetworkDeviceEvent(NetworkDevice oldDevice, NetworkDevice device, boolean fresh) {}
+	public static record InitializeDeviceEvent(NetworkDevice oldDevice, NetworkDevice device, boolean fresh) {}
 
-	public final ComponentSignal.Emitter<InitializeNetworkDeviceEvent> onInitializeNetworkDevice = new ComponentSignal.Emitter<>();
+	public final ComponentSignal.Emitter<InitializeDeviceEvent> onInitializeDevice = new ComponentSignal.Emitter<>();
 
 	public final ComponentSignal.Emitter<NetworkDevice> onDeviceInitialized = new ComponentSignal.Emitter<>();
 
@@ -69,7 +69,7 @@ public class NetworkDeviceHost extends BlockEntityComponent {
 			this.device.disconnect();
 		}
 
-		this.onInitializeNetworkDevice.teardown();
+		this.onInitializeDevice.teardown();
 		this.onNetworkUpdate.teardown();
 		this.onDeviceInitialized.teardown();
 	}

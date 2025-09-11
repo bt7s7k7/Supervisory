@@ -27,7 +27,7 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.loading.FMLLoader;
 
 public class IOManager extends BlockEntityComponent implements Configurable<IOManager.Configuration> {
-	protected final NetworkDeviceHost deviceHost;
+	protected final NetworkDeviceHost networkDeviceHost;
 
 	@Override
 	public EventPriority priority() {
@@ -39,7 +39,7 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 	public IOManager(CompositeBlockEntity entity) {
 		super(entity);
 
-		this.deviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
+		this.networkDeviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
 		entity.ensureComponent(RedstoneState.class, RedstoneState::new);
 	}
 
@@ -160,13 +160,13 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 
 	@Override
 	public Configuration getConfiguration() {
-		this.configuration.domain = this.deviceHost.hasDevice() ? this.deviceHost.getDevice().domain : "";
+		this.configuration.domain = this.networkDeviceHost.hasDevice() ? this.networkDeviceHost.getDevice().domain : "";
 		return this.configuration;
 	}
 
 	@Override
 	public void setConfiguration(Configuration configuration) {
-		if ((this.deviceHost.hasDevice() && configuration.domain == this.deviceHost.getDevice().domain)
+		if ((this.networkDeviceHost.hasDevice() && configuration.domain == this.networkDeviceHost.getDevice().domain)
 				&& configuration.input == this.configuration.input
 				&& configuration.output == this.configuration.output) {
 			return;
@@ -174,7 +174,7 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 
 		this.configuration = configuration;
 		this.updateIOComponents();
-		this.deviceHost.setDevice(new NetworkDevice(configuration.domain), true);
+		this.networkDeviceHost.setDevice(new NetworkDevice(configuration.domain), true);
 		this.entity.setChanged();
 	}
 

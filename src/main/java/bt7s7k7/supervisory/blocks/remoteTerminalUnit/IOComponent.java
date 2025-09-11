@@ -17,10 +17,10 @@ public interface IOComponent {
 			this.name = name;
 			this.direction = direction;
 
-			var deviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
+			var networkDeviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
 			var redstone = entity.ensureComponent(RedstoneState.class, RedstoneState::new);
 
-			this.connect(deviceHost.onInitializeNetworkDevice, event -> {
+			this.connect(networkDeviceHost.onInitializeDevice, event -> {
 				if (event.fresh()) {
 					event.device().publishResource(this.name, Primitive.from(redstone.getInput(this.direction)));
 				}
@@ -28,9 +28,9 @@ public interface IOComponent {
 
 			this.connect(redstone.onRedstoneInputChanged, event -> {
 				if (event.direction() != this.direction) return;
-				if (!deviceHost.hasDevice()) return;
+				if (!networkDeviceHost.hasDevice()) return;
 
-				deviceHost.getDevice().publishResource(this.name, Primitive.from(event.strength()));
+				networkDeviceHost.getDevice().publishResource(this.name, Primitive.from(event.strength()));
 			});
 		}
 	}
@@ -44,14 +44,14 @@ public interface IOComponent {
 			this.name = name;
 			this.direction = direction;
 
-			var deviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
+			var networkDeviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
 			var redstone = entity.ensureComponent(RedstoneState.class, RedstoneState::new);
 
-			this.connect(deviceHost.onInitializeNetworkDevice, event -> {
+			this.connect(networkDeviceHost.onInitializeDevice, event -> {
 				event.device().subscribe(this.name);
 			});
 
-			this.connect(deviceHost.onNetworkUpdate, event -> {
+			this.connect(networkDeviceHost.onNetworkUpdate, event -> {
 				if (event.key().equals(this.name) && event.value() instanceof Primitive.Number strength) {
 					redstone.setOutput(this.direction, (int) strength.value);
 				}

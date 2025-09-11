@@ -24,10 +24,10 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 public class StorageAPI extends LazyTable {
 	protected final SocketConnectionManager<IItemHandler, StorageReactiveDependency> connectionManager;
 
-	public StorageAPI(ManagedObject prototype, GlobalScope globalScope, CompositeBlockEntity entity, ReactivityManager reactivityManager, Supplier<NetworkDevice> deviceGetter) {
+	public StorageAPI(ManagedObject prototype, GlobalScope globalScope, CompositeBlockEntity entity, ReactivityManager reactivityManager, Supplier<NetworkDevice> networkDeviceSupplier) {
 		super(prototype, globalScope);
 
-		this.connectionManager = new SocketConnectionManager<IItemHandler, StorageReactiveDependency>("storage", 5, entity, reactivityManager, deviceGetter) {
+		this.connectionManager = new SocketConnectionManager<IItemHandler, StorageReactiveDependency>("storage", 5, entity, reactivityManager, networkDeviceSupplier) {
 			@Override
 			protected void processDependency(StorageReactiveDependency dependency, IItemHandler capability) {
 				if (capability == null) {

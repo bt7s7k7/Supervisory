@@ -5,7 +5,7 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.blocks.remoteTerminalUnit.IOManager;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
-import bt7s7k7.supervisory.device.ScriptedDeviceHost;
+import bt7s7k7.supervisory.system.ScriptedSystemHost;
 
 public class AllBlockEntities {
 	public static final BlockEntityEntry<CompositeBlockEntity> REMOTE_TERMINAL_UNIT = Supervisory.REGISTRATE.blockEntity("remote_terminal_unit", CompositeBlockEntity.createFactory(instance -> {
@@ -15,7 +15,7 @@ public class AllBlockEntities {
 			.register();
 
 	public static final BlockEntityEntry<CompositeBlockEntity> PROGRAMMABLE_LOGIC_CONTROLLER = Supervisory.REGISTRATE.blockEntity("programmable_logic_controller", CompositeBlockEntity.createFactory(instance -> {
-		instance.addComponent(new ScriptedDeviceHost(instance));
+		instance.addComponent(new ScriptedSystemHost(instance));
 	}))
 			.validBlock(AllBlocks.PROGRAMMABLE_LOGIC_CONTROLLER)
 			.register();

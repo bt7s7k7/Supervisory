@@ -1,4 +1,4 @@
-package bt7s7k7.supervisory.device;
+package bt7s7k7.supervisory.system;
 
 import bt7s7k7.supervisory.script.reactivity.ReactiveDependency;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;

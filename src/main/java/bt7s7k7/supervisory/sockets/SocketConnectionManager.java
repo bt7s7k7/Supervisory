@@ -4,11 +4,11 @@ import java.util.HashMap;
 import java.util.function.Supplier;
 
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
-import bt7s7k7.supervisory.device.TickReactiveDependency;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkManager;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.support.Side;
+import bt7s7k7.supervisory.system.TickReactiveDependency;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -18,19 +18,19 @@ public abstract class SocketConnectionManager<TCapability, THandle extends Socke
 	public final String namespace;
 
 	protected final CompositeBlockEntity owner;
-	protected final Supplier<NetworkDevice> deviceGetter;
+	protected final Supplier<NetworkDevice> networkDeviceSupplier;
 	protected final ReactivityManager reactivityManager;
 	protected final int updateInterval;
 
 	protected final HashMap<String, THandle> connected = new HashMap<>();
 	protected int ticksUntilUpdate = 0;
 
-	public SocketConnectionManager(String namespace, int updateInterval, CompositeBlockEntity owner, ReactivityManager reactivityManager, Supplier<NetworkDevice> deviceGetter) {
+	public SocketConnectionManager(String namespace, int updateInterval, CompositeBlockEntity owner, ReactivityManager reactivityManager, Supplier<NetworkDevice> networkDeviceSupplier) {
 		this.namespace = namespace;
 		this.updateInterval = updateInterval;
 		this.owner = owner;
 		this.reactivityManager = reactivityManager;
-		this.deviceGetter = deviceGetter;
+		this.networkDeviceSupplier = networkDeviceSupplier;
 		this.updateTick = TickReactiveDependency.get(this.namespace + "_update", this.reactivityManager);
 	}
 
@@ -93,7 +93,7 @@ public abstract class SocketConnectionManager<TCapability, THandle extends Socke
 					break;
 				}
 
-				var networkDevice = this.deviceGetter.get();
+				var networkDevice = this.networkDeviceSupplier.get();
 				if (networkDevice != null && !networkDevice.domain.isEmpty()) {
 					var provider = NetworkManager.getInstance().findService(networkDevice.domain, SocketProvider.class, name);
 					if (provider == null) break loadHandler;

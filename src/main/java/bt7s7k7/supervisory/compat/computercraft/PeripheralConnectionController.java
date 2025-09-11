@@ -3,14 +3,14 @@ package bt7s7k7.supervisory.compat.computercraft;
 import bt7s7k7.supervisory.Support;
 import bt7s7k7.supervisory.composition.BlockEntityComponent;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
-import bt7s7k7.supervisory.device.ScriptedDeviceHost;
+import bt7s7k7.supervisory.system.ScriptedSystemHost;
 import dan200.computercraft.api.peripheral.AttachedComputerSet;
 import dan200.computercraft.core.ComputerContext;
 import dan200.computercraft.shared.computer.core.ServerContext;
 import net.minecraft.server.level.ServerLevel;
 
-public class ScriptedDevicePeripheralHost extends BlockEntityComponent {
-	public final ScriptedDeviceHost deviceHost;
+public class PeripheralConnectionController extends BlockEntityComponent {
+	public final ScriptedSystemHost systemHost;
 	public final AttachedComputerSet attachedComputers = new AttachedComputerSet();
 
 	protected ComputerContext computerContext;
@@ -26,18 +26,18 @@ public class ScriptedDevicePeripheralHost extends BlockEntityComponent {
 		return this.computerContext;
 	}
 
-	public ScriptedDevicePeripheralHost(CompositeBlockEntity entity, ScriptedDeviceHost device) {
+	public PeripheralConnectionController(CompositeBlockEntity entity, ScriptedSystemHost systemHost) {
 		super(entity);
-		this.deviceHost = device;
+		this.systemHost = systemHost;
 
-		this.connect(device.onScopeInitialization, event -> {
+		this.connect(systemHost.onScopeInitialization, event -> {
 			var globalScope = event.getGlobalScope();
-			var interop = new InteropAPI(this, event.device(), globalScope);
+			var interop = new InteropAPI(this, event.system(), globalScope);
 
 			globalScope.declareGlobal("Interop", interop);
 			PeripheralConnection.WRAPPER.ensurePrototype(globalScope);
 
-			event.device().integrations.putInstance(InteropAPI.class, interop);
+			event.system().integrations.putInstance(InteropAPI.class, interop);
 		});
 	}
 }

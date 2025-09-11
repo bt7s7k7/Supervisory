@@ -4,7 +4,7 @@ import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.Support;
 import bt7s7k7.supervisory.blocks.AllBlockEntities;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
-import bt7s7k7.supervisory.device.ScriptedDeviceInitializationEvent;
+import bt7s7k7.supervisory.system.ScriptedSystemInitializationEvent;
 import dan200.computercraft.api.peripheral.PeripheralCapability;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -29,15 +29,15 @@ public final class ComputerCraftDetector {
 			event.registerBlockEntity(PeripheralCapability.get(), AllBlockEntities.PROGRAMMABLE_LOGIC_CONTROLLER.get(), (blockEntity, context) -> {
 				if (!(blockEntity instanceof CompositeBlockEntity composite)) return null;
 
-				var host = composite.getComponent(ScriptedDevicePeripheralHost.class);
+				var host = composite.getComponent(PeripheralConnectionController.class);
 				if (!host.isPresent()) return null;
 
-				return new ScriptedDevicePeripheral(host.get());
+				return new ScriptedSystemPeripheral(host.get());
 			});
 		});
 
-		NeoForge.EVENT_BUS.addListener((ScriptedDeviceInitializationEvent init) -> {
-			init.entity.addComponent(new ScriptedDevicePeripheralHost(init.entity, init.deviceHost));
+		NeoForge.EVENT_BUS.addListener((ScriptedSystemInitializationEvent init) -> {
+			init.entity.addComponent(new PeripheralConnectionController(init.entity, init.systemHost));
 		});
 	}
 }
