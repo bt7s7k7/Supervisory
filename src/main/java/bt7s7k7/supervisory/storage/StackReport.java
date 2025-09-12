@@ -30,10 +30,11 @@ public class StackReport {
 	}
 
 	public static NativeHandleWrapper<StackReport> WRAPPER = new NativeHandleWrapper<>("StackReport", StackReport.class, ctx -> ctx
-			.addGetter("count", v -> Primitive.from(v.count()))
-			.addGetter("slot", v -> Primitive.from(v.slot))
-			.addGetter("id", v -> Primitive.from(v.item().id()))
-			.addGetter("code", v -> Primitive.from(v.item().code()))
-			.addGetter("item", v -> ItemReport.WRAPPER.getHandle(v.item(), ctx.globalScope))
+			// @summary: Represents a single stack inside an inventory {@link StorageReport}.
+			.addGetter("count", v -> Primitive.from(v.count())) // @type: Number, @summary: The number of items in this stack
+			.addGetter("slot", v -> Primitive.from(v.slot)) // @type: Number, @summary: The slot number of this stack
+			.addGetter("id", v -> Primitive.from(v.item().id())) // @type: String, @summary: The ID of the contained item
+			.addGetter("code", v -> Primitive.from(v.item().code())) // @type: String, @summary: A unique code representing the NBT data of the item
+			.addGetter("item", v -> ItemReport.WRAPPER.getHandle(v.item(), ctx.globalScope)) // @type: ItemReport, @summary: The item type inside this stack
 			.addDumpMethod((self, depth, scope, result) -> self.count() + "*" + self.item().id()));
 }

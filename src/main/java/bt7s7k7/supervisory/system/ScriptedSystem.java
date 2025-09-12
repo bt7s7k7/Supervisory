@@ -57,7 +57,7 @@ public class ScriptedSystem extends ScriptEngine {
 					Function.identity(), Function.identity()));
 
 	protected ManagedFunction createStateAccessor(GlobalScope globalScope, Function<String, ManagedValue> getter, BiConsumer<String, ManagedValue> setter) {
-		return NativeFunction.simple(globalScope, List.of("name", "value?"), List.of(Primitive.String.class, ManagedValue.class), (args, scope, result) -> {
+		return NativeFunction.simple(globalScope, List.of("name", "value?"), List.of(Primitive.String.class, ManagedValue.class), (args, scope, result) -> { // @symbol: <template>stateAccessor
 			var key = args.get(0).getStringValue();
 			if (args.size() == 1) {
 				result.value = getter.apply(key);
@@ -120,8 +120,8 @@ public class ScriptedSystem extends ScriptEngine {
 		this.reactivityManager = new ReactivityManager(globalScope);
 		this.reactivityTick = TickReactiveDependency.get("tick", this.reactivityManager);
 
-		var sys = globalScope.declareGlobal("SYS", new ManagedTable(globalScope.TablePrototype));
-		sys.declareProperty("tick", this.reactivityTick.getHandle());
+		var sys = globalScope.declareGlobal("SYS", new ManagedTable(globalScope.TablePrototype)); // @summary: Contains functions and data regarding the current system.
+		sys.declareProperty("tick", this.reactivityTick.getHandle()); // @symbol: SYS.tick, @type: TickReactiveDependency, @summary: Triggers each game tick.
 
 		for (var side : Side.values()) {
 			globalScope.declareGlobal(side.name.toUpperCase(), Primitive.from(side.name));
@@ -142,6 +142,7 @@ public class ScriptedSystem extends ScriptEngine {
 		this.host.onScopeInitialization.emit(new ScriptedSystemHost.ScopeInitializationEvent(this));
 
 		globalScope.declareGlobal("print", NativeFunction.simple(globalScope, List.of("message"), (args, scope, result) -> {
+			// @summary: Prints a message to the system log. If the message is not a string it is converted using `k_dump`.
 			var message = args.get(0);
 
 			if (message instanceof Primitive.String stringMessage) {
@@ -152,17 +153,22 @@ public class ScriptedSystem extends ScriptEngine {
 			this.host.log(formatValue(message, scope.globalScope));
 		}));
 
-		globalScope.declareGlobal("s", this.createStateAccessor(globalScope, key -> this.getNetworkDevice().getState(key), (key, value) -> {
+		globalScope.declareGlobal("s", this.createStateAccessor(globalScope, key -> this.getNetworkDevice().getState(key), (key, value) -> { // @like: <template>stateAccessor
+			// @summary: Allows access to the device's local state. This state is persistent after reboots.
 			this.getNetworkDevice().setState(key, value);
 			this.host.entity.setChanged();
 		}));
 
-		sys.declareProperty("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> {
+		sys.declareProperty("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> { // @symbol: SYS.state, @type: Map
+			// @summary: Allows raw access to the device's local state.
 			this.host.entity.setChanged();
 			return this.getNetworkDevice().state;
 		})));
 
 		globalScope.declareGlobal("setDomain", NativeFunction.simple(globalScope, List.of("domain"), List.of(Primitive.String.class), (args, scope, result) -> {
+			// @summary[[Sets the domain this device should connect to. This connection is
+			// established exactly after initial code finishes executing and cannot be changed
+			// after. The only way to change the domain is to reboot the device.]]
 			var device = this.getNetworkDevice();
 			if (device.isConnected()) {
 				result.value = new Diagnostic("Cannot change the domain after already connected", Position.INTRINSIC);
@@ -174,7 +180,19 @@ public class ScriptedSystem extends ScriptEngine {
 			result.value = null;
 		}));
 
-		globalScope.declareGlobal("r", this.createStateAccessor(globalScope, key -> {
+		globalScope.declareGlobal("r", this.createStateAccessor(globalScope, key -> { // @like: <template>stateAccessor
+			// @summary[[Allows publishing resources onto a connected network or requesting
+			// resources published by other devices.
+			//
+			// When writing, the system will broadcast an update message, that all devices that
+			// listen to the event will react to, and save the resource in their cache. At the same
+			// time the published resource will be saved in a local cache, that will be used to
+			// respond to resource requests.
+			//
+			// When reading, the resource will be read from this system's cache or, if the resource
+			// is missing, {@link void} will be returned and the system will send a resource request
+			// over the network. A device that publishes this resource will hopefully respond and,
+			// when an update message is received, this system's cache will be updated.]]
 			var imported = this.importValue(this.getNetworkDevice().readCachedValue(key));
 			if (imported == null) imported = Primitive.VOID;
 			var dependency = RemoteValueReactiveDependency.get(this.reactivityManager, key, imported);

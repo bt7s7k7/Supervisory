@@ -5,7 +5,11 @@ import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.treeburst.support.Primitive;
 
-public class RedstoneReactiveDependency extends ReactiveDependency<Primitive.Number> {
+public class RedstoneReactiveDependency extends ReactiveDependency<Primitive.Number> { // @symbol: RedstoneReactiveDependency
+	// @entry-symbol
+	// @prototype: ReactiveDependency.prototype
+	// @summary: Triggers each time the redstone input changes. The value is a {@link Number} indicating the signal strength.
+
 	public RedstoneReactiveDependency(ReactivityManager owner, String name, Primitive.Number value) {
 		super(owner, name, value);
 	}

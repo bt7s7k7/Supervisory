@@ -25,8 +25,10 @@ public class ReactiveScope {
 		this.callback = callback;
 		this.owner = owner;
 
-		this.context = new ManagedTable(globalScope.TablePrototype, Map.of(
-				"use", NativeFunction.simple(globalScope, List.of("dependency"), List.of(ReactiveDependency.class), (args, scope, result) -> {
+		this.context = new ManagedTable(globalScope.TablePrototype, Map.of( // @symbol: ReactiveScope, @entry-symbol
+				// @summary: Allows for adding dependencies to the scope of a {@link reactive} function.
+				"use", NativeFunction.simple(globalScope, List.of("dependency"), List.of(ReactiveDependency.class), (args, scope, result) -> { // @symbol: ReactiveScope.use
+					// @summary: Adds a dependency to this scope. This scope's callback will be executed each time the dependency changes. Returns the value of the dependency.
 					var dependency = args.get(0).getNativeValue(ReactiveDependency.class);
 
 					if (!this.dependencies.contains(dependency)) {
@@ -41,7 +43,8 @@ public class ReactiveScope {
 
 					return;
 				}),
-				"awaitReady", NativeFunction.simple(globalScope, Collections.emptyList(), (args, scope, result) -> {
+				"awaitReady", NativeFunction.simple(globalScope, Collections.emptyList(), (args, scope, result) -> { // @symbol: ReactiveScope.awaitReady
+					// @summary: If any of the dependencies of this scope don't yet have a value, aborts the execution of this function. The callback will be called again, when the values are acquired.
 					result.value = Primitive.VOID;
 
 					if (this.missingDependency) {

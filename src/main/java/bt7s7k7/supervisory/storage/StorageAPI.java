@@ -21,7 +21,8 @@ import bt7s7k7.treeburst.support.Primitive;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 
-public class StorageAPI extends LazyTable {
+public class StorageAPI extends LazyTable { // @symbol: Storage
+	// @summary: Provides methods for scanning inventories, getting their items and transferring items between inventories.
 	protected final SocketConnectionManager<IItemHandler, StorageReactiveDependency> connectionManager;
 
 	public StorageAPI(ManagedObject prototype, GlobalScope globalScope, CompositeBlockEntity entity, ReactivityManager reactivityManager, Supplier<NetworkDevice> networkDeviceSupplier) {
@@ -54,6 +55,10 @@ public class StorageAPI extends LazyTable {
 	@Override
 	protected void initialize() {
 		this.declareProperty("connect", NativeFunction.simple(this.globalScope, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
+			// @summary[[Connects to an inventory, that will be scanned for contained items. The
+			// `target` can be either a side of this system or a name of a socket on the network.
+			// This function returns a {@link StorageReactiveDependency} that can watched for
+			// changes using the {@link reactive} function.]]
 			var target = args.get(0).getStringValue();
 
 			var dependency = this.connectionManager.connect(target);
@@ -62,6 +67,12 @@ public class StorageAPI extends LazyTable {
 		}));
 
 		this.declareProperty("transfer", NativeFunction.simple(this.globalScope, List.of("items", "targets"), List.of(ManagedArray.class, ManagedArray.class), (args, scope, result) -> {
+			// @summary[[Transfers all item stacks in the `items` argument into the `targets`
+			// inventories. The `items` array should contain {@link StackReport} instances for all
+			// items that should be transferred. The `targets` array should contain {@link
+			// StorageReport} instances for all inventories that should be transferred into. If
+			// there is not enough space to transfer items, only a partial transfer is performed.
+			// The amount of transferred items is returned.]]
 			var items = new ArrayList<StackReport>();
 			var targets = new ArrayList<StorageReport>();
 
@@ -120,7 +131,7 @@ public class StorageAPI extends LazyTable {
 			result.value = Primitive.from(transferCount);
 		}));
 
-		this.declareProperty("update", this.connectionManager.updateTick.getHandle());
+		this.declareProperty("update", this.connectionManager.updateTick.getHandle()); // @type: TickReactiveDependency, @summary: Triggers every 5 ticks, just after all connected inventories have been scanned.
 	}
 
 	public void tick() {

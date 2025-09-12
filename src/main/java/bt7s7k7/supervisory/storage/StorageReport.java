@@ -94,10 +94,13 @@ public class StorageReport {
 	}
 
 	public static final NativeHandleWrapper<StorageReport> WRAPPER = new NativeHandleWrapper<>("StorageReport", StorageReport.class, ctx -> ctx
+			// @summary: Represents a scan of an inventory, containing stacks of items, each represented by {@link StackReport}.
 			.addMethod("countItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
+				// @summary: Returns the count of all numbers with the specified id.
 				result.value = Primitive.from(self.countItems(args.get(0).getStringValue()));
 			})
 			.addMethod("findItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
+				// @summary: Returns an {@link Array} of all {@link StackReport} instances with the specified id.
 				var array = new ManagedArray(scope.globalScope.ArrayPrototype);
 				self.findItems(args.get(0).getStringValue(), array, scope.globalScope);
 				result.value = array;

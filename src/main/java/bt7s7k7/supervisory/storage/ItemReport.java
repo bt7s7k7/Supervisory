@@ -76,14 +76,17 @@ public class ItemReport {
 	}
 
 	public static NativeHandleWrapper<ItemReport> WRAPPER = new NativeHandleWrapper<>("ItemReport", ItemReport.class, ctx -> ctx
-			.addGetter("id", v -> Primitive.from(v.id()))
-			.addGetter("code", v -> Primitive.from(v.code()))
+			// @summary: Represents an item inside a {@link StackReport}.
+			.addGetter("id", v -> Primitive.from(v.id())) // @type: String, @summary: The ID of the item.
+			.addGetter("code", v -> Primitive.from(v.code())) // @type: String, @summary: A unique code representing the NBT data of the item.
 			.addMethod("getComponents", Collections.emptyList(), Collections.emptyList(), (self, args, scope, result) -> {
+				// @summary: Returns an {@link Array} of the names of all component types on this item.
 				var array = new ManagedArray(scope.globalScope.ArrayPrototype);
 				self.getComponents(array);
 				result.value = array;
 			})
 			.addMethod("getComponent", List.of("name"), List.of(Primitive.String.class), (self, args, scope, result) -> {
+				// @summary: Returns the data of the specified component name. If this item does not have the component, returns {@link void}.
 				var name = args.get(0).getStringValue();
 				result.value = self.getComponent(name, scope.globalScope);
 			})

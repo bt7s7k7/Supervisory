@@ -9,6 +9,10 @@ project.prefix("src/main/java").res("bt7s7k7.supervisory",
 	github("bt7s7k7/TreeBurst").res("bt7s7k7.treeburst")
 )
 
+project.use(
+	github("bt7s7k7/TreeBurst").script("leaf-gen")
+)
+
 project.script("export-art", async () => {
 	/** @type {{ input: string, output: string, configuration?: Record<string, boolean>, x: number, y: number, width: number, height: number }[]} */
 	const images = [

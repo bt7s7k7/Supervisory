@@ -65,8 +65,9 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected static final NativeHandleWrapper<ReactiveDependency> WRAPPER = new NativeHandleWrapper<ReactiveDependency>("ReactiveDependency", ReactiveDependency.class, ctx -> ctx
-			.addGetter("value", ReactiveDependency::getValue)
+	protected static final NativeHandleWrapper<ReactiveDependency> WRAPPER = new NativeHandleWrapper<>("ReactiveDependency", ReactiveDependency.class, ctx -> ctx
+			// @summary: Represents a value that can change and the change can be observed using the {@link reactive} function.
+			.addGetter("value", ReactiveDependency::getValue) // @type: any, @summary: The value of the dependency. Will be {@link void} if the dependency does not have a value.
 			.addDumpMethod((self, depth, scope, result) -> {
 				var value = scope.globalScope.tryInspect(self.value, depth, result);
 				if (value == null) return null;

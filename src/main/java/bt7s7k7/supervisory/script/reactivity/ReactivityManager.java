@@ -24,6 +24,10 @@ public class ReactivityManager {
 		this.globalScope = globalScope;
 
 		globalScope.declareGlobal("reactive", NativeFunction.simple(globalScope, List.of("callback"), List.of(ManagedFunction.class), (args, scope, result) -> {
+			// @summary[[Creates a new {@link ReactiveScope}. The callback receives an instance of
+			// {@link ReactiveScope} that you can use to set what dependencies to react to. The
+			// callback will be executed once, during initialization, and the every time any of the
+			// dependencies change.]]
 			if (this.ready == true) {
 				result.setException(new Diagnostic("Cannot create more reactive scopes after initialization", Position.INTRINSIC));
 			}

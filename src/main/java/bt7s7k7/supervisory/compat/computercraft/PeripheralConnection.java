@@ -62,7 +62,7 @@ public class PeripheralConnection implements IComputerAccess {
 
 	public ManagedTable buildWrappingTable(GlobalScope globalScope) {
 		var table = new ManagedTable(globalScope.TablePrototype);
-		table.declareProperty("meta", WRAPPER.getHandle(this, globalScope));
+		table.declareProperty("meta", WRAPPER.getHandle(this, globalScope)); // @type: PeripheralConnection.prototype, @symbol: PeripheralConnection.meta
 		for (var kv : this.methods.entrySet()) {
 			var name = kv.getKey();
 			var method = kv.getValue();
@@ -92,8 +92,11 @@ public class PeripheralConnection implements IComputerAccess {
 	}
 
 	public static NativeHandleWrapper<PeripheralConnection> WRAPPER = new NativeHandleWrapper<>("PeripheralConnection", PeripheralConnection.class, ctx -> ctx
-			.addGetter("valid", v -> Primitive.from(v.peripheral.getType()))
-			.addGetter("type", v -> Primitive.from(v.peripheral.getType())));
+			// @summary[[Represents a connected peripheral. Each connection is a unique object, with
+			// dynamically generated methods for every method of the peripheral. You can use the
+			// `meta` property to access the instance properties.]]
+			.addGetter("valid", v -> Primitive.from(v.peripheral.getType())) // @type: Boolean, @summary: If the peripheral this connection represents is still connected to the system.
+			.addGetter("type", v -> Primitive.from(v.peripheral.getType()))); // @type: String, @summary: The type of the connected peripheral.
 
 	@Override
 	public String getAttachmentName() {

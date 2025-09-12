@@ -19,7 +19,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 @EventBusSubscriber
-public class RedstoneIntegration extends LazyTable implements ScriptedSystemIntegration {
+public class RedstoneIntegration extends LazyTable implements ScriptedSystemIntegration { // @symbol: Redstone
+	// @summary: Allows for control of redstone input/output.
 	protected final ScriptedSystem system;
 	protected final RedstoneState redstone;
 	protected final RedstoneReactiveDependency[] handlers = new RedstoneReactiveDependency[Side.values().length];
@@ -40,13 +41,27 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 			var dependency = RedstoneReactiveDependency.get(this.system.reactivityManager, direction, redstoneValue);
 			this.handlers[direction.index] = dependency;
 
-			this.declareProperty(direction.name, dependency.getHandle());
+			this.declareProperty(direction.name, dependency.getHandle()); // @symbol: <template>redstone_get, @type: RedstoneReactiveDependency, @summary: Triggers every time the input redstone signal on the side changes.
 
-			this.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(this.globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> {
+			this.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(this.globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> { // @symbol: <template>redstone_set
+				// @summary: Allows setting the selected side's output redstone signal. The strength must be in range `0..15` inclusive, if not it will be clamped.
 				var strength = args.get(0).getNumberValue();
 				this.redstone.setOutput(absoluteDirection, (int) strength);
 				result.value = null;
 			}));
+
+			// @symbol: Redstone.down, @like: <template>redstone_get
+			// @symbol: Redstone.up, @like: <template>redstone_get
+			// @symbol: Redstone.forward, @like: <template>redstone_get
+			// @symbol: Redstone.back, @like: <template>redstone_get
+			// @symbol: Redstone.right, @like: <template>redstone_get
+			// @symbol: Redstone.left, @like: <template>redstone_get
+			// @symbol: Redstone.setDown, @like: <template>redstone_set
+			// @symbol: Redstone.setUp, @like: <template>redstone_set
+			// @symbol: Redstone.setForward, @like: <template>redstone_set
+			// @symbol: Redstone.setBack, @like: <template>redstone_set
+			// @symbol: Redstone.setRight, @like: <template>redstone_set
+			// @symbol: Redstone.setLeft, @like: <template>redstone_set
 		}
 	}
 
