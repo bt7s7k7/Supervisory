@@ -33,6 +33,9 @@ import net.neoforged.neoforge.common.NeoForge;
 public class ScriptedSystemHost extends BlockEntityComponent implements Configurable<ScriptedSystemHost.Configuration> {
 	public final NetworkDeviceHost networkDeviceHost;
 
+	// This array is only used on the client. It is unique per player and is not saved.
+	public final ArrayList<String> commandHistory = new ArrayList<>();
+
 	public static record ScopeInitializationEvent(ScriptedSystem system) {
 		public GlobalScope getGlobalScope() {
 			return this.system.getGlobalScope();

@@ -10,6 +10,7 @@ import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
 import bt7s7k7.supervisory.script.CodeEditorWidget;
 import bt7s7k7.supervisory.support.GridLayout;
 import bt7s7k7.supervisory.support.LogEventRouter;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -29,11 +30,14 @@ public class ScriptEditorScreen extends Screen {
 	public final ScriptedSystemHost.Configuration configuration;
 
 	public String commandInput = "";
+	public int historyIndex;
+	public boolean dirty = false;
 
 	public ScriptEditorScreen(ScriptedSystemHost blockEntity, ScriptedSystemHost.Configuration configuration) {
 		super(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_TITLE.toComponent());
 		this.host = blockEntity;
 		this.configuration = configuration;
+		this.historyIndex = blockEntity.commandHistory.size();
 		LogEventRouter.getInstance().onLogReceived = this::handleLogReceived;
 	}
 
@@ -139,7 +143,7 @@ public class ScriptEditorScreen extends Screen {
 							.addGrowColumn()
 							.addColumn(50).renderColumn(layout_1 -> {
 								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.CLOSE.toComponent(), __ -> {
-									this.onClose();
+									this.closeOrConfirmLostChanges();
 								}).build()));
 							})
 							.build();
@@ -153,6 +157,7 @@ public class ScriptEditorScreen extends Screen {
 					editBox.setValue(this.configuration.code);
 					editBox.setValueListener(value -> {
 						this.configuration.code = value;
+						this.dirty = true;
 					});
 
 					layout.next();
@@ -166,9 +171,35 @@ public class ScriptEditorScreen extends Screen {
 					var commandField = this.addRenderableWidget(new EditBox(this.font, 0, 0, Component.empty()) {
 						@Override
 						public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-							if (this.isActive() && this.isFocused() && (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER)) {
-								ScriptEditorScreen.this.submitCommand();
-								this.setValue("");
+							if (this.isActive() && this.isFocused()) {
+								if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER) {
+									ScriptEditorScreen.this.submitCommand();
+									this.setValue("");
+									return true;
+								}
+
+								if (keyCode == InputConstants.KEY_UP) {
+									if (ScriptEditorScreen.this.historyIndex - 1 >= 0) {
+										ScriptEditorScreen.this.historyIndex--;
+										ScriptEditorScreen.this.commandInput = ScriptEditorScreen.this.host.commandHistory.get(ScriptEditorScreen.this.historyIndex);
+										this.setValue(ScriptEditorScreen.this.commandInput);
+									}
+
+									return true;
+								}
+
+								if (keyCode == InputConstants.KEY_DOWN) {
+									if (ScriptEditorScreen.this.historyIndex + 1 <= ScriptEditorScreen.this.host.commandHistory.size()) {
+										ScriptEditorScreen.this.historyIndex++;
+										ScriptEditorScreen.this.commandInput = ScriptEditorScreen.this.historyIndex >= ScriptEditorScreen.this.host.commandHistory.size()
+												? ""
+												: ScriptEditorScreen.this.host.commandHistory.get(ScriptEditorScreen.this.historyIndex);
+
+										this.setValue(ScriptEditorScreen.this.commandInput);
+									}
+
+									return true;
+								}
 							}
 
 							return super.keyPressed(keyCode, scanCode, modifiers);
@@ -198,6 +229,8 @@ public class ScriptEditorScreen extends Screen {
 
 		var configuration = new ScriptedSystemHost.Configuration("", this.configuration.code, Collections.emptyList());
 		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
+
+		this.dirty = false;
 	}
 
 	protected void submitCommand() {
@@ -205,9 +238,72 @@ public class ScriptEditorScreen extends Screen {
 			return;
 		}
 
+		if (this.host.commandHistory.isEmpty() || !this.host.commandHistory.getLast().equals(this.commandInput)) {
+			this.host.commandHistory.add(this.commandInput);
+		}
+
+		this.historyIndex = this.host.commandHistory.size();
+
 		var configuration = new ScriptedSystemHost.Configuration(this.commandInput, "", Collections.emptyList());
 		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
 		this.commandInput = "";
+	}
+
+	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (keyCode == InputConstants.KEY_ESCAPE) {
+			this.closeOrConfirmLostChanges();
+			return true;
+		}
+
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
+	public void closeOrConfirmLostChanges() {
+		if (!this.dirty) {
+			this.onClose();
+			return;
+		}
+
+		Minecraft.getInstance().pushGuiLayer(new Screen(I18n.CLOSE_CONFIRM.toComponent()) {
+			@Override
+			protected void init() {
+				GridLayout.builder()
+						.addColumn(200)
+						.setGap(5)
+						.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
+							layout.apply(this.addRenderableWidget(new StringWidget(I18n.CLOSE_CONFIRM.toComponent(), this.font)));
+						})
+						.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
+							layout.apply(this.addRenderableWidget(new StringWidget(I18n.CLOSE_CONFIRM_DESC.toComponent(), this.font)));
+						})
+						.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
+							layout.cell().childLayout()
+									.addRow()
+									.setGap(5)
+									.addGrowColumn()
+									.addColumn(50).renderColumn(layout_1 -> {
+										layout_1.apply(this.addRenderableWidget(Button.builder(I18n.CONFIRM.toComponent(), __ -> {
+											ScriptEditorScreen.this.onClose();
+											this.onClose();
+										}).build()));
+									})
+									.addColumn(50).renderColumn(layout_1 -> {
+										layout_1.apply(this.addRenderableWidget(Button.builder(I18n.CANCEL.toComponent(), __ -> {
+											this.onClose();
+										}).build()));
+									})
+									.build();
+						})
+						.centerAround(this.width / 2, this.height / 2)
+						.build();
+			}
+
+			@Override
+			public boolean isPauseScreen() {
+				return false;
+			}
+		});
 	}
 
 	@Override

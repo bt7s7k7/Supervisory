@@ -41,6 +41,10 @@ public class I18n {
 	public static final Key DONE = register(new Key("gui.done", "Done"));
 	public static final Key APPLY = register(new Key("gui.apply", "Apply"));
 	public static final Key CLOSE = register(new Key("gui.close", "Close"));
+	public static final Key CANCEL = register(new Key("gui.cancel", "Cancel"));
+	public static final Key CONFIRM = register(new Key("gui.confirm", "Confirm"));
+	public static final Key CLOSE_CONFIRM = register(new Key("gui.close_confirm", "Are you sure you want exit?"));
+	public static final Key CLOSE_CONFIRM_DESC = register(new Key("gui.close_confirm_desc", "All unsaved changes will be lost."));
 
 	public static void register() {
 		// Load this class
