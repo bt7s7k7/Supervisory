@@ -31,195 +31,195 @@ import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 
 public class ScriptedSystemHost extends BlockEntityComponent implements Configurable<ScriptedSystemHost.Configuration> {
-    public final NetworkDeviceHost networkDeviceHost;
+	public final NetworkDeviceHost networkDeviceHost;
 
-    public static record ScopeInitializationEvent(ScriptedSystem system) {
-        public GlobalScope getGlobalScope() {
-            return this.system.getGlobalScope();
-        }
-    }
+	public static record ScopeInitializationEvent(ScriptedSystem system) {
+		public GlobalScope getGlobalScope() {
+			return this.system.getGlobalScope();
+		}
+	}
 
-    public final ComponentSignal.Emitter<ScopeInitializationEvent> onScopeInitialization = new ComponentSignal.Emitter<>();
+	public final ComponentSignal.Emitter<ScopeInitializationEvent> onScopeInitialization = new ComponentSignal.Emitter<>();
 
-    @Override
-    public EventPriority priority() {
-        // Because our code is executed during NetworkDevice initialization, ensure our code is
-        // loaded before the NetworkDevice is loaded.
-        return EventPriority.HIGH;
-    }
+	@Override
+	public EventPriority priority() {
+		// Because our code is executed during NetworkDevice initialization, ensure our code is
+		// loaded before the NetworkDevice is loaded.
+		return EventPriority.HIGH;
+	}
 
-    @Override
-    public void teardown() {
-        super.teardown();
-        this.onScopeInitialization.teardown();
-    }
+	@Override
+	public void teardown() {
+		super.teardown();
+		this.onScopeInitialization.teardown();
+	}
 
-    public ScriptedSystemHost(CompositeBlockEntity entity) {
-        super(entity);
+	public ScriptedSystemHost(CompositeBlockEntity entity) {
+		super(entity);
 
-        this.networkDeviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
+		this.networkDeviceHost = entity.ensureComponent(NetworkDeviceHost.class, NetworkDeviceHost::new);
 
-        this.connect(this.networkDeviceHost.onInitializeDevice, event -> {
-            var savedState = event.oldDevice();
-            var device = event.device();
+		this.connect(this.networkDeviceHost.onInitializeDevice, event -> {
+			var savedState = event.oldDevice();
+			var device = event.device();
 
-            if (savedState != null) {
-                device.state.putAll(savedState.state);
-                device.cache.putAll(savedState.cache);
-            }
+			if (savedState != null) {
+				device.state.putAll(savedState.state);
+				device.cache.putAll(savedState.cache);
+			}
 
-            this.system.clear();
-            this.system.executeCode("code", this.configuration.code);
+			this.system.clear();
+			this.system.executeCode("code", this.configuration.code);
 
-            // Remove entries that are not longer subscribed to from the cache
-            for (var it = device.cache.keySet().iterator(); it.hasNext();) {
-                var key = it.next();
-                if (!device.subscriptions.contains(key)) {
-                    it.remove();
-                }
-            }
+			// Remove entries that are not longer subscribed to from the cache
+			for (var it = device.cache.keySet().iterator(); it.hasNext();) {
+				var key = it.next();
+				if (!device.subscriptions.contains(key)) {
+					it.remove();
+				}
+			}
 
-            if (this.desiredDomain != null) {
-                device.domain = this.desiredDomain;
-            }
-        });
+			if (this.desiredDomain != null) {
+				device.domain = this.desiredDomain;
+			}
+		});
 
-        this.connect(this.networkDeviceHost.onDeviceInitialized, device -> {
-            if (device.isConnected()) {
-                this.log(Component.literal("Connected to domain: " + device.domain).withStyle(ChatFormatting.BLUE));
-            }
-        });
+		this.connect(this.networkDeviceHost.onDeviceInitialized, device -> {
+			if (device.isConnected()) {
+				this.log(Component.literal("Connected to domain: " + device.domain).withStyle(ChatFormatting.BLUE));
+			}
+		});
 
-        this.connect(this.networkDeviceHost.onNetworkUpdate, event -> {
-            var key = event.key();
-            var value = event.value();
+		this.connect(this.networkDeviceHost.onNetworkUpdate, event -> {
+			var key = event.key();
+			var value = event.value();
 
-            var reactivityManager = this.system.reactivityManager;
-            if (reactivityManager == null) return;
+			var reactivityManager = this.system.reactivityManager;
+			if (reactivityManager == null) return;
 
-            var dependency = RemoteValueReactiveDependency.get(reactivityManager, key, value);
-            dependency.updateValue(value);
-        });
+			var dependency = RemoteValueReactiveDependency.get(reactivityManager, key, value);
+			dependency.updateValue(value);
+		});
 
-        NeoForge.EVENT_BUS.post(new ScriptedSystemInitializationEvent(this, this::connect));
-    }
+		NeoForge.EVENT_BUS.post(new ScriptedSystemInitializationEvent(this, this::connect));
+	}
 
-    protected String desiredDomain = null;
+	protected String desiredDomain = null;
 
-    public static class Configuration {
-        public String command = "";
-        public String code = "";
-        public ArrayList<Component> log = new ArrayList<>();
+	public static class Configuration {
+		public String command = "";
+		public String code = "";
+		public ArrayList<Component> log = new ArrayList<>();
 
-        public Configuration(String command, String code, List<Component> log) {
-            this.command = command;
-            this.code = code;
-            this.log = log instanceof ArrayList<Component> arrayList ? arrayList : new ArrayList<>(log);
-        }
+		public Configuration(String command, String code, List<Component> log) {
+			this.command = command;
+			this.code = code;
+			this.log = log instanceof ArrayList<Component> arrayList ? arrayList : new ArrayList<>(log);
+		}
 
-        public Configuration() {};
+		public Configuration() {};
 
-        @Override
-        public String toString() {
-            return CODEC.encodeStart(NbtOps.INSTANCE, this).getOrThrow().toString();
-        }
+		@Override
+		public String toString() {
+			return CODEC.encodeStart(NbtOps.INSTANCE, this).getOrThrow().toString();
+		}
 
-        public static final Codec<Configuration> CODEC = RecordCodecBuilder.create(instance -> (instance.group(
-                Codec.STRING.fieldOf("command").orElse("").forGetter(v -> v.command),
-                Codec.STRING.fieldOf("code").orElse("").forGetter(v -> v.code),
-                Codec.list(ComponentSerialization.CODEC).fieldOf("log").orElse(Collections.emptyList()).forGetter(v -> v.log))
-                .apply(instance, Configuration::new)));
-    }
+		public static final Codec<Configuration> CODEC = RecordCodecBuilder.create(instance -> (instance.group(
+				Codec.STRING.fieldOf("command").orElse("").forGetter(v -> v.command),
+				Codec.STRING.fieldOf("code").orElse("").forGetter(v -> v.code),
+				Codec.list(ComponentSerialization.CODEC).fieldOf("log").orElse(Collections.emptyList()).forGetter(v -> v.log))
+				.apply(instance, Configuration::new)));
+	}
 
-    private ArrayList<Component> pendingLogEntries = new ArrayList<>();
+	private ArrayList<Component> pendingLogEntries = new ArrayList<>();
 
-    public void log(Component message) {
-        if (this.entity.getLevel() == null) {
-            this.pendingLogEntries.add(message);
-            return;
-        }
+	public void log(Component message) {
+		if (this.entity.getLevel() == null) {
+			this.pendingLogEntries.add(message);
+			return;
+		}
 
-        this.configuration.log.add(message);
-        while (this.configuration.log.size() > 100) {
-            this.configuration.log.removeFirst();
-        }
+		this.configuration.log.add(message);
+		while (this.configuration.log.size() > 100) {
+			this.configuration.log.removeFirst();
+		}
 
-        LogEventRouter.getInstance().sendLogEvent(this.entity.getLevel(), this.entity.getBlockPos(), message);
-        this.entity.setChanged();
-    }
+		LogEventRouter.getInstance().sendLogEvent(this.entity.getLevel(), this.entity.getBlockPos(), message);
+		this.entity.setChanged();
+	}
 
-    public Configuration configuration = new Configuration();
-    public ScriptedSystem system = new ScriptedSystem(this);
+	public Configuration configuration = new Configuration();
+	public ScriptedSystem system = new ScriptedSystem(this);
 
-    @Override
-    public void write(CompoundTag tag, Provider registries) {
-        var result = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow();
-        result.remove("command");
-        tag.merge(result);
-    }
+	@Override
+	public void write(CompoundTag tag, Provider registries) {
+		var result = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow();
+		result.remove("command");
+		tag.merge(result);
+	}
 
-    @Override
-    public void read(CompoundTag tag, Provider registries) {
-        Configuration.CODEC.parse(NbtOps.INSTANCE, tag).ifSuccess(configuration -> {
-            this.configuration = configuration;
-        });
-    }
+	@Override
+	public void read(CompoundTag tag, Provider registries) {
+		Configuration.CODEC.parse(NbtOps.INSTANCE, tag).ifSuccess(configuration -> {
+			this.configuration = configuration;
+		});
+	}
 
-    @Override
-    public Configuration getConfiguration() {
-        return this.configuration;
-    }
+	@Override
+	public Configuration getConfiguration() {
+		return this.configuration;
+	}
 
-    public void executeCommand(String command) {
-        this.system.executeCode("command", command);
-    }
+	public void executeCommand(String command) {
+		this.system.executeCode("command", command);
+	}
 
-    @Override
-    public void setConfiguration(Configuration configuration) {
-        if (configuration.command.isEmpty()) {
-            this.configuration.code = configuration.code;
-            this.configuration.log.clear();
-            this.system.clear();
-        } else {
-            this.log(Component.literal("> ").withStyle(ChatFormatting.GREEN).append(Component.literal(configuration.command).withStyle(ChatFormatting.BLUE)));
-            Supervisory.LOGGER.debug("Executed command: " + configuration.command);
-            this.executeCommand(configuration.command);
-        }
+	@Override
+	public void setConfiguration(Configuration configuration) {
+		if (configuration.command.isEmpty()) {
+			this.configuration.code = configuration.code;
+			this.configuration.log.clear();
+			this.system.clear();
+		} else {
+			this.log(Component.literal("> ").withStyle(ChatFormatting.GREEN).append(Component.literal(configuration.command).withStyle(ChatFormatting.BLUE)));
+			Supervisory.LOGGER.debug("Executed command: " + configuration.command);
+			this.executeCommand(configuration.command);
+		}
 
-        this.entity.setChanged();
-    }
+		this.entity.setChanged();
+	}
 
-    @Override
-    public Codec<Configuration> getConfigurationCodec() {
-        return Configuration.CODEC;
-    }
+	@Override
+	public Codec<Configuration> getConfigurationCodec() {
+		return Configuration.CODEC;
+	}
 
-    @OnlyIn(Dist.CLIENT)
-    private void displayScreen(Configuration configuration) {
-        Minecraft.getInstance().setScreen(new ScriptEditorScreen(this, configuration));
-    }
+	@OnlyIn(Dist.CLIENT)
+	private void displayScreen(Configuration configuration) {
+		Minecraft.getInstance().setScreen(new ScriptEditorScreen(this, configuration));
+	}
 
-    @Override
-    public void openConfigurationScreen(Configuration configuration) {
-        if (FMLLoader.getDist() == Dist.CLIENT) {
-            this.displayScreen(configuration);
-        }
-    }
+	@Override
+	public void openConfigurationScreen(Configuration configuration) {
+		if (FMLLoader.getDist() == Dist.CLIENT) {
+			this.displayScreen(configuration);
+		}
+	}
 
-    @Override
-    public void tick() {
-        if (!this.pendingLogEntries.isEmpty()) {
-            for (var entry : this.pendingLogEntries) {
-                this.log(entry);
-            }
+	@Override
+	public void tick() {
+		if (!this.pendingLogEntries.isEmpty()) {
+			for (var entry : this.pendingLogEntries) {
+				this.log(entry);
+			}
 
-            this.pendingLogEntries.clear();
-        }
+			this.pendingLogEntries.clear();
+		}
 
-        if (this.system.isEmpty()) {
-            this.networkDeviceHost.setDevice(new NetworkDevice(""), true);
-        }
+		if (this.system.isEmpty()) {
+			this.networkDeviceHost.setDevice(new NetworkDevice(""), true);
+		}
 
-        this.system.processTasks();
-    }
+		this.system.processTasks();
+	}
 }

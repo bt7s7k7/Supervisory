@@ -25,204 +25,204 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ScriptEditorScreen extends Screen {
-    public final ScriptedSystemHost host;
-    public final ScriptedSystemHost.Configuration configuration;
+	public final ScriptedSystemHost host;
+	public final ScriptedSystemHost.Configuration configuration;
 
-    public String commandInput = "";
+	public String commandInput = "";
 
-    public ScriptEditorScreen(ScriptedSystemHost blockEntity, ScriptedSystemHost.Configuration configuration) {
-        super(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_TITLE.toComponent());
-        this.host = blockEntity;
-        this.configuration = configuration;
-        LogEventRouter.getInstance().onLogReceived = this::handleLogReceived;
-    }
+	public ScriptEditorScreen(ScriptedSystemHost blockEntity, ScriptedSystemHost.Configuration configuration) {
+		super(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_TITLE.toComponent());
+		this.host = blockEntity;
+		this.configuration = configuration;
+		LogEventRouter.getInstance().onLogReceived = this::handleLogReceived;
+	}
 
-    @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderTransparentBackground(guiGraphics);
-    }
+	@Override
+	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+		this.renderTransparentBackground(guiGraphics);
+	}
 
-    @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
+	@Override
+	public boolean isPauseScreen() {
+		return false;
+	}
 
-    protected static class LogView extends FittingMultiLineTextWidget {
-        public LogView(int x, int y, int width, int height, Component message, Font font) {
-            super(x, y, width, height, message, font);
-        }
+	protected static class LogView extends FittingMultiLineTextWidget {
+		public LogView(int x, int y, int width, int height, Component message, Font font) {
+			super(x, y, width, height, message, font);
+		}
 
-        public boolean isScrolledUp() {
-            return this.scrollAmount() < this.getMaxScrollAmount();
-        }
+		public boolean isScrolledUp() {
+			return this.scrollAmount() < this.getMaxScrollAmount();
+		}
 
-        @Override
-        public double scrollAmount() {
-            return super.scrollAmount();
-        }
+		@Override
+		public double scrollAmount() {
+			return super.scrollAmount();
+		}
 
-        @Override
-        protected void setScrollAmount(double scrollAmount) {
-            super.setScrollAmount(scrollAmount);
-        }
+		@Override
+		protected void setScrollAmount(double scrollAmount) {
+			super.setScrollAmount(scrollAmount);
+		}
 
-        // The FittingMultiLineTextWidget does not render the border or background
-        // while scrolling is disabled. Therefore we force scrolling to be enabled.
-        @Override
-        protected boolean scrollbarVisible() {
-            return true;
-        }
+		// The FittingMultiLineTextWidget does not render the border or background
+		// while scrolling is disabled. Therefore we force scrolling to be enabled.
+		@Override
+		protected boolean scrollbarVisible() {
+			return true;
+		}
 
-        // If scrolling is enabled the scrollbar will be rendered. However, because
-        // there is no overflow content to scroll, the renderScrollBar method will
-        // cause a divide by zero. We cannot fix the renderScrollBar method, because
-        // it's private, so we just don't call it when it wouldn't have been called
-        // normally.
-        @Override
-        protected void renderDecorations(GuiGraphics guiGraphics) {
-            if (super.scrollbarVisible()) {
-                super.renderDecorations(guiGraphics);
-            }
-        }
-    }
+		// If scrolling is enabled the scrollbar will be rendered. However, because
+		// there is no overflow content to scroll, the renderScrollBar method will
+		// cause a divide by zero. We cannot fix the renderScrollBar method, because
+		// it's private, so we just don't call it when it wouldn't have been called
+		// normally.
+		@Override
+		protected void renderDecorations(GuiGraphics guiGraphics) {
+			if (super.scrollbarVisible()) {
+				super.renderDecorations(guiGraphics);
+			}
+		}
+	}
 
-    protected LogView logView = null;
-    protected GridLayout.Cell logViewPosition = null;
+	protected LogView logView = null;
+	protected GridLayout.Cell logViewPosition = null;
 
-    public static final ResourceLocation MONOSPACE_FONT = Supervisory.resource("monocraft");
-    public static final Style EDITOR_STYLE = Style.EMPTY.withFont(MONOSPACE_FONT);
+	public static final ResourceLocation MONOSPACE_FONT = Supervisory.resource("monocraft");
+	public static final Style EDITOR_STYLE = Style.EMPTY.withFont(MONOSPACE_FONT);
 
-    protected void rebuildLogView() {
-        var targetScrollAmount = Double.POSITIVE_INFINITY;
+	protected void rebuildLogView() {
+		var targetScrollAmount = Double.POSITIVE_INFINITY;
 
-        if (this.logView != null) {
-            if (this.logView.isScrolledUp()) {
-                targetScrollAmount = this.logView.scrollAmount();
-            }
-            this.removeWidget(this.logView);
-            this.logView = null;
-        }
+		if (this.logView != null) {
+			if (this.logView.isScrolledUp()) {
+				targetScrollAmount = this.logView.scrollAmount();
+			}
+			this.removeWidget(this.logView);
+			this.logView = null;
+		}
 
-        var logContent = Component.empty();
-        for (var line : this.configuration.log) {
-            logContent.append(line);
-            logContent.append("\n");
-        }
+		var logContent = Component.empty();
+		for (var line : this.configuration.log) {
+			logContent.append(line);
+			logContent.append("\n");
+		}
 
-        logContent = logContent.withStyle(EDITOR_STYLE);
+		logContent = logContent.withStyle(EDITOR_STYLE);
 
-        this.logView = this.addRenderableWidget(new LogView(this.logViewPosition.x(), this.logViewPosition.y(), this.logViewPosition.width(), this.logViewPosition.height(), logContent, this.font));
-        this.logView.setScrollAmount(targetScrollAmount);
-    }
+		this.logView = this.addRenderableWidget(new LogView(this.logViewPosition.x(), this.logViewPosition.y(), this.logViewPosition.width(), this.logViewPosition.height(), logContent, this.font));
+		this.logView.setScrollAmount(targetScrollAmount);
+	}
 
-    @Override
-    protected void init() {
-        GridLayout.builder()
-                .addGrowColumn()
-                .addGrowColumn()
-                .setGap(5)
-                .addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
-                    layout.cell().childLayout()
-                            .addRow()
-                            .addGrowColumn().renderColumn(layout_1 -> {
-                                layout_1.apply(this.addRenderableWidget(new StringWidget(this.title, this.font)).alignLeft());
-                            })
-                            .addColumn(50).renderColumn(layout_1 -> {
-                                layout_1.apply(this.addRenderableWidget(Button.builder(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_COMPILE.toComponent(), __ -> {
-                                    this.compile();
-                                }).build()));
-                            })
-                            .build();
+	@Override
+	protected void init() {
+		GridLayout.builder()
+				.addGrowColumn()
+				.addGrowColumn()
+				.setGap(5)
+				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
+					layout.cell().childLayout()
+							.addRow()
+							.addGrowColumn().renderColumn(layout_1 -> {
+								layout_1.apply(this.addRenderableWidget(new StringWidget(this.title, this.font)).alignLeft());
+							})
+							.addColumn(50).renderColumn(layout_1 -> {
+								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_COMPILE.toComponent(), __ -> {
+									this.compile();
+								}).build()));
+							})
+							.build();
 
-                    layout.next().cell().childLayout()
-                            .addRow()
-                            .addGrowColumn()
-                            .addColumn(50).renderColumn(layout_1 -> {
-                                layout_1.apply(this.addRenderableWidget(Button.builder(I18n.CLOSE.toComponent(), __ -> {
-                                    this.onClose();
-                                }).build()));
-                            })
-                            .build();
-                })
-                .addGrowRow().renderRow(layout -> {
-                    var editBox = this.addRenderableWidget(new CodeEditorWidget(this.font,
-                            layout.cell().x(), layout.cell().y(),
-                            layout.cell().width(), layout.cell().height(),
-                            I18n.PROGRAMMABLE_LOGIC_CONTROLLER_CODE.toComponent(),
-                            EDITOR_STYLE));
-                    editBox.setValue(this.configuration.code);
-                    editBox.setValueListener(value -> {
-                        this.configuration.code = value;
-                    });
+					layout.next().cell().childLayout()
+							.addRow()
+							.addGrowColumn()
+							.addColumn(50).renderColumn(layout_1 -> {
+								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.CLOSE.toComponent(), __ -> {
+									this.onClose();
+								}).build()));
+							})
+							.build();
+				})
+				.addGrowRow().renderRow(layout -> {
+					var editBox = this.addRenderableWidget(new CodeEditorWidget(this.font,
+							layout.cell().x(), layout.cell().y(),
+							layout.cell().width(), layout.cell().height(),
+							I18n.PROGRAMMABLE_LOGIC_CONTROLLER_CODE.toComponent(),
+							EDITOR_STYLE));
+					editBox.setValue(this.configuration.code);
+					editBox.setValueListener(value -> {
+						this.configuration.code = value;
+					});
 
-                    layout.next();
+					layout.next();
 
-                    this.logViewPosition = layout.cell();
-                    this.rebuildLogView();
-                })
-                .addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
-                    layout.next();
+					this.logViewPosition = layout.cell();
+					this.rebuildLogView();
+				})
+				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
+					layout.next();
 
-                    var commandField = this.addRenderableWidget(new EditBox(this.font, 0, 0, Component.empty()) {
-                        @Override
-                        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-                            if (this.isActive() && this.isFocused() && (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER)) {
-                                ScriptEditorScreen.this.submitCommand();
-                                this.setValue("");
-                            }
+					var commandField = this.addRenderableWidget(new EditBox(this.font, 0, 0, Component.empty()) {
+						@Override
+						public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+							if (this.isActive() && this.isFocused() && (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER)) {
+								ScriptEditorScreen.this.submitCommand();
+								this.setValue("");
+							}
 
-                            return super.keyPressed(keyCode, scanCode, modifiers);
-                        }
+							return super.keyPressed(keyCode, scanCode, modifiers);
+						}
 
-                        @Override
-                        public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-                            super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
-                            if (this.getValue().isEmpty() && !this.isFocused()) {
-                                guiGraphics.drawString(ScriptEditorScreen.this.font, I18n.PROGRAMMABLE_LOGIC_CONTROLLER_COMMAND.toComponent(), this.getX() + 4, this.getY() + (this.height - 8) / 2, -8355712, false);
-                            }
-                        }
-                    });
+						@Override
+						public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+							super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+							if (this.getValue().isEmpty() && !this.isFocused()) {
+								guiGraphics.drawString(ScriptEditorScreen.this.font, I18n.PROGRAMMABLE_LOGIC_CONTROLLER_COMMAND.toComponent(), this.getX() + 4, this.getY() + (this.height - 8) / 2, -8355712, false);
+							}
+						}
+					});
 
-                    commandField.setResponder(value -> this.commandInput = value);
-                    commandField.setValue(this.commandInput);
-                    layout.apply(commandField);
-                })
-                .setOffset(5, 5)
-                .setLimit(this.width - 10, this.height - 10)
-                .build();
-    }
+					commandField.setResponder(value -> this.commandInput = value);
+					commandField.setValue(this.commandInput);
+					layout.apply(commandField);
+				})
+				.setOffset(5, 5)
+				.setLimit(this.width - 10, this.height - 10)
+				.build();
+	}
 
-    protected void compile() {
-        this.configuration.log.clear();
-        this.rebuildLogView();
+	protected void compile() {
+		this.configuration.log.clear();
+		this.rebuildLogView();
 
-        var configuration = new ScriptedSystemHost.Configuration("", this.configuration.code, Collections.emptyList());
-        ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
-    }
+		var configuration = new ScriptedSystemHost.Configuration("", this.configuration.code, Collections.emptyList());
+		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
+	}
 
-    protected void submitCommand() {
-        if (this.commandInput.trim().isEmpty()) {
-            return;
-        }
+	protected void submitCommand() {
+		if (this.commandInput.trim().isEmpty()) {
+			return;
+		}
 
-        var configuration = new ScriptedSystemHost.Configuration(this.commandInput, "", Collections.emptyList());
-        ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
-        this.commandInput = "";
-    }
+		var configuration = new ScriptedSystemHost.Configuration(this.commandInput, "", Collections.emptyList());
+		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
+		this.commandInput = "";
+	}
 
-    @Override
-    public void onClose() {
-        super.onClose();
-        LogEventRouter.getInstance().onLogReceived = null;
-    }
+	@Override
+	public void onClose() {
+		super.onClose();
+		LogEventRouter.getInstance().onLogReceived = null;
+	}
 
-    private void handleLogReceived(Component log) {
-        this.configuration.log.add(log);
+	private void handleLogReceived(Component log) {
+		this.configuration.log.add(log);
 
-        while (this.configuration.log.size() > 100) {
-            this.configuration.log.removeFirst();
-        }
+		while (this.configuration.log.size() > 100) {
+			this.configuration.log.removeFirst();
+		}
 
-        this.rebuildLogView();
-    }
+		this.rebuildLogView();
+	}
 }
