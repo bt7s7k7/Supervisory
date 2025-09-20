@@ -31,6 +31,7 @@ public class PeripheralReactiveDependency extends SocketBasedDependency<IPeriphe
 	protected IPeripheral cachedPeripheral = null;
 
 	public ManagedFunction eventHandler = null;
+	public Runnable teardownCallback = null;
 
 	public final Supplier<ComputerContext> computerContextSupplier;
 

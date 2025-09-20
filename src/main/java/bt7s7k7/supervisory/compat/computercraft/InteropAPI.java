@@ -53,6 +53,7 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 				dependency.updateValue(connection.buildWrappingTable(this.reactivityManager.globalScope));
 				dependency.handleEvent("__connected__", new Object[0]);
 				capability.attach(connection);
+				dependency.teardownCallback = connection::teardown;
 			}
 		};
 	}
@@ -133,6 +134,15 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 			dependency.eventHandler = handler;
 			result.value = Primitive.VOID;
 		}));
+	}
+
+	@Override
+	public void teardown() {
+		for (var dependency : this.connectionManager.getHandles()) {
+			if (dependency.teardownCallback != null) {
+				dependency.teardownCallback.run();
+			}
+		}
 	}
 
 	@Override

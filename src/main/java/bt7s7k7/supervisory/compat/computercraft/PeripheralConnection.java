@@ -55,6 +55,10 @@ public class PeripheralConnection implements IComputerAccess {
 		return this.peripheral == this.source.cachedPeripheral;
 	}
 
+	public void teardown() {
+		this.peripheral.detach(this);
+	}
+
 	public IPeripheral getPeripheralIfValid() {
 		if (this.isValid()) return this.peripheral;
 		return null;
@@ -151,6 +155,12 @@ public class PeripheralConnection implements IComputerAccess {
 
 	@Override
 	public void queueEvent(String arg0, @Nullable Object... arg1) {
+		if (!this.isValid()) {
+			Supervisory.LOGGER.warn("Received event to a non-valid connection");
+			this.peripheral.detach(this);
+			return;
+		}
+
 		this.source.handleEvent(arg0, arg1);
 	}
 
