@@ -28,7 +28,7 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 		this.connectionManager = new SocketConnectionManager<>("interop", 1, connectionController.entity, system.reactivityManager, system::getNetworkDevice) {
 			@Override
 			protected PeripheralReactiveDependency makeHandle(String name) {
-				return new PeripheralReactiveDependency(this.reactivityManager, name, system::handleError, connectionController::getComputerContext);
+				return new PeripheralReactiveDependency(this.reactivityManager, name, system, connectionController::getComputerContext);
 			}
 
 			@Override

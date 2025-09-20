@@ -3,14 +3,12 @@ package bt7s7k7.supervisory.compat.computercraft;
 import static bt7s7k7.treeburst.runtime.ExpressionEvaluator.evaluateInvocation;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import bt7s7k7.supervisory.script.ManagedWorkDispatcher;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.sockets.SocketBasedDependency;
-import bt7s7k7.treeburst.runtime.ExpressionResult;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
-import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Position;
 import bt7s7k7.treeburst.support.Primitive;
@@ -25,7 +23,7 @@ public class PeripheralReactiveDependency extends SocketBasedDependency<IPeriphe
 	// @entry-symbol
 	// @prototype: ReactiveDependency.prototype
 	// @summary: Allows for connecting to a ComputerCraft peripheral. The value is a {@link PeripheralConnection} that represents a connected peripheral.
-	protected final Consumer<Diagnostic> errorHandler;
+	protected final ManagedWorkDispatcher workDispatcher;
 
 	protected ComponentAccess<IPeripheral> peripheralAccess;
 	protected IPeripheral cachedPeripheral = null;
@@ -38,20 +36,16 @@ public class PeripheralReactiveDependency extends SocketBasedDependency<IPeriphe
 	public void handleEvent(String name, Object[] arguments) {
 		if (this.eventHandler == null) return;
 
-		var result = new ExpressionResult();
-		result.executionLimit = 5000;
-
-		var scope = this.owner.globalScope;
-		evaluateInvocation(Primitive.VOID, Primitive.VOID, this.eventHandler, Position.INTRINSIC, List.of(Primitive.from(name), ComputerObject.toManagedValue(arguments, scope)), scope, result);
-		var diagnostic = result.terminate();
-		if (diagnostic != null) {
-			this.errorHandler.accept(diagnostic);
-		}
+		this.workDispatcher.performWork(result -> {
+			var globalScope = this.owner.globalScope;
+			var managedArguments = List.of(Primitive.from(name), ComputerObject.toManagedValue(arguments, globalScope));
+			evaluateInvocation(Primitive.VOID, Primitive.VOID, this.eventHandler, Position.INTRINSIC, managedArguments, globalScope, result);
+		});
 	}
 
-	public PeripheralReactiveDependency(ReactivityManager owner, String name, Consumer<Diagnostic> errorHandler, Supplier<ComputerContext> computerContextSupplier) {
+	public PeripheralReactiveDependency(ReactivityManager owner, String name, ManagedWorkDispatcher workDispatcher, Supplier<ComputerContext> computerContextSupplier) {
 		super(owner, name);
-		this.errorHandler = errorHandler;
+		this.workDispatcher = workDispatcher;
 		this.computerContextSupplier = computerContextSupplier;
 	}
 

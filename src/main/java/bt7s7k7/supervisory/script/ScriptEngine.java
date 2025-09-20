@@ -1,5 +1,7 @@
 package bt7s7k7.supervisory.script;
 
+import java.util.function.Consumer;
+
 import bt7s7k7.treeburst.parsing.TreeBurstParser;
 import bt7s7k7.treeburst.runtime.ExecutionLimitReachedException;
 import bt7s7k7.treeburst.runtime.ExpressionEvaluator;
@@ -13,9 +15,10 @@ import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
-public abstract class ScriptEngine {
+public abstract class ScriptEngine implements ManagedWorkDispatcher {
 	private GlobalScope globalScope;
 
+	@Override
 	public abstract void handleError(Diagnostic error);
 
 	protected abstract void initializeGlobals(GlobalScope globalScope);
@@ -29,6 +32,30 @@ public abstract class ScriptEngine {
 		return this.globalScope;
 	}
 
+	@Override
+	public ManagedValue performWork(Consumer<ExpressionResult> worker) {
+		var result = new ExpressionResult();
+		result.executionLimit = 5000;
+
+		try {
+			worker.accept(result);
+		} catch (ExecutionLimitReachedException exception) {
+			this.handleError(new Diagnostic(exception.getMessage(), Position.INTRINSIC));
+			return null;
+		}
+
+		if (ExpressionResult.LABEL_RETURN.equals(result.label)) {
+			return result.value;
+		}
+
+		var diagnostic = result.terminate();
+		if (diagnostic != null) {
+			this.handleError(diagnostic);
+		}
+
+		return result.value;
+	}
+
 	public ManagedValue executeCode(String path, String code) {
 		var globalScope = this.getGlobalScope();
 		var inputDocument = new InputDocument(path, code);
@@ -39,21 +66,7 @@ public abstract class ScriptEngine {
 			return null;
 		}
 
-		var result = new ExpressionResult();
-		result.executionLimit = 5000;
-		try {
-			ExpressionEvaluator.evaluateExpression(root, globalScope, result);
-		} catch (ExecutionLimitReachedException exception) {
-			this.handleError(new Diagnostic(exception.getMessage(), Position.INTRINSIC));
-			return null;
-		}
-
-		var diagnostic = result.terminate();
-		if (diagnostic != null) {
-			this.handleError(diagnostic);
-		}
-
-		return result.value;
+		return this.performWork(result -> ExpressionEvaluator.evaluateExpression(root, globalScope, result));
 	}
 
 	public void clear() {

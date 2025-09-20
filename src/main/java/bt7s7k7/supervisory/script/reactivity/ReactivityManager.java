@@ -5,13 +5,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
-import java.util.function.Consumer;
 
-import bt7s7k7.treeburst.runtime.ExpressionResult;
+import bt7s7k7.supervisory.script.ManagedWorkDispatcher;
 import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.NativeFunction;
-import bt7s7k7.treeburst.runtime.Scope;
 import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Position;
@@ -19,9 +17,11 @@ import bt7s7k7.treeburst.support.Position;
 public class ReactivityManager {
 	public boolean ready = false;
 	public final GlobalScope globalScope;
+	protected final ManagedWorkDispatcher workDispatcher;
 
-	public ReactivityManager(GlobalScope globalScope) {
+	public ReactivityManager(GlobalScope globalScope, ManagedWorkDispatcher workDispatcher) {
 		this.globalScope = globalScope;
+		this.workDispatcher = workDispatcher;
 
 		globalScope.declareGlobal("reactive", NativeFunction.simple(globalScope, List.of("callback"), List.of(ManagedFunction.class), (args, scope, result) -> {
 			// @summary[[Creates a new {@link ReactiveScope}. The callback receives an instance of
@@ -83,20 +83,21 @@ public class ReactivityManager {
 		this.pendingScopes.add(scope);
 	}
 
-	public void executePendingReactions(Consumer<Diagnostic> handleError, Scope scope) {
+	public void executePendingReactions() {
 		this.ready = true;
 
 		var pending = this.pendingScopes;
 		this.pendingScopes = new HashSet<>();
 
-		var result = new ExpressionResult();
-		for (var pendingScope : pending) {
-			pendingScope.run(scope, result);
+		this.workDispatcher.performWork(result -> {
+			for (var pendingScope : pending) {
+				pendingScope.run(this.globalScope, result);
 
-			var diagnostic = result.terminate();
-			if (diagnostic != null) {
-				handleError.accept(new Diagnostic("Failed to execute reactive scope", Position.INTRINSIC, List.of(diagnostic)));
+				var diagnostic = result.terminate();
+				if (diagnostic != null) {
+					this.workDispatcher.handleError(new Diagnostic("Failed to execute reactive scope", Position.INTRINSIC, List.of(diagnostic)));
+				}
 			}
-		}
+		});
 	}
 }

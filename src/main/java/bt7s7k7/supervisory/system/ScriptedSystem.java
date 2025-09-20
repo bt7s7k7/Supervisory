@@ -117,7 +117,7 @@ public class ScriptedSystem extends ScriptEngine {
 	protected void initializeGlobals(GlobalScope globalScope) {
 		this.host.log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
 
-		this.reactivityManager = new ReactivityManager(globalScope);
+		this.reactivityManager = new ReactivityManager(globalScope, this);
 		this.reactivityTick = TickReactiveDependency.get("tick", this.reactivityManager);
 
 		var sys = globalScope.declareGlobal("SYS", new ManagedTable(globalScope.TablePrototype)); // @summary: Contains functions and data regarding the current system.
@@ -240,7 +240,7 @@ public class ScriptedSystem extends ScriptEngine {
 		}
 
 		if (this.reactivityManager != null) {
-			this.reactivityManager.executePendingReactions(this::handleError, this.getGlobalScope());
+			this.reactivityManager.executePendingReactions();
 		}
 	}
 

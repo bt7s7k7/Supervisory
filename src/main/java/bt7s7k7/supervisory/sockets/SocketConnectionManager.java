@@ -1,5 +1,6 @@
 package bt7s7k7.supervisory.sockets;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
@@ -37,6 +38,10 @@ public abstract class SocketConnectionManager<TCapability, THandle extends Socke
 	protected abstract THandle makeHandle(String name);
 
 	protected abstract void processDependency(THandle dependency, TCapability capability);
+
+	public Collection<THandle> getHandles() {
+		return this.connected.values();
+	}
 
 	public void tick() {
 		if (this.updateInterval > 1) {
