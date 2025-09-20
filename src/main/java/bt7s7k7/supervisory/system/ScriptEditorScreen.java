@@ -216,6 +216,7 @@ public class ScriptEditorScreen extends Screen {
 
 					commandField.setResponder(value -> this.commandInput = value);
 					commandField.setValue(this.commandInput);
+					commandField.setMaxLength(2048);
 					layout.apply(commandField);
 				})
 				.setOffset(5, 5)

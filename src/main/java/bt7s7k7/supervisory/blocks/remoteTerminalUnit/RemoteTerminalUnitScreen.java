@@ -42,6 +42,7 @@ public class RemoteTerminalUnitScreen extends Screen {
 		layout.apply(inputField);
 		inputField.setValue(value);
 		inputField.setResponder(responder);
+		inputField.setMaxLength(2048);
 	}
 
 	@Override
