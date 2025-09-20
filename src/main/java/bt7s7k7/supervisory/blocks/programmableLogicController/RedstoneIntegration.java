@@ -50,15 +50,15 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 				result.value = null;
 			}));
 
-			// @symbol: Redstone.down, @like: <template>redstone_get
-			// @symbol: Redstone.up, @like: <template>redstone_get
-			// @symbol: Redstone.forward, @like: <template>redstone_get
+			// @symbol: Redstone.bottom, @like: <template>redstone_get
+			// @symbol: Redstone.top, @like: <template>redstone_get
+			// @symbol: Redstone.front, @like: <template>redstone_get
 			// @symbol: Redstone.back, @like: <template>redstone_get
 			// @symbol: Redstone.right, @like: <template>redstone_get
 			// @symbol: Redstone.left, @like: <template>redstone_get
-			// @symbol: Redstone.setDown, @like: <template>redstone_set
-			// @symbol: Redstone.setUp, @like: <template>redstone_set
-			// @symbol: Redstone.setForward, @like: <template>redstone_set
+			// @symbol: Redstone.setBottom, @like: <template>redstone_set
+			// @symbol: Redstone.setTop, @like: <template>redstone_set
+			// @symbol: Redstone.setFront, @like: <template>redstone_set
 			// @symbol: Redstone.setBack, @like: <template>redstone_set
 			// @symbol: Redstone.setRight, @like: <template>redstone_set
 			// @symbol: Redstone.setLeft, @like: <template>redstone_set

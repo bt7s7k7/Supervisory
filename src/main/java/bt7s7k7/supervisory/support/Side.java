@@ -5,7 +5,7 @@ import java.util.HashMap;
 import net.minecraft.core.Direction;
 
 public enum Side {
-	DOWN(0, "down"), UP(0, "up"), FORWARD(0, "forward"), BACK(0, "back"), RIGHT(0, "right"), LEFT(0, "left");
+	BOTTOM(0, "bottom"), TOP(1, "top"), FRONT(2, "front"), BACK(3, "back"), RIGHT(4, "right"), LEFT(5, "left");
 
 	public final int index;
 	public final String name;
@@ -24,12 +24,12 @@ public enum Side {
 
 	public Direction getDirection(Direction front) {
 		return switch (this) {
-			case FORWARD -> front;
+			case FRONT -> front;
 			case BACK -> front.getOpposite();
 			case LEFT -> front.getCounterClockWise();
 			case RIGHT -> front.getClockWise();
-			case UP -> Direction.UP;
-			case DOWN -> Direction.DOWN;
+			case TOP -> Direction.UP;
+			case BOTTOM -> Direction.DOWN;
 			default -> throw new IllegalArgumentException("Unsupported relative direction");
 		};
 	}
@@ -40,11 +40,11 @@ public enum Side {
 	}
 
 	public static Side from(Direction front, Direction target) {
-		if (target == front) return FORWARD;
+		if (target == front) return FRONT;
 		if (target == front.getOpposite()) return BACK;
 		if (target == front.getCounterClockWise()) return LEFT;
 		if (target == front.getClockWise()) return RIGHT;
-		if (target == Direction.UP) return UP;
-		return DOWN;
+		if (target == Direction.UP) return TOP;
+		return BOTTOM;
 	}
 }

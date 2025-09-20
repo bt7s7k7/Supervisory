@@ -125,6 +125,14 @@ public class ScriptedSystem extends ScriptEngine {
 
 		for (var side : Side.values()) {
 			globalScope.declareGlobal(side.name.toUpperCase(), Primitive.from(side.name));
+
+			// @symbol: <template>side_constant, @type: String, @summary: Constant for the name of a side of the system
+			// @symbol: BOTTOM, @like: <template>side_constant
+			// @symbol: TOP, @like: <template>side_constant
+			// @symbol: FRONT, @like: <template>side_constant
+			// @symbol: BACK, @like: <template>side_constant
+			// @symbol: RIGHT, @like: <template>side_constant
+			// @symbol: LEFT, @like: <template>side_constant
 		}
 
 		{
