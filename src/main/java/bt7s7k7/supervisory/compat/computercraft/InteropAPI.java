@@ -70,7 +70,7 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 			var name = args.get(0).getStringValue();
 			Object[] eventArguments;
 			if (args.size() > 1) {
-				var managedArguments = args.get(1).getArrayValue().elements;
+				var managedArguments = args.get(1).getArrayValue().getElementsReadOnly();
 				eventArguments = new Object[managedArguments.size()];
 				for (int i = 0; i < managedArguments.size(); i++) {
 					var managedValue = managedArguments.get(i);

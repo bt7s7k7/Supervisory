@@ -40,13 +40,14 @@ public class ItemReport {
 
 	public void getComponents(ManagedArray result) {
 		var data = this.stack.getComponentsPatch();
+		var resultElements = result.getElementsMutable();
 
 		for (var kv : data.entrySet()) {
 			var type = kv.getKey();
 			var key = BuiltInRegistries.DATA_COMPONENT_TYPE.getKeyOrNull(type);
 			if (key == null) continue;
 			var stringKey = key.toString();
-			result.elements.add(Primitive.from(stringKey));
+			resultElements.add(Primitive.from(stringKey));
 		}
 	}
 
@@ -81,7 +82,7 @@ public class ItemReport {
 			.addGetter("code", v -> Primitive.from(v.code())) // @type: String, @summary: A unique code representing the NBT data of the item.
 			.addMethod("getComponents", Collections.emptyList(), Collections.emptyList(), (self, args, scope, result) -> {
 				// @summary: Returns an {@link Array} of the names of all component types on this item.
-				var array = new ManagedArray(scope.globalScope.ArrayPrototype);
+				var array = ManagedArray.empty(scope.globalScope.ArrayPrototype);
 				self.getComponents(array);
 				result.value = array;
 			})

@@ -76,7 +76,7 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 			var items = new ArrayList<StackReport>();
 			var targets = new ArrayList<StorageReport>();
 
-			for (var element : args.get(0).getArrayValue().elements) {
+			for (var element : args.get(0).getArrayValue()) {
 				if (!(element instanceof NativeHandle handle) || !(handle.value instanceof StackReport report)) {
 					result.setException(new Diagnostic("All item elements must be instances of StackReport", Position.INTRINSIC));
 					return;
@@ -85,7 +85,7 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 				items.add(report);
 			}
 
-			for (var element : args.get(1).getArrayValue().elements) {
+			for (var element : args.get(1).getArrayValue()) {
 				if (!(element instanceof NativeHandle handle) || !(handle.value instanceof StorageReport report)) {
 					result.setException(new Diagnostic("All target elements must be instances of StorageReport", Position.INTRINSIC));
 					return;

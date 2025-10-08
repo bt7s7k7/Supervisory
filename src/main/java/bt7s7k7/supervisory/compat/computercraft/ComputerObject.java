@@ -22,9 +22,9 @@ public class ComputerObject implements LuaTable<Object, Object> {
 			case Primitive.Boolean bool -> bool.value;
 			case ManagedArray array -> {
 				var object = new ComputerObject();
-
-				for (int i = 0; i < array.elements.size(); i++) {
-					var element = array.elements.get(i);
+				var elements = array.getElementsReadOnly();
+				for (int i = 0; i < elements.size(); i++) {
+					var element = elements.get(i);
 					var elementValue = fromManagedValue(element);
 					if (elementValue == null) continue;
 
@@ -74,11 +74,12 @@ public class ComputerObject implements LuaTable<Object, Object> {
 				}
 
 				if (isArray) {
-					var result = new ManagedArray(globalScope == null ? null : globalScope.ArrayPrototype);
+					var result = ManagedArray.withCapacity(globalScope == null ? null : globalScope.ArrayPrototype, map.size());
+					var resultElements = result.getElementsMutable();
 					for (var i = 0; i < map.size(); i++) {
 						var element = map.get(makeTableIndex(i + 1));
 						var managedElement = toManagedValue(element, globalScope);
-						result.elements.add(managedElement);
+						resultElements.add(managedElement);
 					}
 					yield result;
 				}
@@ -98,11 +99,14 @@ public class ComputerObject implements LuaTable<Object, Object> {
 				yield result;
 			}
 			case Object[] multiple -> {
-				var result = new ManagedArray(globalScope == null ? null : globalScope.ArrayPrototype);
+				var result = ManagedArray.withCapacity(globalScope == null ? null : globalScope.ArrayPrototype, multiple.length);
+				var resultElements = result.getElementsMutable();
+
 				for (var i = 0; i < multiple.length; i++) {
 					var managedElement = toManagedValue(multiple[i], globalScope);
-					result.elements.add(managedElement);
+					resultElements.add(managedElement);
 				}
+
 				yield result;
 			}
 			case null -> Primitive.NULL;

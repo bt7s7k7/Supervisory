@@ -1,7 +1,6 @@
 package bt7s7k7.supervisory.support;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,11 +41,11 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 
 	public static final ManagedValueCodec INSTANCE = new ManagedValueCodec();
 
-	public static final Codec<ManagedValue> NUMBER_CODEC = createPrimitiveCodec(EncodedType.NUMBER, Codec.DOUBLE, v -> ((Primitive.Number) v).value, Primitive::from);
-	public static final Codec<ManagedValue> STRING_CODEC = createPrimitiveCodec(EncodedType.STRING, Codec.STRING, v -> ((Primitive.String) v).value, Primitive::from);
-	public static final Codec<ManagedValue> BOOLEAN_CODEC = createPrimitiveCodec(EncodedType.BOOLEAN, Codec.BOOL, v -> ((Primitive.Boolean) v).value, Primitive::from);
+	public static final Codec<ManagedValue> NUMBER_CODEC = createPrimitiveCodec(EncodedType.NUMBER, Codec.DOUBLE, ManagedValue::getNumberValue, Primitive::from);
+	public static final Codec<ManagedValue> STRING_CODEC = createPrimitiveCodec(EncodedType.STRING, Codec.STRING, ManagedValue::getStringValue, Primitive::from);
+	public static final Codec<ManagedValue> BOOLEAN_CODEC = createPrimitiveCodec(EncodedType.BOOLEAN, Codec.BOOL, ManagedValue::getBooleanValue, Primitive::from);
 
-	public static final Codec<ManagedValue> ARRAY_CODEC = createPrimitiveCodec(EncodedType.ARRAY, Codec.list(INSTANCE), v -> ((ManagedArray) v).elements, v -> new ManagedArray(null, new ArrayList<>(v)));
+	public static final Codec<ManagedValue> ARRAY_CODEC = createPrimitiveCodec(EncodedType.ARRAY, Codec.list(INSTANCE), v -> v.getArrayValue().getElementsReadOnly(), v -> ManagedArray.withElements(null, v));
 
 	@Override
 	public <T> DataResult<T> encode(ManagedValue input, DynamicOps<T> ops, T prefix) {
@@ -119,7 +118,7 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 		return switch (root) {
 			case StringTag string -> Primitive.from(string.getAsString());
 			case NumericTag number -> Primitive.from(number.getAsDouble());
-			case ListTag list -> new ManagedArray(globalScope == null ? null : globalScope.ArrayPrototype, list.stream()
+			case ListTag list -> ManagedArray.fromImmutableList(globalScope == null ? null : globalScope.ArrayPrototype, list.stream()
 					.map(v -> importNbtData(v, globalScope, Primitive.NULL))
 					.toList());
 			case CompoundTag compound -> new ManagedMap(globalScope == null ? null : globalScope.MapPrototype, compound.getAllKeys().stream()

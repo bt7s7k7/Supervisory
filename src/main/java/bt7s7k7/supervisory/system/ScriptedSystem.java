@@ -84,9 +84,9 @@ public class ScriptedSystem extends ScriptEngine {
 		}
 
 		if (value instanceof ManagedArray array) {
-			var elements = array.elements.stream().map(v -> this.translateValue(globalScope, v)).toList();
+			var elements = array.stream().map(v -> this.translateValue(globalScope, v)).toList();
 
-			return new ManagedArray(globalScope == null ? null : globalScope.ArrayPrototype, elements);
+			return ManagedArray.fromImmutableList(globalScope == null ? null : globalScope.ArrayPrototype, elements);
 		}
 
 		if (value instanceof ManagedMap table) {

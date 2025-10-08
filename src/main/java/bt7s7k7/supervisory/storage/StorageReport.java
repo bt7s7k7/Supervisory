@@ -73,9 +73,10 @@ public class StorageReport {
 	}
 
 	public void findItems(String id, ManagedArray output, GlobalScope globalScope) {
+		var outputElements = output.getElementsMutable();
 		for (var stack : this.getItems().values()) {
 			if (id.isEmpty() || stack.item().id().equals(id)) {
-				output.elements.add(StackReport.WRAPPER.getHandle(stack, globalScope));
+				outputElements.add(StackReport.WRAPPER.getHandle(stack, globalScope));
 			}
 		}
 	}
@@ -101,7 +102,7 @@ public class StorageReport {
 			})
 			.addMethod("findItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
 				// @summary: Returns an {@link Array} of all {@link StackReport} instances with the specified id.
-				var array = new ManagedArray(scope.globalScope.ArrayPrototype);
+				var array = ManagedArray.empty(scope.globalScope.ArrayPrototype);
 				self.findItems(args.get(0).getStringValue(), array, scope.globalScope);
 				result.value = array;
 			})
