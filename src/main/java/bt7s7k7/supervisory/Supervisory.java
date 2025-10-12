@@ -41,7 +41,7 @@ public class Supervisory {
 		this.bus = modEventBus;
 		instance = this;
 
-		modContainer.registerConfig(Type.COMMON, Config.SPEC);
+		modContainer.registerConfig(Type.SERVER, Config.SERVER_SPEC);
 
 		AllBlocks.register();
 		AllBlockEntities.register();

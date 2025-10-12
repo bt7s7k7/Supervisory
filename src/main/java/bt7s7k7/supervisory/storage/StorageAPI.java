@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import bt7s7k7.supervisory.Config;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
@@ -75,6 +76,12 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 			// The amount of transferred items is returned.]]
 			var items = new ArrayList<StackReport>();
 			var targets = new ArrayList<StorageReport>();
+
+			var enabled = Config.ALLOW_STORAGE_TRANSFER.getAsBoolean();
+			if (!enabled) {
+				result.setException(new Diagnostic("Transfer function has been disabled in server config", Position.INTRINSIC));
+				return;
+			}
 
 			for (var element : args.get(0).getArrayValue()) {
 				if (!(element instanceof NativeHandle handle) || !(handle.value instanceof StackReport report)) {

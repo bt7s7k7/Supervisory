@@ -9,10 +9,8 @@ import com.tterrag.registrate.providers.ProviderType;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-// An example config class. This is not required, but it's a good idea to have one to keep your config organized.
-// Demonstrates how to use Neo's config APIs
 public class Config {
-	private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+	private static final ModConfigSpec.Builder SERVER_BUILDER = new ModConfigSpec.Builder();
 
 	private static final ArrayList<Pair<String, ModConfigSpec.ConfigValue<?>>> VALUES = new ArrayList<>();
 
@@ -21,18 +19,30 @@ public class Config {
 		return value;
 	}
 
-	public static final ModConfigSpec.IntValue TEST_NUMBER = addValue("Test Number", BUILDER
-			.comment("Test number")
-			.defineInRange("testNumber", 42, 0, Integer.MAX_VALUE));
+	public static final ModConfigSpec.IntValue EXPRESSION_LIMIT = addValue("Expression Limit", SERVER_BUILDER
+			.comment("Maximum amount of expression executed at once in one block")
+			.defineInRange("expression_limit", 15000, 1000, Integer.MAX_VALUE));
+
+	public static final ModConfigSpec.BooleanValue ALLOW_STORAGE_TRANSFER = addValue("Allow Storage Transfer", SERVER_BUILDER
+			.comment("If the Storage.transfer function should be enabled; with improper use it can be used to achieve overpowered item transfer with infinite range")
+			.define("allow_storage_transfer", true));
 
 	static {
 		Supervisory.REGISTRATE.addDataGenerator(ProviderType.LANG, lang -> {
 			var prefix = Supervisory.MOD_ID + ".configuration.";
+
 			for (var entry : VALUES) {
-				lang.add(prefix + String.join(".", entry.getRight().getPath()), entry.getLeft());
+				var configValue = entry.getRight();
+				var path = prefix + String.join(".", configValue.getPath());
+
+				var name = entry.getLeft();
+				lang.add(path, name);
+
+				var comment = configValue.getSpec().getComment();
+				lang.add(path + ".tooltip", comment);
 			}
 		});
 	}
 
-	static final ModConfigSpec SPEC = BUILDER.build();
+	public static final ModConfigSpec SERVER_SPEC = SERVER_BUILDER.build();
 }

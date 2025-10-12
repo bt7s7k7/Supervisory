@@ -2,6 +2,7 @@ package bt7s7k7.supervisory.script;
 
 import java.util.function.Consumer;
 
+import bt7s7k7.supervisory.Config;
 import bt7s7k7.treeburst.parsing.TreeBurstParser;
 import bt7s7k7.treeburst.runtime.ExecutionLimitReachedException;
 import bt7s7k7.treeburst.runtime.ExpressionEvaluator;
@@ -35,7 +36,7 @@ public abstract class ScriptEngine implements ManagedWorkDispatcher {
 	@Override
 	public ManagedValue performWork(Consumer<ExpressionResult> worker) {
 		var result = new ExpressionResult();
-		result.executionLimit = 5000;
+		result.executionLimit = Config.EXPRESSION_LIMIT.getAsInt();
 
 		try {
 			worker.accept(result);
