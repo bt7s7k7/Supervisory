@@ -4,5 +4,19 @@
 	"title": "Supervisory",
 	"externalReferences": [
 		"https://bt7s7k7.github.io/TreeBurst/"
+	],
+	"excludedFiles": [],
+	"symbolFactories": [],
+	"inserts": {
+		"index.*": "docs/index.md"
+	},
+	"resources": [
+		{
+			"path": "docs",
+			"prefix": "docs",
+			"include": [
+				"*.png"
+			]
+		}
 	]
 }
