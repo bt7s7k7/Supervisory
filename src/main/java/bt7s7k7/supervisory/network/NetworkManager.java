@@ -12,7 +12,7 @@ import com.mojang.datafixers.util.Pair;
 import bt7s7k7.supervisory.Supervisory;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -34,7 +34,9 @@ public class NetworkManager {
 	}
 
 	@SubscribeEvent
-	private static void initializeNetwork(ServerStartedEvent event) {
+	// Using ServerAboutToStartEvent instead of ServerStartedEvent because this needs to be executed
+	// before chunks start loading. It used to work but stopped for some reason?
+	private static void initializeNetwork(ServerAboutToStartEvent event) {
 		Supervisory.LOGGER.info("Initializing network manager");
 		instance = new NetworkManager();
 	}
