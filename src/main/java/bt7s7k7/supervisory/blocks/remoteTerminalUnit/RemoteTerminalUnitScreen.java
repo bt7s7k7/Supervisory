@@ -56,16 +56,16 @@ public class RemoteTerminalUnitScreen extends Screen {
 					layout.colspan().apply(this.addRenderableWidget(new StringWidget(this.title, this.font)));
 				})
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_DOMAIN.toComponent(), this.configuration.domain, v -> this.configuration.domain = v);
+					this.addStringField(layout, I18n.DOMAIN.toComponent(), this.configuration.domain, v -> this.configuration.domain = v);
 				})
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_INPUT.toComponent(), this.configuration.input, v -> this.configuration.input = v);
+					this.addStringField(layout, I18n.INPUT.toComponent(), this.configuration.input, v -> this.configuration.input = v);
 				})
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_OUTPUT.toComponent(), this.configuration.output, v -> this.configuration.output = v);
+					this.addStringField(layout, I18n.OUTPUT.toComponent(), this.configuration.output, v -> this.configuration.output = v);
 				})
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					this.addStringField(layout, I18n.REMOTE_TERMINAL_UNIT_SOCKETS.toComponent(), this.configuration.socket, v -> this.configuration.socket = v);
+					this.addStringField(layout, I18n.SOCKETS.toComponent(), this.configuration.socket, v -> this.configuration.socket = v);
 				})
 				.addRow(5)
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {

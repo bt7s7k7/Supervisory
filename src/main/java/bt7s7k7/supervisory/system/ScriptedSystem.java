@@ -244,14 +244,11 @@ public class ScriptedSystem extends ScriptEngine {
 		}
 	}
 
-	@Override
-	public ManagedValue executeCode(String path, String code) {
-		var result = super.executeCode(path, code);
+	public void executeCommand(String code) {
+		var result = super.executeCode("command", code);
 
-		if (result != null && path.equals("command")) {
+		if (result != null) {
 			this.host.log(formatValue(result, this.getGlobalScope()));
 		}
-
-		return result;
 	}
 }

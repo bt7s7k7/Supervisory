@@ -105,7 +105,7 @@ public abstract class CompositeBlock extends Block implements EntityBlock {
 		if (player instanceof ServerPlayer serverPlayer) {
 			level.getBlockEntity(pos, this.blockEntityType.get()).ifPresent(be -> {
 				if (be.failed) {
-					serverPlayer.sendSystemMessage(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_FAILED.toComponent(), true);
+					serverPlayer.sendSystemMessage(I18n.BLOCK_FAILED.toComponent(), true);
 					return;
 				}
 

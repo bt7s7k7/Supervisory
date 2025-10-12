@@ -1,8 +1,15 @@
 package bt7s7k7.supervisory.script;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
 import bt7s7k7.supervisory.Config;
+import bt7s7k7.treeburst.parsing.Expression;
 import bt7s7k7.treeburst.parsing.TreeBurstParser;
 import bt7s7k7.treeburst.runtime.ExecutionLimitReachedException;
 import bt7s7k7.treeburst.runtime.ExpressionEvaluator;
@@ -18,6 +25,11 @@ import net.minecraft.network.chat.Component;
 
 public abstract class ScriptEngine implements ManagedWorkDispatcher {
 	private GlobalScope globalScope;
+
+	public static final Codec<InputDocument> INPUT_DOCUMENT_CODEC = RecordCodecBuilder.create(instance -> (instance.group(
+			Codec.STRING.fieldOf("path").orElse("").forGetter(v -> v.path),
+			Codec.STRING.fieldOf("content").orElse("").forGetter(v -> v.content))
+			.apply(instance, InputDocument::new)));
 
 	@Override
 	public abstract void handleError(Diagnostic error);
@@ -58,16 +70,27 @@ public abstract class ScriptEngine implements ManagedWorkDispatcher {
 	}
 
 	public ManagedValue executeCode(String path, String code) {
+		return this.executeCode(Collections.singletonList(new InputDocument(path, code)));
+	}
+
+	public ManagedValue executeCode(List<InputDocument> documents) {
 		var globalScope = this.getGlobalScope();
-		var inputDocument = new InputDocument(path, code);
-		var parser = new TreeBurstParser(inputDocument);
-		var root = parser.parse();
-		if (!parser.diagnostics.isEmpty()) {
-			parser.diagnostics.forEach(this::handleError);
-			return null;
+		var units = new ArrayList<Expression>(documents.size());
+		var error = false;
+
+		for (var document : documents) {
+			var parser = new TreeBurstParser(document);
+			units.add(parser.parse());
+
+			if (!parser.diagnostics.isEmpty()) {
+				parser.diagnostics.forEach(this::handleError);
+				error = true;
+			}
 		}
 
-		return this.performWork(result -> ExpressionEvaluator.evaluateExpression(root, globalScope, result));
+		if (error) return null;
+
+		return this.performWork(result -> ExpressionEvaluator.evaluateExpression(new Expression.Group(Position.INTRINSIC, units), globalScope, result));
 	}
 
 	public void clear() {

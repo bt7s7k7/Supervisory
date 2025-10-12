@@ -3,6 +3,7 @@ package bt7s7k7.supervisory.system;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -17,6 +18,7 @@ import bt7s7k7.supervisory.network.NetworkDeviceHost;
 import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
 import bt7s7k7.supervisory.support.LogEventRouter;
 import bt7s7k7.treeburst.runtime.GlobalScope;
+import bt7s7k7.treeburst.support.InputDocument;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup.Provider;
@@ -30,7 +32,7 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 
-public class ScriptedSystemHost extends BlockEntityComponent implements Configurable<ScriptedSystemHost.Configuration> {
+public class ScriptedSystemHost extends BlockEntityComponent implements Configurable<ScriptedSystemHost.Configuration, ScriptedSystemHost.ConfigurationUpdate> {
 	public final NetworkDeviceHost networkDeviceHost;
 
 	// This array is only used on the client. It is unique per player and is not saved.
@@ -71,8 +73,12 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 				device.cache.putAll(savedState.cache);
 			}
 
+			if (!this.configuration.domain.isEmpty()) {
+				device.domain = this.configuration.domain;
+			}
+
 			this.system.clear();
-			this.system.executeCode("code", this.configuration.code);
+			this.system.executeCode(this.configuration.getModuleDocuments());
 
 			// Remove entries that are not longer subscribed to from the cache
 			for (var it = device.cache.keySet().iterator(); it.hasNext();) {
@@ -110,13 +116,23 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 	protected String desiredDomain = null;
 
 	public static class Configuration {
-		public String command = "";
-		public String code = "";
+		public String domain = "";
+		public ArrayList<String> modules = new ArrayList<>();
 		public ArrayList<Component> log = new ArrayList<>();
 
-		public Configuration(String command, String code, List<Component> log) {
-			this.command = command;
-			this.code = code;
+		public List<InputDocument> getModuleDocuments() {
+			var result = new ArrayList<InputDocument>(this.modules.size());
+
+			for (int i = 0; i < this.modules.size(); i++) {
+				result.add(new InputDocument("module" + i, this.modules.get(i)));
+			}
+
+			return result;
+		}
+
+		public Configuration(String domain, List<String> modules, List<Component> log) {
+			this.domain = domain;
+			this.modules = modules instanceof ArrayList<String> arrayList ? arrayList : new ArrayList<>(modules);
 			this.log = log instanceof ArrayList<Component> arrayList ? arrayList : new ArrayList<>(log);
 		}
 
@@ -128,10 +144,34 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 		}
 
 		public static final Codec<Configuration> CODEC = RecordCodecBuilder.create(instance -> (instance.group(
-				Codec.STRING.fieldOf("command").orElse("").forGetter(v -> v.command),
-				Codec.STRING.fieldOf("code").orElse("").forGetter(v -> v.code),
+				Codec.STRING.fieldOf("domain").orElse("").forGetter(v -> v.domain),
+				Codec.list(Codec.STRING).fieldOf("modules").orElse(Collections.emptyList()).forGetter(v -> v.modules),
 				Codec.list(ComponentSerialization.CODEC).fieldOf("log").orElse(Collections.emptyList()).forGetter(v -> v.log))
 				.apply(instance, Configuration::new)));
+	}
+
+	public static class ConfigurationUpdate {
+		public Optional<String> command;
+		public Optional<String> domain;
+		public Optional<List<String>> modules;
+
+		public ConfigurationUpdate(Optional<String> command, Optional<String> domain, Optional<List<String>> modules) {
+			this.command = command;
+			this.domain = domain;
+			this.modules = modules;
+		}
+
+		public ConfigurationUpdate() {
+			this.command = Optional.empty();
+			this.domain = Optional.empty();
+			this.modules = Optional.empty();
+		}
+
+		public static final Codec<ConfigurationUpdate> CODEC = RecordCodecBuilder.create(instance -> (instance.group(
+				Codec.STRING.optionalFieldOf("command").forGetter(v -> v.command),
+				Codec.STRING.optionalFieldOf("domain").forGetter(v -> v.domain),
+				Codec.list(Codec.STRING).optionalFieldOf("modules").forGetter(v -> v.modules))
+				.apply(instance, ConfigurationUpdate::new)));
 	}
 
 	private ArrayList<Component> pendingLogEntries = new ArrayList<>();
@@ -157,7 +197,6 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 	@Override
 	public void write(CompoundTag tag, Provider registries) {
 		var result = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow();
-		result.remove("command");
 		tag.merge(result);
 	}
 
@@ -166,6 +205,11 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 		Configuration.CODEC.parse(NbtOps.INSTANCE, tag).ifSuccess(configuration -> {
 			this.configuration = configuration;
 		});
+
+		// Migration
+		if (tag.contains("code")) {
+			this.configuration.modules.add(tag.getString("code"));
+		}
 	}
 
 	@Override
@@ -174,22 +218,31 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 	}
 
 	public void executeCommand(String command) {
-		this.system.executeCode("command", command);
+		this.system.executeCommand(command);
 	}
 
 	@Override
-	public void setConfiguration(Configuration configuration) {
-		if (configuration.command.isEmpty()) {
-			this.configuration.code = configuration.code;
+	public void updateConfiguration(ConfigurationUpdate configuration) {
+		if (configuration.modules.isPresent()) {
+			this.configuration.modules.clear();
+			this.configuration.modules.addAll(configuration.modules.get());
 			this.configuration.log.clear();
 			this.system.clear();
-		} else {
-			this.log(Component.literal("> ").withStyle(ChatFormatting.GREEN).append(Component.literal(configuration.command).withStyle(ChatFormatting.BLUE)));
-			Supervisory.LOGGER.debug("Executed command: " + configuration.command);
-			this.executeCommand(configuration.command);
+			this.entity.setChanged();
 		}
 
-		this.entity.setChanged();
+		if (configuration.command.isPresent()) {
+			var command = configuration.command.get();
+			this.log(Component.literal("> ").withStyle(ChatFormatting.GREEN).append(Component.literal(command).withStyle(ChatFormatting.BLUE)));
+			Supervisory.LOGGER.debug("Executed command: " + command);
+			this.executeCommand(command);
+		}
+
+		if (configuration.domain.isPresent()) {
+			this.configuration.domain = configuration.domain.get();
+			this.system.clear();
+			this.entity.setChanged();
+		}
 	}
 
 	@Override
@@ -207,6 +260,11 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 		if (FMLLoader.getDist() == Dist.CLIENT) {
 			this.displayScreen(configuration);
 		}
+	}
+
+	@Override
+	public Codec<ConfigurationUpdate> getUpdateCodec() {
+		return ConfigurationUpdate.CODEC;
 	}
 
 	@Override

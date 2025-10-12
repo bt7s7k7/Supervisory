@@ -27,16 +27,19 @@ public class I18n {
 	}
 
 	public static final Key REMOTE_TERMINAL_UNIT_TITLE = register(new Key("gui.remote_terminal_unit.title", "Remote Terminal Unit Configuration"));
-	public static final Key REMOTE_TERMINAL_UNIT_DOMAIN = register(new Key("gui.remote_terminal_unit.domain", "Domain"));
-	public static final Key REMOTE_TERMINAL_UNIT_INPUT = register(new Key("gui.remote_terminal_unit.input", "Input"));
-	public static final Key REMOTE_TERMINAL_UNIT_OUTPUT = register(new Key("gui.remote_terminal_unit.output", "Output"));
-	public static final Key REMOTE_TERMINAL_UNIT_SOCKETS = register(new Key("gui.remote_terminal_unit.sockets", "Sockets"));
+	public static final Key DOMAIN = register(new Key("gui.domain", "Domain"));
+	public static final Key INPUT = register(new Key("gui.input", "Input"));
+	public static final Key OUTPUT = register(new Key("gui.output", "Output"));
+	public static final Key SOCKETS = register(new Key("gui.sockets", "Sockets"));
 
 	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_TITLE = register(new Key("gui.programmable_logic_controller.title", "PLC Configuration"));
-	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_COMPILE = register(new Key("gui.programmable_logic_controller.compile", "Compile"));
-	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_COMMAND = register(new Key("gui.programmable_logic_controller.command", "Enter command..."));
-	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_CODE = register(new Key("gui.programmable_logic_controller.code", "Enter code..."));
-	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_FAILED = register(new Key("gui.programmable_logic_controller.failed", "This block failed to load and cannot be accessed"));
+	public static final Key COMPILE = register(new Key("gui.compile", "Compile"));
+	public static final Key ENTER_COMMAND = register(new Key("gui.placeholder.command", "Enter command..."));
+	public static final Key ENTER_CODE = register(new Key("gui.placeholder.code", "Enter code..."));
+	public static final Key BLOCK_FAILED = register(new Key("gui.failed", "This block failed to load and cannot be accessed"));
+	public static final Key TOOLTIP_PREV_MODULE = register(new Key("gui.module.prev", "Switches to the previous module. Hold [Shift] to move the current module."));
+	public static final Key TOOLTIP_NEXT_MODULE = register(new Key("gui.module.next", "Switches to the next module. Hold [Shift] to move the current module."));
+	public static final Key TOOLTIP_ADD_MODULE = register(new Key("gui.module.add", "Creates a new module. Hold [Shift] to delete the current module."));
 
 	public static final Key DONE = register(new Key("gui.done", "Done"));
 	public static final Key APPLY = register(new Key("gui.apply", "Apply"));

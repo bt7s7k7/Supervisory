@@ -1,6 +1,6 @@
 package bt7s7k7.supervisory.system;
 
-import java.util.Collections;
+import java.util.Optional;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -17,6 +17,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.FittingMultiLineTextWidget;
 import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.Whence;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -32,6 +34,7 @@ public class ScriptEditorScreen extends Screen {
 	public String commandInput = "";
 	public int historyIndex;
 	public boolean dirty = false;
+	public int selectedModule = 0;
 
 	public ScriptEditorScreen(ScriptedSystemHost blockEntity, ScriptedSystemHost.Configuration configuration) {
 		super(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_TITLE.toComponent());
@@ -39,6 +42,11 @@ public class ScriptEditorScreen extends Screen {
 		this.configuration = configuration;
 		this.historyIndex = blockEntity.commandHistory.size();
 		LogEventRouter.getInstance().onLogReceived = this::handleLogReceived;
+
+		// Ensure at least one module to display
+		if (configuration.modules.isEmpty()) {
+			configuration.modules.add("");
+		}
 	}
 
 	@Override
@@ -132,15 +140,27 @@ public class ScriptEditorScreen extends Screen {
 								layout_1.apply(this.addRenderableWidget(new StringWidget(this.title, this.font)).alignLeft());
 							})
 							.addColumn(50).renderColumn(layout_1 -> {
-								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.PROGRAMMABLE_LOGIC_CONTROLLER_COMPILE.toComponent(), __ -> {
+								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.COMPILE.toComponent(), __ -> {
 									this.compile();
 								}).build()));
 							})
 							.build();
 
 					layout.next().cell().childLayout()
+							.setGap(5)
 							.addRow()
-							.addGrowColumn()
+							.addColumn(35).renderColumn(layout_1 -> {
+								layout_1.apply(this.addRenderableWidget(new StringWidget(I18n.DOMAIN.toComponent(), this.font)));
+							})
+							.addGrowColumn().renderColumn(layout_1 -> {
+								var domainBox = this.addRenderableWidget(new EditBox(this.font, 0, 0, I18n.DOMAIN.toComponent()));
+								layout_1.apply(domainBox);
+								domainBox.setValue(this.configuration.domain);
+								domainBox.setResponder(value -> {
+									this.configuration.domain = value;
+									this.dirty = true;
+								});
+							})
 							.addColumn(50).renderColumn(layout_1 -> {
 								layout_1.apply(this.addRenderableWidget(Button.builder(I18n.CLOSE.toComponent(), __ -> {
 									this.closeOrConfirmLostChanges();
@@ -152,20 +172,91 @@ public class ScriptEditorScreen extends Screen {
 					var editBox = this.addRenderableWidget(new CodeEditorWidget(this.font,
 							layout.cell().x(), layout.cell().y(),
 							layout.cell().width(), layout.cell().height(),
-							I18n.PROGRAMMABLE_LOGIC_CONTROLLER_CODE.toComponent(),
+							I18n.ENTER_CODE.toComponent(),
 							EDITOR_STYLE));
-					editBox.setValue(this.configuration.code);
+					editBox.setValue(this.configuration.modules.get(this.selectedModule));
 					editBox.setValueListener(value -> {
-						this.configuration.code = value;
+						this.configuration.modules.set(this.selectedModule, value);
 						this.dirty = true;
 					});
 
+					editBox.field.seekCursor(Whence.ABSOLUTE, 0);
 					layout.next();
 
 					this.logViewPosition = layout.cell();
 					this.rebuildLogView();
 				})
 				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
+					layout.cell().childLayout()
+							.setGap(5)
+							.addRow()
+							.addGrowColumn()
+							.addColumn(25).renderColumn(layout_1 -> {
+								var button = this.addRenderableWidget(Button.builder(Component.literal("←"), __ -> {
+									if (this.selectedModule > 0) {
+										if (Screen.hasShiftDown()) {
+											var tmp = this.configuration.modules.get(this.selectedModule - 1);
+											this.configuration.modules.set(this.selectedModule - 1, this.configuration.modules.get(this.selectedModule));
+											this.configuration.modules.set(this.selectedModule, tmp);
+											this.dirty = true;
+										}
+
+										this.selectedModule--;
+										this.rebuildWidgets();
+									}
+								}).tooltip(Tooltip.create(I18n.TOOLTIP_PREV_MODULE.toComponent())).build());
+								button.active = this.selectedModule > 0;
+
+								layout_1.apply(button);
+							})
+							.addColumn(25).renderColumn(layout_1 -> {
+								var label = (this.selectedModule + 1) + "/" + this.configuration.modules.size();
+								layout_1.apply(this.addRenderableWidget(new StringWidget(Component.literal(label), this.font)));
+							})
+							.addColumn(25).renderColumn(layout_1 -> {
+								var button = this.addRenderableWidget(Button.builder(Component.literal("→"), __ -> {
+									if (this.selectedModule < this.configuration.modules.size() - 1) {
+										if (Screen.hasShiftDown()) {
+											var tmp = this.configuration.modules.get(this.selectedModule + 1);
+											this.configuration.modules.set(this.selectedModule + 1, this.configuration.modules.get(this.selectedModule));
+											this.configuration.modules.set(this.selectedModule, tmp);
+											this.dirty = true;
+										}
+
+										this.selectedModule++;
+										this.rebuildWidgets();
+									}
+								}).tooltip(Tooltip.create(I18n.TOOLTIP_NEXT_MODULE.toComponent())).build());
+								button.active = this.selectedModule < this.configuration.modules.size() - 1;
+
+								layout_1.apply(button);
+							})
+							.addColumn(25).renderColumn(layout_1 -> {
+								var button = this.addRenderableWidget(Button.builder(Component.literal("+/-"), __ -> {
+									if (Screen.hasShiftDown()) {
+										this.configuration.modules.remove(this.selectedModule);
+
+										if (this.configuration.modules.isEmpty()) {
+											this.configuration.modules.add("");
+										} else {
+											if (this.selectedModule != 0) {
+												this.selectedModule--;
+											}
+										}
+									} else {
+										this.selectedModule = this.configuration.modules.size();
+										this.configuration.modules.add("");
+									}
+
+									this.dirty = true;
+									this.rebuildWidgets();
+								}).tooltip(Tooltip.create(I18n.TOOLTIP_ADD_MODULE.toComponent())).build());
+
+								layout_1.apply(button);
+							})
+							.addGrowColumn()
+							.build();
+
 					layout.next();
 
 					var commandField = this.addRenderableWidget(new EditBox(this.font, 0, 0, Component.empty()) {
@@ -209,7 +300,7 @@ public class ScriptEditorScreen extends Screen {
 						public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 							super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
 							if (this.getValue().isEmpty() && !this.isFocused()) {
-								guiGraphics.drawString(ScriptEditorScreen.this.font, I18n.PROGRAMMABLE_LOGIC_CONTROLLER_COMMAND.toComponent(), this.getX() + 4, this.getY() + (this.height - 8) / 2, -8355712, false);
+								guiGraphics.drawString(ScriptEditorScreen.this.font, I18n.ENTER_COMMAND.toComponent(), this.getX() + 4, this.getY() + (this.height - 8) / 2, -8355712, false);
 							}
 						}
 					});
@@ -228,8 +319,10 @@ public class ScriptEditorScreen extends Screen {
 		this.configuration.log.clear();
 		this.rebuildLogView();
 
-		var configuration = new ScriptedSystemHost.Configuration("", this.configuration.code, Collections.emptyList());
-		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
+		var update = new ScriptedSystemHost.ConfigurationUpdate();
+		update.modules = Optional.of(this.configuration.modules);
+		update.domain = Optional.of(this.configuration.domain);
+		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, update);
 
 		this.dirty = false;
 	}
@@ -245,8 +338,10 @@ public class ScriptEditorScreen extends Screen {
 
 		this.historyIndex = this.host.commandHistory.size();
 
-		var configuration = new ScriptedSystemHost.Configuration(this.commandInput, "", Collections.emptyList());
-		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, configuration);
+		var update = new ScriptedSystemHost.ConfigurationUpdate();
+		update.command = Optional.of(this.commandInput);
+		ConfigurationScreenManager.submitConfiguration(this.host.entity.getBlockPos(), this.host, update);
+
 		this.commandInput = "";
 	}
 

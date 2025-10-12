@@ -8,8 +8,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class ConfigurationManager {
-	public static void requestConfiguration(ServerPlayer player, BlockPos location, Configurable<?> configurable) {
-		var payload = new ConfigurationRequest(location, configurable.getPayloadData());
+	public static void requestConfiguration(ServerPlayer player, BlockPos location, Configurable<?, ?> configurable) {
+		var payload = new ConfigurationRequest(location, configurable.getConfigurationPayload());
 		PacketDistributor.sendToPlayer(player, payload);
 	}
 
@@ -22,8 +22,8 @@ public class ConfigurationManager {
 			return;
 		}
 
-		var configurationCodec = configurable.getConfigurationCodec();
+		var configurationCodec = configurable.getUpdateCodec();
 		var configuration = configurationCodec.parse(NbtOps.INSTANCE, data.configuration()).getOrThrow();
-		configurable.setConfiguration(configuration);
+		configurable.updateConfiguration(configuration);
 	}
 }

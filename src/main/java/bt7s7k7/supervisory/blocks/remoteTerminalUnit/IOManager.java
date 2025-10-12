@@ -26,7 +26,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.loading.FMLLoader;
 
-public class IOManager extends BlockEntityComponent implements Configurable<IOManager.Configuration> {
+public class IOManager extends BlockEntityComponent implements Configurable<IOManager.Configuration, IOManager.Configuration> {
 	protected final NetworkDeviceHost networkDeviceHost;
 
 	@Override
@@ -165,7 +165,7 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 	}
 
 	@Override
-	public void setConfiguration(Configuration configuration) {
+	public void updateConfiguration(Configuration configuration) {
 		if ((this.networkDeviceHost.hasDevice() && configuration.domain == this.networkDeviceHost.getDevice().domain)
 				&& configuration.input == this.configuration.input
 				&& configuration.output == this.configuration.output) {
@@ -180,6 +180,11 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 
 	@Override
 	public Codec<Configuration> getConfigurationCodec() {
+		return Configuration.CODEC;
+	}
+
+	@Override
+	public Codec<Configuration> getUpdateCodec() {
 		return Configuration.CODEC;
 	}
 

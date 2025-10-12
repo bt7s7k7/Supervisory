@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-public class CompositeBlockEntity extends BlockEntity implements Configurable<Object> {
+public class CompositeBlockEntity extends BlockEntity implements Configurable<Object, Object> {
 	protected final ArrayList<BlockEntityComponent> components = new ArrayList<>();
 
 	protected boolean failed = false;
@@ -146,7 +146,7 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 	}
 
 	@SuppressWarnings("unchecked")
-	private Configurable<Object> getConfigurable() {
+	private Configurable<Object, Object> getConfigurable() {
 		return this.getComponent(Configurable.class).get();
 	}
 
@@ -156,13 +156,18 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 	}
 
 	@Override
-	public void setConfiguration(Object configuration) {
-		this.getConfigurable().setConfiguration(configuration);
+	public void updateConfiguration(Object configuration) {
+		this.getConfigurable().updateConfiguration(configuration);
 	}
 
 	@Override
 	public Codec<Object> getConfigurationCodec() {
 		return this.getConfigurable().getConfigurationCodec();
+	}
+
+	@Override
+	public Codec<Object> getUpdateCodec() {
+		return this.getConfigurable().getUpdateCodec();
 	}
 
 	@Override

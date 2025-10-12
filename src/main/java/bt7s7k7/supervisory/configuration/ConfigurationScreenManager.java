@@ -8,8 +8,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class ConfigurationScreenManager {
-	public static <T> void submitConfiguration(BlockPos location, Configurable<T> configurable, T configuration) {
-		var payload = new ConfigurationSubmission(location, configurable.getPayloadData(configuration));
+	public static <T> void submitConfiguration(BlockPos location, Configurable<?, T> configurable, T configuration) {
+		var payload = new ConfigurationSubmission(location, configurable.getUpdatePayload(configuration));
 		PacketDistributor.sendToServer(payload);
 	}
 
