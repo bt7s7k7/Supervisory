@@ -53,7 +53,7 @@ public class StorageReport {
 			if (oldValue == null || newValue == null) return true;
 
 			// Test if an item in lost has changed
-			var equal = ItemStack.isSameItemSameComponents(oldValue, newValue);
+			var equal = oldValue.getCount() == newValue.getCount() && ItemStack.isSameItemSameComponents(oldValue, newValue);
 			if (!equal) return true;
 		}
 
