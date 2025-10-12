@@ -121,7 +121,7 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 			case ListTag list -> ManagedArray.fromImmutableList(globalScope == null ? null : globalScope.ArrayPrototype, list.stream()
 					.map(v -> importNbtData(v, globalScope, Primitive.NULL))
 					.toList());
-			case CompoundTag compound -> new ManagedMap(globalScope == null ? null : globalScope.MapPrototype, compound.getAllKeys().stream()
+			case CompoundTag compound -> ManagedMap.withEntries(globalScope == null ? null : globalScope.MapPrototype, compound.getAllKeys().stream()
 					.map(key -> new AbstractMap.SimpleEntry<>(Primitive.from(key), importNbtData(compound.get(key), globalScope, Primitive.VOID)))
 					.filter(v -> v.getValue() != Primitive.VOID)
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));

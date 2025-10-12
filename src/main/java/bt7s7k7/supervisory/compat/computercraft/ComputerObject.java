@@ -84,7 +84,7 @@ public class ComputerObject implements LuaTable<Object, Object> {
 					yield result;
 				}
 
-				var result = new ManagedMap(globalScope == null ? null : globalScope.MapPrototype);
+				var result = ManagedMap.empty(globalScope == null ? null : globalScope.MapPrototype);
 
 				for (var kv : map.entrySet()) {
 					var key = toManagedValue(kv.getKey(), globalScope);

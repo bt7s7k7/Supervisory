@@ -94,7 +94,7 @@ public class ScriptedSystem extends ScriptEngine {
 					kv -> this.translateValue(globalScope, kv.getKey()),
 					kv -> this.translateValue(globalScope, kv.getValue())));
 
-			return new ManagedMap(globalScope == null ? null : globalScope.MapPrototype, entries);
+			return ManagedMap.withEntries(globalScope == null ? null : globalScope.MapPrototype, entries);
 		}
 
 		return null;
