@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Supervisory</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            max-width: 1050px;
+            width: 100%;
+            margin: 0 auto 0 auto;
+        }
+
+        h1,
+        h2 {
+            font-weight: 400;
+        }
+
+        blockquote {
+            margin: 0;
+            color: #57606a;
+            padding-left: 1em;
+            border-left: 5px solid #d0d7de;
+        }
+
+        ul>li::marker {
+            content: "-   ";
+        }
+
+        li>p {
+            margin-bottom: 0;
+        }
+
+        li>p:first-child {
+            margin-top: 0;
+        }
+
+        code {
+            border: 1px solid #d0d7de;
+            padding: 0.2em;
+            border-radius: 0.2em;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+
+        pre {
+            border: 1px solid #d0d7de;
+            padding: 0.4em;
+            border-radius: 0.2em;
+        }
+
+        pre>code {
+            border: none;
+            padding: 0;
+        }
+
+        code {
+            color: #313131;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a[href]:hover,
+        a[href]:focus-visible {
+            text-decoration: underline;
+        }
+
+        a[href].as-button {
+            text-decoration: none;
+        }
+
+        table,
+        table th,
+        table td {
+            border: black 1px solid;
+            border-collapse: collapse;
+        }
+
+        table td {
+            padding: var(--size-int);
+        }
+
+        table p,
+        table ul,
+        table il {
+            margin: 0;
+        }
+
+        sub {
+            font-size: x-small;
+            opacity: 0.5;
+            vertical-align: middle;
+        }
+
+        .token-comment { color: #247d01; }
+.token-const { color: #01258f; }
+.token-function { color: #7d0303; }
+.token-keyword { color: #995d00; }
+.token-number { color: #d90156; }
+.token-string { color: #3f3f3f; }
+.token-type { color: #016d41; }
+.token-variable { color: #101000; }
+.token-property { color: #007a81; }
+    </style>
+</head>
+
+<body>
+    
+<p><div style="text-align: center"><br>    <img src="docs/supervisory.png" style="image-rendering: pixelated;" alt="Supervisory brand image" width="100"></img><br></div></p><h1> Supervisory</h1><p>Provides industrial control and monitoring facilities for Minecraft inspired by real-world SCADA systems.</p><p>The modeled devices are the following:</p><ul><li><p><strong>Remote Terminal Unit</strong> (RTU): function as remote connectivity points; contain simple redstone I/O and enable PLCs to interface with remote blocks via network sockets</p></li><li><p><strong>Programmable Logic Controller</strong> (PLC): fully programmable blocks which allow for complex logic execution, interacting with redstone, detecting block states and scanning inventories.</p></li></ul><p>All programming is done using the TreeBurst language, which is purpose-built for this mod. Check out the <a href="https://bt7s7k7.github.io/TreeBurst/">TreeBurst documentation</a> for more information, although the examples included should be enough to get understand the basics.</p><p>Supervisory is meant to be used with other mods, that provide logistics, industrial machines and complex crafting chains. Creating this mod, the main target was the <a href="https://modrinth.com/mod/create">Create</a> mod, but you may find it useful for other uses too. </p><h2> Comparison to CC:Tweaked</h2><p>This mod is similar in purpose to <a href="https://modrinth.com/mod/cc-tweaked">CC:Tweaked</a>, allowing you to control your minecraft creations using code. Supervisory is a direct answer to my frustrations trying to create a SCADA type system called <a href="https://github.com/bt7s7k7/CC-SCADA">CC-SCADA</a>. </p><p>Why you may want to use Supervisory over CC:Tweaked:</p><ul><li><p><strong>Persistency</strong>: all state is automatically persisted across chunk unloading</p></li><li><p><strong>Editing</strong>: Supervisory features an in-game editor with mouse and clipboard support, allowing you to simple upload programs by pasting them in; an update is simple as <code>Ctrl-C</code> and <code>Ctrl-V</code></p></li><li><p><strong>Reactive programming</strong>: Supervisory features API for simple reactive programming, allowing you to specify dependencies and effects without boilerplate code</p></li><li><p><strong>No filesystem</strong>: Program code is saved inside as part of the block, not in a file on disk, which removes clutter and prevents storage of useless data of destroyed computers</p></li><li><p><strong>Not using Lua</strong>: Supervisory uses a purpose-built programming language with a C-like syntax for simple, compact and functional programming</p></li></ul><p>This mod is most powerful when used in tandem with CC:Tweaked as it supports all peripherals, even those added by other mods.</p><h2> Mod Compatibility</h2><p>For reading inventories, Supervisory use standard NeoForge capabilities, meaning it should be compatible with all mods. Additionally, explicit compatibility with CC:Tweaked is included, PLCs can use all CC:Tweaked peripherals, including those added by other mods, via the <code><a href="Interop.html#interop">Interop</a></code> API.</p><h2> Example</h2><pre><code><span class="token-comment">// Create a reactive scope</span><br><span class="token-function">reactive</span>(<span class="token-keyword">\</span>(<span class="token-variable">ctx</span>) {<br>    <span class="token-comment">// Declare a dependency</span><br>    <span class="token-keyword">$</span><span class="token-variable">chest</span> = <span class="token-variable">ctx</span>.<span class="token-function">use</span>(<span class="token-type">Storage</span>.<span class="token-function">connect</span>(<span class="token-variable">LEFT</span>))<br>    <br>    <span class="token-variable">ctx</span>.<span class="token-function">awaitReady</span>()<br><br>    <span class="token-comment">// Get information</span><br>    <span class="token-keyword">$</span><span class="token-variable">stone</span> = <span class="token-variable">chest</span>.<span class="token-function">countItems</span>(<span class="token-string">&quot;</span><span class="token-string">minecraft:cobblestone</span><span class="token-string">&quot;</span>)<br>    <span class="token-comment">// Affect the world</span><br>    <span class="token-type">Redstone</span>.<span class="token-function">setRight</span>(<span class="token-variable">stone</span> &gt; <span class="token-number">32</span>)<br>})<br></code></pre><h2> API Reference</h2><p>See the <a href="https://bt7s7k7.github.io/Supervisory/reference.html">complete API reference here</a>.</p><h2> Guide</h2><p><a href="https://bt7s7k7.github.io/Supervisory/">Check out the guide on the project website to get proper code highlighting.</a></p><h3> Basics</h3><p>The most important device in Supervisory is a Programmable Logic Controller (PLC), which allows you to program your logic for controlling things.</p><p>You can open the PLC configuration screen by right-clicking. The following GUI elements are present:</p><ol><li><p> Domain input</p></li><li><p> Code editor</p></li><li><p> Compile button</p></li><li><p> Module selector</p></li><li><p> Event log</p></li><li><p> Command input</p></li></ol><p>You can use the code editor to edit your code, but this is not recommended beyond basic changes. The intended approach is to edit your code with a proper editor on your computer and simply copy the code into the game via your clipboard. Check out the <a href="https://github.com/bt7s7k7/TreeBurst/tree/master/extension">VSCode extension</a> for syntax highting. </p><p>Each device can have multiple code modules, which are executed in order. This is intended as a way to separate your reusable library code from site specific configuration. Each button of the module selector has a tooltip explaining its function.</p><p>To actually run your code you should press the compile button. This will upload the code from your screen into the game, compile it and execute it. This is also how you save your code, if you close the screen without saving, your changes will be lost. Don&#039;t worry about doing this accidentally, an alert will notify you if you try to exit with unsaved changes. </p><p>The device is factory reset every time your upload new code, so all state will be lost, including your variables, the device&#039;s local state, the event log etc.</p><p>The event log displays messages from the <code><a href="reference.html#print">print</a></code> function, compilation and runtime errors and lifecycle events.</p><p>You can use the command input to execute code without changing the program. The result of your input will be also printed to the log. All commands are executed in the global scope of your program so you can use and change variables and functions your have defined. You can use the up/down arrow to return to a previously executed command and enter to execute the command.</p><p>The use of the domain input will be specified in the next section. </p><p>When a chunk unloads, all devices inside will be shutdown and then subsequently rebooted when the chunk loads. Due to this, all runtime state will be lost. However, the device&#039;s local state, accessed via <code><a href="reference.html#s">s</a></code>, the cache of network resources, accessed via <code><a href="reference.html#r">r</a></code> and the event log will be preserved. Of course the code will be preserved too.</p><p>The device allows for I/O via each of its six sides. Please note that the sides are specified from the perspective of the device, where the front is the part with the colored dots. If you configure the device with its front facing you, its right side will be on your left.</p><h3> Networking</h3><p>Supervisory is based on a a publish-subscribe model. The indented architecture is that a PLC would connect to a socket to read information such as inventory content and publish the extracted values, which could then be listened for by other PLCs without introducing coupling to the actual source block.</p><p>An example of this architecture is a PLC connected to a chest, which publishes the cobblestone count. Devices listening for the count, do not need to know about the chest and do not need to be modified when the chest is moved or for example the cobblestone is moved into a storage drawer.</p><p>For devices to communicate between each other, they need to be connected to the same domain. Domains are ephemeral and immaterial; they are created when a device first connects to them and destroyed when the last device disconnects. Domains may include any characters in their name. For debugging, you can use the command <code>/supervisory monitor domain <a>name</a> true</code>, which will print all messages sent from devices on the domain to your chat. </p><p>A device would read the inventory content and publish the results as follows:</p><pre><code><span class="token-function">reactive</span>(<span class="token-keyword">\</span>(<span class="token-variable">ctx</span>) {<br>    <span class="token-keyword">$</span><span class="token-variable">chest</span> = <span class="token-variable">ctx</span>.<span class="token-function">use</span>(<span class="token-type">Storage</span>.<span class="token-function">connect</span>(<span class="token-variable">LEFT</span>))<br>    <span class="token-variable">ctx</span>.<span class="token-function">awaitReady</span>()<br>    <span class="token-variable">r</span><span class="token-string">&quot;</span><span class="token-string">cobblestone</span><span class="token-string">&quot;</span> = <span class="token-variable">chest</span>.<span class="token-function">countItems</span>(<span class="token-string">&quot;</span><span class="token-string">minecraft:cobblestone</span><span class="token-string">&quot;</span>)<br>})<br></code></pre><p>By using the <code><a href="reference.html#r">r</a></code> function, you publish a resource, in this case a number, onto the network. The resource can subsequently be subscribed to as follows:</p><pre><code><span class="token-function">reactive</span>(<span class="token-keyword">\</span>(<span class="token-variable">ctx</span>) {<br>    <span class="token-keyword">$</span><span class="token-variable">count</span> = <span class="token-variable">ctx</span>.<span class="token-function">use</span>(<span class="token-variable">r</span><span class="token-string">&quot;</span><span class="token-string">cobblestone</span><span class="token-string">&quot;</span>)<br>    <span class="token-variable">ctx</span>.<span class="token-function">awaitReady</span>()<br><br>    <span class="token-type">Redstone</span>.<span class="token-function">setRight</span>(<span class="token-variable">count</span> &lt; <span class="token-number">32</span>)<br>})<br></code></pre><p>When a device first publishes a resource or its value changes it will broadcast the value onto its connected domain. All devices that subscribe to it will be notified and execute their relevant reactive scopes. The publishing device will also save the resource value.</p><p>When a device subscribes to a resource, it will broadcast a request for the resource&#039;s value. If a device has a value stored for said resource it will automatically respond. The receiving device will store the value in its cache.</p><p>This system means that in the first iteration of the reactive scope in the receiving device, the value of the resource will not be known, because the subscription was just created. The resource will have a value of <code><a href="https://bt7s7k7.github.io/TreeBurst/index.html#void">void</a></code>. That is what the <code><a href="ReactiveScope.html#reactivescope-awaitready">ReactiveScope.awaitReady</a></code> method is used for; if any of the resources used by the scope are not yet available, it will abort the execution of the scope, until their value becomes known. </p><p>Keep in mind that the entire callback re-runs every time a resource changes. Since the list of monitored resources is dynamic, any new resources you access during an execution will replace the old ones in the next update cycle.</p><p>Of course the <code><a href="reference.html#reactive">reactive</a></code> API is optional, you can imperatively read values of resources via the <code><a href="ReactiveDependency.html#reactivedependency-prototype-value">ReactiveDependency.prototype.value</a></code> field. In this case you&#039;ll have to handle missing values yourself.</p><h3> Interacting with the world</h3><p>PLCs can interact with any block they directly touch. There are two ways of interactivity: redstone and sockets.</p><p>For redstone, you can use the <code><a href="Redstone.html#redstone">Redstone</a></code> API, which allows you to read and write redstone signals.</p><pre><code><span class="token-function">reactive</span>(<span class="token-keyword">\</span>(<span class="token-variable">ctx</span>) {<br>    <span class="token-comment">// Redstone inputs always read the signal strength,</span><br>    <span class="token-comment">// returning a number from 0 to 15</span><br>    <span class="token-keyword">$</span><span class="token-variable">a</span> = <span class="token-variable">ctx</span>.<span class="token-function">use</span>(<span class="token-type">Redstone</span>.<span class="token-variable">LEFT</span>)    <br>    <span class="token-keyword">$</span><span class="token-variable">b</span> = <span class="token-variable">ctx</span>.<span class="token-function">use</span>(<span class="token-type">Redstone</span>.<span class="token-variable">RIGHT</span>)<br><br>    <span class="token-comment">// You can write signals in a digital and an analog form</span><br>    <span class="token-type">Redstone</span>.<span class="token-function">setBack</span>(<span class="token-variable">a</span> &amp;&amp; <span class="token-variable">b</span>)<br>    <span class="token-type">Redstone</span>.<span class="token-function">setBackAnalog</span>(<span class="token-variable">a</span> + <span class="token-variable">b</span>)<br>})<br></code></pre><p>For more complex interaction, sockets are used. The PLC must explicitly connect to a socket which provides a resource. This proces takes some time or there may not be anything to connect to at all. For example when using the <code><a href="Storage.html#storage">Storage</a></code> API, when an inventory is not attached, the connection will not be established and the value of the resource will be <code><a href="https://bt7s7k7.github.io/TreeBurst/index.html#void">void</a></code>. Likewise for the <code><a href="Sensor.html#sensor">Sensor</a></code> API, when there isn&#039;t a block attached, it will also return <code><a href="https://bt7s7k7.github.io/TreeBurst/index.html#void">void</a></code>. Establishing a connection also takes a tick, so the first time connection is used, it will be <code><a href="https://bt7s7k7.github.io/TreeBurst/index.html#void">void</a></code>. To handle this, use the <code><a href="ReactiveScope.html#reactivescope-awaitready">ReactiveScope.awaitReady</a></code> method, same as with value resources.</p><pre><code><span class="token-function">reactive</span>(<span class="token-keyword">\</span>(<span class="token-variable">ctx</span>) {<br>    <span class="token-keyword">$</span><span class="token-variable">chest</span> = <span class="token-variable">ctx</span>.<span class="token-function">use</span>(<span class="token-type">Storage</span>.<span class="token-function">connect</span>(<span class="token-variable">LEFT</span>))<br>    <span class="token-variable">ctx</span>.<span class="token-function">awaitReady</span>()<br><br>    <span class="token-function">print</span>(<span class="token-variable">chest</span>)<br>})<br></code></pre><p>Connections are automatically cached, so you don&#039;t have to worry about connecting to a socket multiple times or closing the connection. These things are handled for you.</p><h3> Interacting remotely</h3><p>To extend the range of a PLC beyond its immediate vicinity, you can use an Remote Terminal Unit (RTU). Using an RTU you can provide sockets to connected blocks, which can then be used by PLC in the same domain. Similarly, you can read redstone signals and publish their values onto the network or create redstone signals controlled by a network resource.</p><p>When opening an RTU&#039;s configuration screen by right clicking it, you can see the following GUI elements:</p><ol><li><p> Domain input</p></li><li><p> Side selection</p></li><li><p> I/O name and type</p></li></ol><p>By entering a domain name, the device will connect to it automatically. You can create a socket or bind a redstone signal by selecting the desired side, entering the socket/resource name and selecting the type of I/O.</p><p>Please note that the side selection only switches which side you are configuring. You can have I/O active on multiple sides, if you switch to a different side and then back you&#039;ll see your configuration remains.</p><p>It is also important to understand that the sides specified are from the perspective of the device, where the front is the part with the red dots. If you configure the device with its front facing you, its right side will be on your left, which is also reflected by the positioning of the buttons. </p><p>For redstone, if you select <code>Signal In</code>, the device will publish the incoming redstone signal on the network in a resource of the name you specify. Similarly, if you select <code>Signal Out</code>, the device will generate a redstone signal with strength equal to the value of the resource of the specified name.</p><p>For sockets, the device won&#039;t do anything. It will only allow PLCs to connect to socket through it. For example if you place a chest on and RTU and configure a socket, you can use the <code><a href="Storage.html#storage-connect">Storage.connect</a></code> function, in a PLC on the same domain with the name you specified, and connect to the chest as if it was attached directly to the PLC.</p><p>The PLC will not generate an error if a socket is not found, it will simply wait until an RTU providing a socket of a specified name connects to the domain. This is to handle cases when you move your RTU to a new location or when the chunk the RTU is in unloads. </p><p>Multiple PLCs can be connected to the one socket on one RTU.</p>
+</body>
+
+</html>

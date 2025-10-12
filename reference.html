@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Reference - Supervisory</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            max-width: 1050px;
+            width: 100%;
+            margin: 0 auto 0 auto;
+        }
+
+        h1,
+        h2 {
+            font-weight: 400;
+        }
+
+        blockquote {
+            margin: 0;
+            color: #57606a;
+            padding-left: 1em;
+            border-left: 5px solid #d0d7de;
+        }
+
+        ul>li::marker {
+            content: "-   ";
+        }
+
+        li>p {
+            margin-bottom: 0;
+        }
+
+        li>p:first-child {
+            margin-top: 0;
+        }
+
+        code {
+            border: 1px solid #d0d7de;
+            padding: 0.2em;
+            border-radius: 0.2em;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+
+        pre {
+            border: 1px solid #d0d7de;
+            padding: 0.4em;
+            border-radius: 0.2em;
+        }
+
+        pre>code {
+            border: none;
+            padding: 0;
+        }
+
+        code {
+            color: #313131;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a[href]:hover,
+        a[href]:focus-visible {
+            text-decoration: underline;
+        }
+
+        a[href].as-button {
+            text-decoration: none;
+        }
+
+        table,
+        table th,
+        table td {
+            border: black 1px solid;
+            border-collapse: collapse;
+        }
+
+        table td {
+            padding: var(--size-int);
+        }
+
+        table p,
+        table ul,
+        table il {
+            margin: 0;
+        }
+
+        sub {
+            font-size: x-small;
+            opacity: 0.5;
+            vertical-align: middle;
+        }
+
+        .token-comment { color: #247d01; }
+.token-const { color: #01258f; }
+.token-function { color: #7d0303; }
+.token-keyword { color: #995d00; }
+.token-number { color: #d90156; }
+.token-string { color: #3f3f3f; }
+.token-type { color: #016d41; }
+.token-variable { color: #101000; }
+.token-property { color: #007a81; }
+    </style>
+</head>
+
+<body>
+    
+<p><a href="./">Back</a></p><h1><a id="reference">Reference</a></h1><h3><code><a id="interopinterop-htmlinterop"><a href="Interop.html#interop">Interop</a></a></code></h3><p>Allows for interaction with ComputerCraft peripherals. This API is only available if <a href="https://modrinth.com/mod/cc-tweaked">CC:Tweaked</a> or any other mod that identifies itself as <code>computercraft</code> is installed.</p><p><hr></hr></p><h3><code><a id="reactivedependencyreactivedependency-htmlreactivedependency"><a href="ReactiveDependency.html#reactivedependency">ReactiveDependency</a></a></code></h3><p>Represents a value that can change and the change can be observed using the <code><a href="reference.html#reactive">reactive</a></code> function.</p><p><hr></hr></p><h3><code><a id="reactivescopereactivescope-htmlreactivescope"><a href="ReactiveScope.html#reactivescope">ReactiveScope</a></a></code></h3><p>Allows for adding dependencies to the scope of a <code><a href="reference.html#reactive">reactive</a></code> function.</p><p><hr></hr></p><h3><code><a id="redstoneredstone-htmlredstone"><a href="Redstone.html#redstone">Redstone</a></a></code></h3><p>Allows for control of redstone input/output.</p><p><hr></hr></p><h3><code><a id="syssys-htmlsys"><a href="SYS.html#sys">SYS</a></a></code></h3><p>Contains functions and data regarding the current system.</p><p><hr></hr></p><h3><code><a id="sensorsensor-htmlsensor"><a href="Sensor.html#sensor">Sensor</a></a></code></h3><p>Allows you to read block states in the world.</p><p><hr></hr></p><h3><code><a id="storagestorage-htmlstorage"><a href="Storage.html#storage">Storage</a></a></code></h3><p>Provides methods for scanning inventories, getting their items and transferring items between inventories.</p><p><hr></hr></p><h3><code><a id="print">print</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/system/ScriptedSystem.java:152</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">print</span>(<span class="token-variable">message</span>: <span class="token-type">any</span>)</code></p></li></ul><p>Prints a message to the system log. If the message is not a string it is converted using <code>k_dump</code>.</p><p><hr></hr></p><h3><code><a id="r">r</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/system/ScriptedSystem.java:186</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">r</span>(<span class="token-variable">name</span>: <a href="https://bt7s7k7.github.io/TreeBurst/String.html#string">String</a>, <span class="token-variable">value?</span>: <span class="token-type">any</span>)</code></p></li></ul><p>Allows publishing resources onto a connected network or requesting resources published by other devices.</p><p>When writing, the system will broadcast an update message, that all devices that listen to the event will react to, and save the resource in their cache. At the same time the published resource will be saved in a local cache, that will be used to respond to resource requests.</p><p>When reading, the resource will be read from this system&#039;s cache or, if the resource is missing, <code><a href="https://bt7s7k7.github.io/TreeBurst/index.html#void">void</a></code> will be returned and the system will send a resource request over the network. A device that publishes this resource will hopefully respond and, when an update message is received, this system&#039;s cache will be updated. The return value is wrapped in a <code><a href="SYS.RemoteValueReactiveDependency.html#sys-remotevaluereactivedependency">SYS.RemoteValueReactiveDependency</a></code> object to be used with the <code><a href="ReactiveScope.html#reactivescope-use">ReactiveScope.use</a></code> method.</p><p><hr></hr></p><h3><code><a id="reactive">reactive</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/script/reactivity/ReactivityManager.java:25</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">reactive</span>(<span class="token-variable">callback</span>: <a href="https://bt7s7k7.github.io/TreeBurst/Function.html#function">Function</a>)</code></p></li></ul><p>Creates a new <code><a href="ReactiveScope.html#reactivescope">ReactiveScope</a></code>. The callback receives an instance of <code><a href="ReactiveScope.html#reactivescope">ReactiveScope</a></code> that you can use to set what dependencies to react to. The callback will be executed once, during initialization, and the every time any of the dependencies change.</p><p><hr></hr></p><h3><code><a id="s">s</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/system/ScriptedSystem.java:164</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Map.html#map">Map</a></code></p><p>Allows access to the device&#039;s local state. This state is persistent after reboots. Only <code><a href="https://bt7s7k7.github.io/TreeBurst/String.html#string">String</a></code> indexes are supported.</p><p><hr></hr></p><h3><code><a id="setdomain">setDomain</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/system/ScriptedSystem.java:172</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">setDomain</span>(<span class="token-variable">domain</span>: <a href="https://bt7s7k7.github.io/TreeBurst/String.html#string">String</a>)</code></p></li></ul><p>Sets the domain this device should connect to. This connection is established exactly after initial code finishes executing and cannot be changed after. The only way to change the domain is to reboot the device.</p><p><hr></hr></p>
+</body>
+
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Interop - Supervisory</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            max-width: 1050px;
+            width: 100%;
+            margin: 0 auto 0 auto;
+        }
+
+        h1,
+        h2 {
+            font-weight: 400;
+        }
+
+        blockquote {
+            margin: 0;
+            color: #57606a;
+            padding-left: 1em;
+            border-left: 5px solid #d0d7de;
+        }
+
+        ul>li::marker {
+            content: "-   ";
+        }
+
+        li>p {
+            margin-bottom: 0;
+        }
+
+        li>p:first-child {
+            margin-top: 0;
+        }
+
+        code {
+            border: 1px solid #d0d7de;
+            padding: 0.2em;
+            border-radius: 0.2em;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+
+        pre {
+            border: 1px solid #d0d7de;
+            padding: 0.4em;
+            border-radius: 0.2em;
+        }
+
+        pre>code {
+            border: none;
+            padding: 0;
+        }
+
+        code {
+            color: #313131;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a[href]:hover,
+        a[href]:focus-visible {
+            text-decoration: underline;
+        }
+
+        a[href].as-button {
+            text-decoration: none;
+        }
+
+        table,
+        table th,
+        table td {
+            border: black 1px solid;
+            border-collapse: collapse;
+        }
+
+        table td {
+            padding: var(--size-int);
+        }
+
+        table p,
+        table ul,
+        table il {
+            margin: 0;
+        }
+
+        sub {
+            font-size: x-small;
+            opacity: 0.5;
+            vertical-align: middle;
+        }
+
+        .token-comment { color: #247d01; }
+.token-const { color: #01258f; }
+.token-function { color: #7d0303; }
+.token-keyword { color: #995d00; }
+.token-number { color: #d90156; }
+.token-string { color: #3f3f3f; }
+.token-type { color: #016d41; }
+.token-variable { color: #101000; }
+.token-property { color: #007a81; }
+    </style>
+</head>
+
+<body>
+    
+<p><a href="reference.html">Back</a></p><h1><a id="interop">Interop</a></h1><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:19<br>src/main/java/bt7s7k7/supervisory/compat/computercraft/PeripheralConnectionController.java:43</sub></p><p>Allows for interaction with ComputerCraft peripherals. This API is only available if <a href="https://modrinth.com/mod/cc-tweaked">CC:Tweaked</a> or any other mod that identifies itself as <code>computercraft</code> is installed.</p><p><hr></hr></p><h3><code><a id="interop-black">Interop.BLACK</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:125</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-blue">Interop.BLUE</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:121</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-brown">Interop.BROWN</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:122</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-cyan">Interop.CYAN</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:119</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-gray">Interop.GRAY</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:117</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-green">Interop.GREEN</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:123</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-lightblue">Interop.LIGHTBLUE</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:113</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-light_gray">Interop.LIGHT_GRAY</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:118</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-lime">Interop.LIME</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:115</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-magenta">Interop.MAGENTA</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:112</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-orange">Interop.ORANGE</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:111</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-pink">Interop.PINK</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:116</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-purple">Interop.PURPLE</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:120</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-peripheralconnectioninterop-peripheralconnection-htmlinterop-peripheralconnection"><a href="Interop.PeripheralConnection.html#interop-peripheralconnection">Interop.PeripheralConnection</a></a></code></h3><p>Represents a connected peripheral. Each connection is a unique object, with dynamically generated methods for every method of the peripheral.</p><p><hr></hr></p><h3><code><a id="interop-peripheralreactivedependencyinterop-peripheralreactivedependency-htmlinterop-peripheralreactivedependency"><a href="Interop.PeripheralReactiveDependency.html#interop-peripheralreactivedependency">Interop.PeripheralReactiveDependency</a></a></code></h3><p>Allows for connecting to a ComputerCraft peripheral. The value is a <code><a href="Interop.PeripheralConnection.html#interop-peripheralconnection">Interop.PeripheralConnection</a></code> that represents a connected peripheral.</p><p><hr></hr></p><h3><code><a id="interop-red">Interop.RED</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:124</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-white">Interop.WHITE</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:110</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-yellow">Interop.YELLOW</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:114</sub></p><p><strong>Type:</strong> <code><a href="https://bt7s7k7.github.io/TreeBurst/Number.html#number">Number</a></code></p><p>Constant corresponding to a ComputerCraft color code</p><p><hr></hr></p><h3><code><a id="interop-connect">Interop.connect</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:93</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">connect</span>(<span class="token-variable">target</span>: <a href="https://bt7s7k7.github.io/TreeBurst/String.html#string">String</a>)</code></p></li></ul><p>Connects to a peripheral. The <code>target</code> can be a side of this system or a name of a socket on the network. This function returns a <code><a href="Interop.PeripheralReactiveDependency.html#interop-peripheralreactivedependency">Interop.PeripheralReactiveDependency</a></code> that will be updated when a peripheral is connected or disconnected.</p><p><hr></hr></p><h3><code><a id="interop-emitevent">Interop.emitEvent</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:70</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">emitEvent</span>(<span class="token-variable">name</span>: <a href="https://bt7s7k7.github.io/TreeBurst/String.html#string">String</a>, <span class="token-variable">arguments?</span>: <a href="https://bt7s7k7.github.io/TreeBurst/Array.html#array">Array</a>)</code></p></li></ul><p>Sends an event to all computers that are attached to this system.</p><p><hr></hr></p><h3><code><a id="interop-isattached">Interop.isAttached</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:65</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">isAttached</span>()</code></p></li></ul><p>Returns if any computers are attached to this system and use it as a peripheral.</p><p><hr></hr></p><h3><code><a id="interop-seteventhandler">Interop.setEventHandler</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/compat/computercraft/InteropAPI.java:127</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">setEventHandler</span>(<span class="token-variable">peripheral</span>: <a href="Interop.PeripheralReactiveDependency.html#interop-peripheralreactivedependency">Interop.PeripheralReactiveDependency</a>, <span class="token-variable">handler</span>: <a href="https://bt7s7k7.github.io/TreeBurst/Function.html#function">Function</a>)</code></p></li></ul><p>Sets an event handler on the specified peripheral. The handler will receive a <code>event</code> argument containing the <code><a href="https://bt7s7k7.github.io/TreeBurst/String.html#string">String</a></code> name of the event and an <code>arguments</code> argument containing an <code><a href="https://bt7s7k7.github.io/TreeBurst/Array.html#array">Array</a></code> of the arguments composing the event. Two special events are emitted by this system: <code>__connected__</code>, when a peripheral is connected and <code>__disconnected__</code> when a peripheral is disconnected.</p><p><hr></hr></p>
+</body>
+
+</html>

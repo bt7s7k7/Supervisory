@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Sensor - Supervisory</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            max-width: 1050px;
+            width: 100%;
+            margin: 0 auto 0 auto;
+        }
+
+        h1,
+        h2 {
+            font-weight: 400;
+        }
+
+        blockquote {
+            margin: 0;
+            color: #57606a;
+            padding-left: 1em;
+            border-left: 5px solid #d0d7de;
+        }
+
+        ul>li::marker {
+            content: "-   ";
+        }
+
+        li>p {
+            margin-bottom: 0;
+        }
+
+        li>p:first-child {
+            margin-top: 0;
+        }
+
+        code {
+            border: 1px solid #d0d7de;
+            padding: 0.2em;
+            border-radius: 0.2em;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+
+        pre {
+            border: 1px solid #d0d7de;
+            padding: 0.4em;
+            border-radius: 0.2em;
+        }
+
+        pre>code {
+            border: none;
+            padding: 0;
+        }
+
+        code {
+            color: #313131;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a[href]:hover,
+        a[href]:focus-visible {
+            text-decoration: underline;
+        }
+
+        a[href].as-button {
+            text-decoration: none;
+        }
+
+        table,
+        table th,
+        table td {
+            border: black 1px solid;
+            border-collapse: collapse;
+        }
+
+        table td {
+            padding: var(--size-int);
+        }
+
+        table p,
+        table ul,
+        table il {
+            margin: 0;
+        }
+
+        sub {
+            font-size: x-small;
+            opacity: 0.5;
+            vertical-align: middle;
+        }
+
+        .token-comment { color: #247d01; }
+.token-const { color: #01258f; }
+.token-function { color: #7d0303; }
+.token-keyword { color: #995d00; }
+.token-number { color: #d90156; }
+.token-string { color: #3f3f3f; }
+.token-type { color: #016d41; }
+.token-variable { color: #101000; }
+.token-property { color: #007a81; }
+    </style>
+</head>
+
+<body>
+    
+<p><a href="reference.html">Back</a></p><h1><a id="sensor">Sensor</a></h1><p><sub>src/main/java/bt7s7k7/supervisory/sensor/SensorAPI.java:17<br>src/main/java/bt7s7k7/supervisory/blocks/programmableLogicController/SensorIntegration.java:21</sub></p><p>Allows you to read block states in the world.</p><p><hr></hr></p><h3><code><a id="sensor-sensorreactivedependencysensor-sensorreactivedependency-htmlsensor-sensorreactivedependency"><a href="Sensor.SensorReactiveDependency.html#sensor-sensorreactivedependency">Sensor.SensorReactiveDependency</a></a></code></h3><p>Triggers each time the scanned block changes. The value is a <code><a href="Sensor.SensorReading.html#sensor-sensorreading">Sensor.SensorReading</a></code> which contains the block state.</p><p><hr></hr></p><h3><code><a id="sensor-sensorreadingsensor-sensorreading-htmlsensor-sensorreading"><a href="Sensor.SensorReading.html#sensor-sensorreading">Sensor.SensorReading</a></a></code></h3><p>The block state and data read from a sensor using the <code><a href="Sensor.html#sensor">Sensor</a></code> API.</p><p><hr></hr></p><h3><code><a id="sensor-connect">Sensor.connect</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/sensor/SensorAPI.java:39</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">connect</span>(<span class="token-variable">target</span>: <a href="https://bt7s7k7.github.io/TreeBurst/String.html#string">String</a>)</code></p></li></ul><p>Connects to a sensor, that will scan for a block. The <code>target</code> can be either a side of this system or a name of a socket on the network. This function returns a <code><a href="Sensor.SensorReactiveDependency.html#sensor-sensorreactivedependency">Sensor.SensorReactiveDependency</a></code> that can watched for changes using the <code><a href="reference.html#reactive">reactive</a></code> function.</p><p><hr></hr></p>
+</body>
+
+</html>

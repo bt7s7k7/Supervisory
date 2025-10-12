@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Storage - Supervisory</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            max-width: 1050px;
+            width: 100%;
+            margin: 0 auto 0 auto;
+        }
+
+        h1,
+        h2 {
+            font-weight: 400;
+        }
+
+        blockquote {
+            margin: 0;
+            color: #57606a;
+            padding-left: 1em;
+            border-left: 5px solid #d0d7de;
+        }
+
+        ul>li::marker {
+            content: "-   ";
+        }
+
+        li>p {
+            margin-bottom: 0;
+        }
+
+        li>p:first-child {
+            margin-top: 0;
+        }
+
+        code {
+            border: 1px solid #d0d7de;
+            padding: 0.2em;
+            border-radius: 0.2em;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+
+        pre {
+            border: 1px solid #d0d7de;
+            padding: 0.4em;
+            border-radius: 0.2em;
+        }
+
+        pre>code {
+            border: none;
+            padding: 0;
+        }
+
+        code {
+            color: #313131;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a[href]:hover,
+        a[href]:focus-visible {
+            text-decoration: underline;
+        }
+
+        a[href].as-button {
+            text-decoration: none;
+        }
+
+        table,
+        table th,
+        table td {
+            border: black 1px solid;
+            border-collapse: collapse;
+        }
+
+        table td {
+            padding: var(--size-int);
+        }
+
+        table p,
+        table ul,
+        table il {
+            margin: 0;
+        }
+
+        sub {
+            font-size: x-small;
+            opacity: 0.5;
+            vertical-align: middle;
+        }
+
+        .token-comment { color: #247d01; }
+.token-const { color: #01258f; }
+.token-function { color: #7d0303; }
+.token-keyword { color: #995d00; }
+.token-number { color: #d90156; }
+.token-string { color: #3f3f3f; }
+.token-type { color: #016d41; }
+.token-variable { color: #101000; }
+.token-property { color: #007a81; }
+    </style>
+</head>
+
+<body>
+    
+<p><a href="reference.html">Back</a></p><h1><a id="storage">Storage</a></h1><p><sub>src/main/java/bt7s7k7/supervisory/storage/StorageAPI.java:25<br>src/main/java/bt7s7k7/supervisory/blocks/programmableLogicController/StorageIntegration.java:33</sub></p><p>Provides methods for scanning inventories, getting their items and transferring items between inventories.</p><p><hr></hr></p><h3><code><a id="storage-itemreportstorage-itemreport-htmlstorage-itemreport"><a href="Storage.ItemReport.html#storage-itemreport">Storage.ItemReport</a></a></code></h3><p>Represents an item inside a <code><a href="Storage.StackReport.html#storage-stackreport">Storage.StackReport</a></code>.</p><p><hr></hr></p><h3><code><a id="storage-stackreportstorage-stackreport-htmlstorage-stackreport"><a href="Storage.StackReport.html#storage-stackreport">Storage.StackReport</a></a></code></h3><p>Represents a single stack inside an inventory <code><a href="Storage.StorageReport.html#storage-storagereport">Storage.StorageReport</a></code>.</p><p><hr></hr></p><h3><code><a id="storage-storagereactivedependencystorage-storagereactivedependency-htmlstorage-storagereactivedependency"><a href="Storage.StorageReactiveDependency.html#storage-storagereactivedependency">Storage.StorageReactiveDependency</a></a></code></h3><p>Triggers each time the storage contents change. The value is a <code><a href="Storage.StorageReport.html#storage-storagereport">Storage.StorageReport</a></code>, storing the contained items.</p><p><hr></hr></p><h3><code><a id="storage-storagereportstorage-storagereport-htmlstorage-storagereport"><a href="Storage.StorageReport.html#storage-storagereport">Storage.StorageReport</a></a></code></h3><p>Represents a scan of an inventory, containing stacks of items, each represented by <code><a href="Storage.StackReport.html#storage-stackreport">Storage.StackReport</a></code>.</p><p><hr></hr></p><h3><code><a id="storage-connect">Storage.connect</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/storage/StorageAPI.java:58</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">connect</span>(<span class="token-variable">target</span>: <a href="https://bt7s7k7.github.io/TreeBurst/String.html#string">String</a>)</code></p></li></ul><p>Connects to an inventory, that will be scanned for contained items. The <code>target</code> can be either a side of this system or a name of a socket on the network. This function returns a <code><a href="Storage.StorageReactiveDependency.html#storage-storagereactivedependency">Storage.StorageReactiveDependency</a></code> that can watched for changes using the <code><a href="reference.html#reactive">reactive</a></code> function.</p><p><hr></hr></p><h3><code><a id="storage-transfer">Storage.transfer</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/storage/StorageAPI.java:70</sub></p><p><strong>Overloads:</strong></p><ul><li><p><code><span class="token-function">transfer</span>(<span class="token-variable">items</span>: <a href="https://bt7s7k7.github.io/TreeBurst/Array.html#array">Array</a>, <span class="token-variable">targets</span>: <a href="https://bt7s7k7.github.io/TreeBurst/Array.html#array">Array</a>)</code></p></li></ul><p>Transfers all item stacks in the <code>items</code> argument into the <code>targets</code> inventories. The <code>items</code> array should contain <code><a href="Storage.StackReport.html#storage-stackreport">Storage.StackReport</a></code> instances for all items that should be transferred. The <code>targets</code> array should contain <code><a href="Storage.StorageReport.html#storage-storagereport">Storage.StorageReport</a></code> instances for all inventories that should be transferred into. If there is not enough space to transfer items, only a partial transfer is performed. The amount of transferred items is returned.</p><p><hr></hr></p><h3><code><a id="storage-update">Storage.update</a></code></h3><p><sub>src/main/java/bt7s7k7/supervisory/storage/StorageAPI.java:144</sub></p><p><strong>Type:</strong> <code><a href="SYS.TickReactiveDependency.html#sys-tickreactivedependency">SYS.TickReactiveDependency</a></code></p><p>Triggers every 5 ticks, just after all connected inventories have been scanned.</p><p><hr></hr></p>
+</body>
+
+</html>
