@@ -57,6 +57,10 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 	public void teardown() {
 		super.teardown();
 		this.onScopeInitialization.teardown();
+
+		if (this.system != null) {
+			this.system.clear();
+		}
 	}
 
 	public ScriptedSystemHost(CompositeBlockEntity entity) {
