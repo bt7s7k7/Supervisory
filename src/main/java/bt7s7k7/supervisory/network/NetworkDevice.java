@@ -63,7 +63,7 @@ public class NetworkDevice {
 		if (this.isConnected) return;
 		if (this.domain.isEmpty()) return;
 
-		NetworkManager.getInstance().connectDevice(this);
+		NetworkManager.HANDLE.get().connectDevice(this);
 		this.isConnected = true;
 	}
 
@@ -72,14 +72,14 @@ public class NetworkDevice {
 
 		if (!this.subscriptions.isEmpty()) {
 			var updateRequest = new UpdateRequest(this.subscriptions);
-			NetworkManager.getInstance().send(this.domain, updateRequest);
+			NetworkManager.HANDLE.get().send(this.domain, updateRequest);
 		}
 	}
 
 	public void disconnect() {
 		if (!this.isConnected) return;
 
-		NetworkManager.getInstance().disconnectDevice(this);
+		NetworkManager.HANDLE.get().disconnectDevice(this);
 		this.isConnected = false;
 	}
 
@@ -100,7 +100,7 @@ public class NetworkDevice {
 				.map(key -> new UpdateSubmission.Update(key, this.published.getOrDefault(key, Primitive.VOID)))
 				.toList());
 
-		NetworkManager.getInstance().send(this.domain, update);
+		NetworkManager.HANDLE.get().send(this.domain, update);
 	}
 
 	public void publishResource(String key, ManagedValue value) {

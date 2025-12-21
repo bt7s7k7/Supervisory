@@ -187,7 +187,7 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 			this.configuration.log.removeFirst();
 		}
 
-		LogEventRouter.getInstance().sendLogEvent(this.entity.getLevel(), this.entity.getBlockPos(), message);
+		LogEventRouter.sendLogEvent(this.entity.getLevel(), this.entity.getBlockPos(), message);
 		this.entity.setChanged();
 	}
 

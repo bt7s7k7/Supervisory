@@ -4,14 +4,20 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.logging.LogUtils;
 import com.tterrag.registrate.Registrate;
 
 import bt7s7k7.supervisory.blocks.AllBlockEntities;
 import bt7s7k7.supervisory.blocks.AllBlocks;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
+import bt7s7k7.supervisory.support.LogEventRouter;
+import bt7s7k7.supervisory.support.LogEventRouter.Subscription;
+import bt7s7k7.supervisory.system.ScriptedSystemHost;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -78,5 +84,47 @@ public class Supervisory {
 			source.sendFailure(Component.literal("Selected block can not have components"));
 			return 0;
 		}))));
+
+		var monitorBlock = Commands.literal("block").then(Commands.argument("block", BlockPosArgument.blockPos()).then(Commands.argument("enable", BoolArgumentType.bool()).executes(ctx -> {
+			var source = ctx.getSource();
+			var blockPos = BlockPosArgument.getLoadedBlockPos(ctx, "block");
+			var level = source.getLevel();
+			var position = new GlobalPos(level.dimension(), blockPos);
+			var enable = BoolArgumentType.getBool(ctx, "enable");
+			var be = level.getBlockEntity(blockPos);
+			var player = source.getPlayer();
+			var router = LogEventRouter.CHAT.get();
+
+			if (enable) {
+				if (be == null
+						|| !(be instanceof CompositeBlockEntity entity)
+						|| !(entity.getComponent(ScriptedSystemHost.class).orElse(null) instanceof ScriptedSystemHost)) {
+					source.sendFailure(Component.literal("Selected block is not a valid target for monitoring"));
+					return 0;
+				}
+
+				var success = router.subscribe(new Subscription(player.getUUID(), position));
+				if (!success) {
+					source.sendFailure(Component.literal("There is already a subscription for this block"));
+					return 0;
+				}
+
+				source.sendSuccess(() -> Component.literal("Subscribed"), true);
+				return 1;
+			} else {
+				var success = router.unsubscribe(player.getUUID(), position);
+
+				if (!success) {
+					source.sendFailure(Component.literal("There was no subscription for this block"));
+					return 0;
+				}
+
+				source.sendSuccess(() -> Component.literal("Unsubscribed"), true);
+				return 1;
+			}
+		})));
+
+		commands.register(main.then(Commands.literal("monitor").requires(CommandSourceStack::isPlayer)
+				.then(monitorBlock)));
 	}
 }

@@ -100,7 +100,7 @@ public abstract class SocketConnectionManager<TCapability, THandle extends Socke
 
 				var networkDevice = this.networkDeviceSupplier.get();
 				if (networkDevice != null && !networkDevice.domain.isEmpty()) {
-					var provider = NetworkManager.getInstance().findService(networkDevice.domain, SocketProvider.class, name);
+					var provider = NetworkManager.HANDLE.get().findService(networkDevice.domain, SocketProvider.class, name);
 					if (provider == null) break loadHandler;
 
 					dependency.provider = provider;

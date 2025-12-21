@@ -41,7 +41,7 @@ public class ScriptEditorScreen extends Screen {
 		this.host = blockEntity;
 		this.configuration = configuration;
 		this.historyIndex = blockEntity.commandHistory.size();
-		LogEventRouter.getInstance().onLogReceived = this::handleLogReceived;
+		LogEventRouter.GUI.get().onLogReceived = this::handleLogReceived;
 
 		// Ensure at least one module to display
 		if (configuration.modules.isEmpty()) {
@@ -405,7 +405,7 @@ public class ScriptEditorScreen extends Screen {
 	@Override
 	public void onClose() {
 		super.onClose();
-		LogEventRouter.getInstance().onLogReceived = null;
+		LogEventRouter.GUI.get().onLogReceived = null;
 	}
 
 	private void handleLogReceived(Component log) {

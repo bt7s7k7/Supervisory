@@ -10,6 +10,7 @@ import bt7s7k7.supervisory.redstone.RedstoneState;
 import bt7s7k7.supervisory.support.LogEventRouter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -109,7 +110,7 @@ public abstract class CompositeBlock extends Block implements EntityBlock {
 					return;
 				}
 
-				LogEventRouter.getInstance().subscribePlayer(serverPlayer, level, pos);
+				LogEventRouter.GUI.get().subscribe(serverPlayer.getUUID(), new GlobalPos(level.dimension(), pos));
 				ConfigurationManager.requestConfiguration(serverPlayer, pos, be);
 			});
 		}

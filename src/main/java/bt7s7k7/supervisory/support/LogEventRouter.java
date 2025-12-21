@@ -1,87 +1,110 @@
 package bt7s7k7.supervisory.support;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
+
 import bt7s7k7.supervisory.Supervisory;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 @EventBusSubscriber
-public final class LogEventRouter {
-	private LogEventRouter() {};
+public abstract sealed class LogEventRouter {
+	public static final class GuiLogRouter extends LogEventRouter {
+		public Consumer<Component> onLogReceived = null;
 
-	private static LogEventRouter instance = null;
+		@Override
+		protected void handleEvent(Level level, BlockPos position, ServerPlayer player, Component event) {
+			PacketDistributor.sendToPlayer(player, new LogEvent(event));
+		}
 
-	public static LogEventRouter getInstance() {
-		return instance;
+		@Override
+		public boolean subscribe(Subscription subscription) {
+			// Make sure player can only have one GUI log subscription
+			var existingSubscriptions = this.playerSubscriptionLookup.row(subscription.player);
+			for (var existingSubscription : existingSubscriptions.values()) {
+				// Unsubscribe only the GUI log part of the subscription
+				this.unsubscribe(existingSubscription);
+			}
+
+			return super.subscribe(subscription);
+		}
 	}
 
-	private HashMap<String, HashSet<UUID>> listenersLookup = new HashMap<>();
-	private HashMap<UUID, String> playerSubscriptionLookup = new HashMap<>();
-
-	public Consumer<Component> onLogReceived = null;
-
-	@SubscribeEvent
-	private static void initialize(ServerStartedEvent event) {
-		Supervisory.LOGGER.info("Initializing log event router");
-		instance = new LogEventRouter();
+	public static final class ChatRouter extends LogEventRouter {
+		@Override
+		protected void handleEvent(Level level, BlockPos position, ServerPlayer player, Component event) {
+			player.sendSystemMessage(Component.literal("[" + position.toShortString() + "] ")
+					.withStyle(Style.EMPTY
+							.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/supervisory monitor block " + position.getX() + " " + position.getY() + " " + position.getZ() + " false"))
+							.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to unsubscribe")))
+							.withColor(ChatFormatting.DARK_GRAY))
+					.append(event));
+		}
 	}
 
-	@SubscribeEvent
-	private static void teardown(ServerStoppedEvent event) {
-		Supervisory.LOGGER.info("Tearing down log event router");
-		instance = null;
-	}
+	public static final GlobalObjectManager.InstanceHandle<GuiLogRouter> GUI = new GlobalObjectManager.InstanceHandle<>(GuiLogRouter::new, null);
+	public static final GlobalObjectManager.InstanceHandle<ChatRouter> CHAT = new GlobalObjectManager.InstanceHandle<>(ChatRouter::new, null);
+
+	public static class Subscription {
+		public final UUID player;
+		public final GlobalPos target;
+
+		public Subscription(UUID player, GlobalPos target) {
+			this.player = player;
+			this.target = target;
+		}
+	};
+
+	protected Table<GlobalPos, UUID, Subscription> listenersLookup = HashBasedTable.create();
+	protected Table<UUID, GlobalPos, Subscription> playerSubscriptionLookup = HashBasedTable.create();
 
 	@SubscribeEvent
-	private static void registerPayload(final RegisterPayloadHandlersEvent event) {
+	protected static void registerPayload(final RegisterPayloadHandlersEvent event) {
 		var registrar = event.registrar("1");
 
 		registrar.commonToClient(LogEvent.TYPE, LogEvent.STREAM_CODEC, (data, context) -> {
-			var instance = getInstance();
+			var instance = GUI.get();
 			if (instance.onLogReceived != null) {
 				instance.onLogReceived.accept(data.event);
 			}
 		});
 	}
 
-	private static String getSubscriptionToken(Level level, BlockPos position) {
-		return level.dimension().registry().toString() + "," + position.toString();
+	public boolean unsubscribe(Subscription subscription) {
+		return this.unsubscribe(subscription.player, subscription.target);
 	}
 
-	public void subscribePlayer(ServerPlayer player, Level level, BlockPos position) {
-		// Make sure player can only be subscribed to one log source
-		var existingSubscription = this.playerSubscriptionLookup.get(player.getUUID());
-		if (existingSubscription != null) {
-			var existingSet = this.listenersLookup.get(existingSubscription);
-			if (existingSet != null) {
-				existingSet.remove(player.getUUID());
-				if (existingSet.isEmpty()) {
-					this.listenersLookup.remove(existingSubscription);
-				}
-			}
-		}
+	public boolean unsubscribe(UUID player, GlobalPos target) {
+		this.playerSubscriptionLookup.remove(player, target);
+		return this.listenersLookup.remove(target, player) != null;
+	}
 
-		var token = getSubscriptionToken(level, position);
-		var subscriptionSet = this.listenersLookup.computeIfAbsent(token, __ -> new HashSet<>());
-		subscriptionSet.add(player.getUUID());
+	public boolean subscribe(UUID player, GlobalPos target) {
+		return this.subscribe(new Subscription(player, target));
+	}
 
-		this.playerSubscriptionLookup.put(player.getUUID(), token);
+	public boolean subscribe(Subscription subscription) {
+		this.playerSubscriptionLookup.put(subscription.player, subscription.target, subscription);
+		this.listenersLookup.put(subscription.target, subscription.player, subscription);
+		return true;
 	}
 
 	public static record LogEvent(Component event) implements CustomPacketPayload {
@@ -98,28 +121,33 @@ public final class LogEventRouter {
 		}
 	}
 
-	public void sendLogEvent(Level level, BlockPos position, Component event) {
-		var token = getSubscriptionToken(level, position);
-		var listeners = this.listenersLookup.get(token);
+	protected void handleEvent(Level level, BlockPos position, Component event) {
+		var listeners = this.listenersLookup.row(new GlobalPos(level.dimension(), position)).values();
 		if (listeners == null) return;
 
 		var players = level.getServer().getPlayerList();
 
 		for (var it = listeners.iterator(); it.hasNext();) {
-			var listenerId = it.next();
+			var subscription = it.next();
 
-			var player = players.getPlayer(listenerId);
+			var player = players.getPlayer(subscription.player);
 			if (player == null) {
 				// If the subscribed player has left the server, unsubscribe them
 				it.remove();
 				continue;
 			}
 
-			PacketDistributor.sendToPlayer(player, new LogEvent(event));
+			this.handleEvent(level, position, player, event);
 		}
+	}
 
-		if (listeners.isEmpty()) {
-			this.listenersLookup.remove(token);
-		}
+	protected abstract void handleEvent(Level level, BlockPos position, ServerPlayer player, Component event);
+
+	public static void sendLogEvent(Level level, BlockPos position, Component event) {
+		var gui = GUI.tryGet();
+		if (gui != null) gui.handleEvent(level, position, event);
+
+		var chat = CHAT.tryGet();
+		if (chat != null) chat.handleEvent(level, position, event);
 	}
 }

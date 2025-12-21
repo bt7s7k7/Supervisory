@@ -10,43 +10,22 @@ import java.util.Set;
 import com.mojang.datafixers.util.Pair;
 
 import bt7s7k7.supervisory.Supervisory;
+import bt7s7k7.supervisory.support.GlobalObjectManager;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @EventBusSubscriber
 public class NetworkManager {
 	protected NetworkManager() {}
 
-	protected static NetworkManager instance = null;
-
-	public static NetworkManager getInstance() {
-		return instance;
-	}
+	public static final GlobalObjectManager.InstanceHandle<NetworkManager> HANDLE = new GlobalObjectManager.InstanceHandle<>(NetworkManager::new, null);
 
 	@SubscribeEvent
 	private static void tick(ServerTickEvent.Post event) {
-		if (instance != null) {
-			instance.sendPendingPackets();
-		}
-	}
-
-	@SubscribeEvent
-	// Using ServerAboutToStartEvent instead of ServerStartedEvent because this needs to be executed
-	// before chunks start loading. It used to work but stopped for some reason?
-	private static void initializeNetwork(ServerAboutToStartEvent event) {
-		Supervisory.LOGGER.info("Initializing network manager");
-		instance = new NetworkManager();
-	}
-
-	@SubscribeEvent
-	// Using ServerStoppedEvent instead of ServerStoppingEvent because loaded NetworkDevices use
-	// disconnectDevice on unload which is called after ServerStoppingEvent
-	private static void uninitializeNetwork(ServerStoppedEvent event) {
-		Supervisory.LOGGER.info("Unloading network manager");
-		instance = null;
+		var instance = HANDLE.tryGet();
+		if (instance == null) return;
+		instance.sendPendingPackets();
 	}
 
 	public static class Domain {
