@@ -80,6 +80,7 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 
 			var integration = init.getScriptEngine().integrations.getInstance(RedstoneIntegration.class);
 			if (integration == null) return;
+			if (!integration.initialized) return;
 
 			var relative = Side.from(init.entity.getFront(), direction);
 			integration.handlers[relative.index].updateValue(Primitive.from(strength));
