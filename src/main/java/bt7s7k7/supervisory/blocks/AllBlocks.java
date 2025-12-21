@@ -11,6 +11,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Items;
@@ -35,6 +36,7 @@ public class AllBlocks {
 							prov.mcLoc("minecraft:block/furnace_top"),
 							prov.mcLoc("minecraft:block/smithing_table_top"))))
 			.tag(WRENCH_PICKUP)
+			.tag(BlockTags.MINEABLE_WITH_PICKAXE)
 			.item()
 			.recipe((ctx, prov) -> {
 				prov.singleItem(DataIngredient.items(AllBlocks.PROGRAMMABLE_LOGIC_CONTROLLER.asItem()), RecipeCategory.REDSTONE, ctx::getEntry, 1, 1);
@@ -64,6 +66,7 @@ public class AllBlocks {
 							prov.mcLoc("minecraft:block/furnace_top"),
 							prov.mcLoc("minecraft:block/beehive_end"))))
 			.tag(WRENCH_PICKUP)
+			.tag(BlockTags.MINEABLE_WITH_PICKAXE)
 			.item()
 			.recipe((ctx, prov) -> {
 				prov.singleItem(DataIngredient.items(REMOTE_TERMINAL_UNIT.asItem()), RecipeCategory.REDSTONE, ctx::getEntry, 1, 1);
