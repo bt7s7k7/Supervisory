@@ -56,7 +56,7 @@ public abstract sealed class LogEventRouter {
 							.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/supervisory monitor block " + position.getX() + " " + position.getY() + " " + position.getZ() + " false"))
 							.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to unsubscribe")))
 							.withColor(ChatFormatting.DARK_GRAY))
-					.append(event));
+					.append(Component.empty().append(event).withStyle(ChatFormatting.WHITE)));
 		}
 	}
 
