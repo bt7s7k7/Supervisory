@@ -113,7 +113,7 @@ public abstract class SocketConnectionManager<TCapability, THandle extends Socke
 			} while (false);
 
 			// Load the newly acquired capability
-			handler = dependency.tryAcquireCapability((ServerLevel) this.owner.getLevel(), position);
+			handler = dependency.tryAcquireCapability((ServerLevel) dependency.provider.entity.getLevel(), position);
 		} while (false);
 
 		this.processDependency(dependency, handler);

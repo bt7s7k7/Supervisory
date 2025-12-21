@@ -41,6 +41,14 @@ public class CompositeBlockEntity extends BlockEntity implements Configurable<Ob
 		return component;
 	}
 
+	public boolean deleteComponent(BlockEntityComponent component) {
+		var success = this.components.remove(component);
+		if (!success) return false;
+
+		component.teardown();
+		return true;
+	}
+
 	public <T extends BlockEntityComponent> T ensureComponent(Class<T> type, Function<CompositeBlockEntity, T> ctor) {
 		var existing = this.components.stream().filter(type::isInstance).findFirst();
 		if (existing.isPresent()) return type.cast(existing.get());

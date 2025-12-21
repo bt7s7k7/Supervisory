@@ -8,8 +8,8 @@ import bt7s7k7.treeburst.support.ManagedValue;
 
 public abstract class ReactiveDependency<T extends ManagedValue> {
 	protected HashSet<ReactiveScope> subscribers = new HashSet<>();
-	protected final String name;
-	protected final ReactivityManager owner;
+	public final String name;
+	public final ReactivityManager owner;
 
 	public String getName() {
 		return this.name;
