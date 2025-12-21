@@ -97,6 +97,14 @@ public abstract sealed class LogEventRouter {
 		return this.listenersLookup.remove(target, player) != null;
 	}
 
+	public void clear(UUID player) {
+		for (var it = this.playerSubscriptionLookup.row(player).keySet().iterator(); it.hasNext();) {
+			var target = it.next();
+			this.listenersLookup.remove(target, player);
+			it.remove();
+		}
+	}
+
 	public boolean subscribe(UUID player, GlobalPos target) {
 		return this.subscribe(new Subscription(player, target));
 	}

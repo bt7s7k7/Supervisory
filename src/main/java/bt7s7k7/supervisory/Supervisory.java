@@ -5,12 +5,14 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.logging.LogUtils;
 import com.tterrag.registrate.Registrate;
 
 import bt7s7k7.supervisory.blocks.AllBlockEntities;
 import bt7s7k7.supervisory.blocks.AllBlocks;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
+import bt7s7k7.supervisory.support.DomainMonitor;
 import bt7s7k7.supervisory.support.LogEventRouter;
 import bt7s7k7.supervisory.support.LogEventRouter.Subscription;
 import bt7s7k7.supervisory.system.ScriptedSystemHost;
@@ -124,7 +126,83 @@ public class Supervisory {
 			}
 		})));
 
+		var monitorDomain = Commands.literal("domain")
+				.then(Commands.literal("name").then(Commands.argument("name", StringArgumentType.string()).then(Commands.argument("enable", BoolArgumentType.bool()).executes(ctx -> {
+					var source = ctx.getSource();
+					var player = source.getPlayer();
+					var enable = BoolArgumentType.getBool(ctx, "enable");
+					var name = StringArgumentType.getString(ctx, "name");
+					var monitor = DomainMonitor.HANDLE.get();
+
+					if (enable) {
+						var success = monitor.subscribe(player.getUUID(), name);
+						if (!success) {
+							source.sendFailure(Component.literal("There is already a subscription for this domain"));
+							return 0;
+						}
+
+						source.sendSuccess(() -> Component.literal("Subscribed"), true);
+						return 1;
+					} else {
+						var success = monitor.unsubscribe(player.getUUID(), name);
+
+						if (!success) {
+							source.sendFailure(Component.literal("There was no subscription for this domain"));
+							return 0;
+						}
+
+						source.sendSuccess(() -> Component.literal("Unsubscribed"), true);
+						return 1;
+					}
+				}))))
+				.then(Commands.literal("controller").then(Commands.argument("block", BlockPosArgument.blockPos()).then(Commands.argument("enable", BoolArgumentType.bool()).executes(ctx -> {
+					var source = ctx.getSource();
+					var blockPos = BlockPosArgument.getLoadedBlockPos(ctx, "block");
+					var level = source.getLevel();
+					var enable = BoolArgumentType.getBool(ctx, "enable");
+					var be = level.getBlockEntity(blockPos);
+					var player = source.getPlayer();
+					var monitor = DomainMonitor.HANDLE.get();
+
+					if (be == null
+							|| !(be instanceof CompositeBlockEntity entity)
+							|| !(entity.getComponent(ScriptedSystemHost.class).orElse(null) instanceof ScriptedSystemHost)) {
+						source.sendFailure(Component.literal("Selected block is not a valid target for monitoring"));
+						return 0;
+					}
+
+					var name = level.dimension().location().toString() + " " + blockPos.toShortString();
+					if (enable) {
+						var success = monitor.subscribe(player.getUUID(), name);
+						if (!success) {
+							source.sendFailure(Component.literal("There is already a subscription for this domain"));
+							return 0;
+						}
+
+						source.sendSuccess(() -> Component.literal("Subscribed"), true);
+						return 1;
+					} else {
+						var success = monitor.unsubscribe(player.getUUID(), name);
+
+						if (!success) {
+							source.sendFailure(Component.literal("There was no subscription for this domain"));
+							return 0;
+						}
+
+						source.sendSuccess(() -> Component.literal("Unsubscribed"), true);
+						return 1;
+					}
+				}))));
+
+		var monitorClear = Commands.literal("clear").executes(ctx -> {
+			var source = ctx.getSource();
+			LogEventRouter.CHAT.get().clear(source.getPlayer().getUUID());
+			return 1;
+		});
+
 		commands.register(main.then(Commands.literal("monitor").requires(CommandSourceStack::isPlayer)
-				.then(monitorBlock)));
+				.then(monitorBlock)
+				.then(monitorDomain)
+				.then(monitorClear)));
 	}
 }

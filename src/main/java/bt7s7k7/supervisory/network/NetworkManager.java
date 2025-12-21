@@ -9,7 +9,7 @@ import java.util.Set;
 
 import com.mojang.datafixers.util.Pair;
 
-import bt7s7k7.supervisory.Supervisory;
+import bt7s7k7.supervisory.support.DomainMonitor;
 import bt7s7k7.supervisory.support.GlobalObjectManager;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -42,7 +42,7 @@ public class NetworkManager {
 		}
 
 		var domain = this.domains.computeIfAbsent(device.domain, __ -> new Domain());
-		Supervisory.LOGGER.info("Connected device to domain " + device.domain);
+		DomainMonitor.announce(device.domain, "Device connected");
 		domain.devices.add(device);
 
 		for (var service : device.getServices()) {
@@ -59,7 +59,7 @@ public class NetworkManager {
 		var domain = this.domains.get(device.domain);
 		if (domain == null) return;
 
-		Supervisory.LOGGER.info("Disconnected device from domain " + device.domain);
+		DomainMonitor.announce(device.domain, "Device disconnected");
 		domain.devices.remove(device);
 
 		for (var service : device.getServices()) {
@@ -84,7 +84,7 @@ public class NetworkManager {
 			var packetValue = packet.getSecond();
 
 			var domain = this.domains.get(domainName);
-			Supervisory.LOGGER.info("Sending message to domain " + domainName + ": " + packetValue);
+			DomainMonitor.announce(domainName, packetValue.toString());
 
 			if (domain == null) {
 				return;
