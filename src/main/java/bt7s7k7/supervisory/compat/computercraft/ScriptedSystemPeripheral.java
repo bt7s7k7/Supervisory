@@ -56,13 +56,13 @@ public class ScriptedSystemPeripheral implements IPeripheral {
 
 		var scriptEngine = this.host.systemHost.system;
 
-		// If the ScriptEngine isn't loaded we don't have access to a GlobalScope and the resulting
+		// If the ScriptEngine isn't loaded we don't have access to a Realm and the resulting
 		// ManagedValues will have null prototypes. This is not a big deal, because they will be
 		// properly loaded during ScriptEngine global scope initialization, same as those that were
 		// loaded from save data.
-		var globalScope = scriptEngine.isEmpty() ? null : scriptEngine.getGlobalScope();
+		var realm = scriptEngine.isEmpty() ? null : scriptEngine.getRealm();
 
-		var managedValue = ComputerObject.toManagedValue(computerValue, globalScope);
+		var managedValue = ComputerObject.toManagedValue(computerValue, realm);
 		networkDevice.setState(key, managedValue);
 		this.host.systemHost.entity.setChanged();
 	}

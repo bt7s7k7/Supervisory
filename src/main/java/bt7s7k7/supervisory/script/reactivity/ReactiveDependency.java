@@ -57,7 +57,7 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 
 	public NativeHandle getHandle() {
 		if (this.cachedHandle == null) {
-			this.cachedHandle = WRAPPER.getHandle(this, this.owner.globalScope);
+			this.cachedHandle = WRAPPER.getHandle(this, this.owner.realm);
 			this.cachedHandle.name = this.name;
 		}
 
@@ -69,7 +69,7 @@ public abstract class ReactiveDependency<T extends ManagedValue> {
 			// @summary: Represents a value that can change and the change can be observed using the {@link reactive} function.
 			.addGetter("value", ReactiveDependency::getValue) // @type: any, @summary: The value of the dependency. Will be {@link void} if the dependency does not have a value.
 			.addDumpMethod((self, depth, scope, result) -> {
-				var value = scope.globalScope.tryInspect(self.value, depth, result);
+				var value = scope.realm.tryInspect(self.value, depth, result);
 				if (value == null) return null;
 				return self.name + "[" + value + "]";
 			}));

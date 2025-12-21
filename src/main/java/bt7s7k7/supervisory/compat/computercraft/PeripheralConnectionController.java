@@ -31,11 +31,11 @@ public class PeripheralConnectionController extends BlockEntityComponent {
 		this.systemHost = systemHost;
 
 		this.connect(systemHost.onScopeInitialization, event -> {
-			var globalScope = event.getGlobalScope();
-			var interop = new InteropAPI(this, event.system(), globalScope);
+			var realm = event.getRealm();
+			var interop = new InteropAPI(this, event.system(), realm);
 
-			globalScope.declareGlobal("Interop", interop);
-			PeripheralConnection.WRAPPER.ensurePrototype(globalScope);
+			realm.declareGlobal("Interop", interop);
+			PeripheralConnection.WRAPPER.ensurePrototype(realm);
 
 			event.system().integrations.putInstance(InteropAPI.class, interop);
 		});

@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.runtime.ManagedMap;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
 import dan200.computercraft.api.lua.LuaTable;
@@ -58,7 +58,7 @@ public class ComputerObject implements LuaTable<Object, Object> {
 		return i;
 	}
 
-	public static ManagedValue toManagedValue(Object computerObject, GlobalScope globalScope) {
+	public static ManagedValue toManagedValue(Object computerObject, Realm realm) {
 		return switch (computerObject) {
 			case Number number -> Primitive.from(number.doubleValue());
 			case String string -> Primitive.from(string);
@@ -74,23 +74,23 @@ public class ComputerObject implements LuaTable<Object, Object> {
 				}
 
 				if (isArray) {
-					var result = ManagedArray.withCapacity(globalScope == null ? null : globalScope.ArrayPrototype, map.size());
+					var result = ManagedArray.withCapacity(realm == null ? null : realm.ArrayPrototype, map.size());
 					var resultElements = result.getElementsMutable();
 					for (var i = 0; i < map.size(); i++) {
 						var element = map.get(makeTableIndex(i + 1));
-						var managedElement = toManagedValue(element, globalScope);
+						var managedElement = toManagedValue(element, realm);
 						resultElements.add(managedElement);
 					}
 					yield result;
 				}
 
-				var result = ManagedMap.empty(globalScope == null ? null : globalScope.MapPrototype);
+				var result = ManagedMap.empty(realm == null ? null : realm.MapPrototype);
 
 				for (var kv : map.entrySet()) {
-					var key = toManagedValue(kv.getKey(), globalScope);
+					var key = toManagedValue(kv.getKey(), realm);
 					if (key == Primitive.VOID) continue;
 
-					var value = toManagedValue(kv.getValue(), globalScope);
+					var value = toManagedValue(kv.getValue(), realm);
 					if (value == Primitive.VOID) continue;
 
 					result.entries.put(key, value);
@@ -99,11 +99,11 @@ public class ComputerObject implements LuaTable<Object, Object> {
 				yield result;
 			}
 			case Object[] multiple -> {
-				var result = ManagedArray.withCapacity(globalScope == null ? null : globalScope.ArrayPrototype, multiple.length);
+				var result = ManagedArray.withCapacity(realm == null ? null : realm.ArrayPrototype, multiple.length);
 				var resultElements = result.getElementsMutable();
 
 				for (var i = 0; i < multiple.length; i++) {
-					var managedElement = toManagedValue(multiple[i], globalScope);
+					var managedElement = toManagedValue(multiple[i], realm);
 					resultElements.add(managedElement);
 				}
 

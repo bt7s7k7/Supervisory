@@ -6,12 +6,12 @@ import java.util.List;
 import bt7s7k7.supervisory.sockets.SocketConnectionManager;
 import bt7s7k7.supervisory.system.ScriptedSystem;
 import bt7s7k7.supervisory.system.ScriptedSystemIntegration;
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.runtime.NativeHandle;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.standard.LazyTable;
 import bt7s7k7.treeburst.support.Primitive;
 import dan200.computercraft.api.peripheral.IPeripheral;
@@ -21,8 +21,8 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 	protected final PeripheralConnectionController connectionController;
 	protected final SocketConnectionManager<IPeripheral, PeripheralReactiveDependency> connectionManager;
 
-	public InteropAPI(PeripheralConnectionController connectionController, ScriptedSystem system, GlobalScope globalScope) {
-		super(globalScope.TablePrototype, globalScope);
+	public InteropAPI(PeripheralConnectionController connectionController, ScriptedSystem system, Realm realm) {
+		super(realm.TablePrototype, realm);
 		this.connectionController = connectionController;
 
 		this.connectionManager = new SocketConnectionManager<>("interop", 1, connectionController.entity, system.reactivityManager, system::getNetworkDevice) {
@@ -50,7 +50,7 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 				}
 
 				var connection = new PeripheralConnection(capability, dependency);
-				dependency.updateValue(connection.buildWrappingTable(this.reactivityManager.globalScope));
+				dependency.updateValue(connection.buildWrappingTable(this.reactivityManager.realm));
 				dependency.handleEvent("__connected__", new Object[0]);
 				capability.attach(connection);
 				dependency.teardownCallback = connection::teardown;
@@ -60,12 +60,12 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 
 	@Override
 	protected void initialize() {
-		this.declareProperty("isAttached", NativeFunction.simple(this.globalScope, Collections.emptyList(), (args, scope, result) -> {
+		this.declareProperty("isAttached", NativeFunction.simple(this.realm, Collections.emptyList(), (args, scope, result) -> {
 			// @summary: Returns if any computers are attached to this system and use it as a peripheral.
 			result.value = Primitive.from(this.connectionController.attachedComputers.hasComputers());
 		}));
 
-		this.declareProperty("emitEvent", NativeFunction.simple(this.globalScope, List.of("name", "arguments?"), List.of(Primitive.String.class, ManagedArray.class), (args, scope, result) -> {
+		this.declareProperty("emitEvent", NativeFunction.simple(this.realm, List.of("name", "arguments?"), List.of(Primitive.String.class, ManagedArray.class), (args, scope, result) -> {
 			// @summary: Sends an event to all computers that are attached to this system.
 			var name = args.get(0).getStringValue();
 			Object[] eventArguments;
@@ -88,7 +88,7 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 			result.value = Primitive.VOID;
 		}));
 
-		this.declareProperty("connect", NativeFunction.simple(this.globalScope, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
+		this.declareProperty("connect", NativeFunction.simple(this.realm, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
 			// @summary[[Connects to a peripheral. The `target` can be a side of this system or a
 			// name of a socket on the network. This function returns a {@link
 			// PeripheralReactiveDependency} that will be updated when a peripheral is connected or
@@ -122,7 +122,7 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 		this.declareProperty("RED", Primitive.from(16384)); // @like: <template>Interop.<color>
 		this.declareProperty("BLACK", Primitive.from(32768)); // @like: <template>Interop.<color>
 
-		this.declareProperty("setEventHandler", NativeFunction.simple(this.globalScope, List.of("peripheral", "handler"), List.of(PeripheralReactiveDependency.class, ManagedFunction.class), (args, scope, result) -> {
+		this.declareProperty("setEventHandler", NativeFunction.simple(this.realm, List.of("peripheral", "handler"), List.of(PeripheralReactiveDependency.class, ManagedFunction.class), (args, scope, result) -> {
 			// @summary[[Sets an event handler on the specified peripheral. The handler will receive
 			// a `event` argument containing the {@link String} name of the event and an `arguments`
 			// argument containing an {@link Array} of the arguments composing the event. Two

@@ -1,7 +1,5 @@
 package bt7s7k7.supervisory.system;
 
-import static bt7s7k7.treeburst.runtime.ExpressionResult.LABEL_EXCEPTION;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -16,15 +14,17 @@ import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
 import bt7s7k7.supervisory.script.ScriptEngine;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.support.Side;
-import bt7s7k7.treeburst.runtime.GlobalScope;
+import bt7s7k7.treeburst.parsing.TreeBurstParser;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.ManagedMap;
 import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.runtime.NativeHandle;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.Diagnostic;
+import bt7s7k7.treeburst.support.InputDocument;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Position;
 import bt7s7k7.treeburst.support.Primitive;
@@ -56,8 +56,8 @@ public class ScriptedSystem extends ScriptEngine {
 					Primitive::from, ManagedValue::getStringValue,
 					Function.identity(), Function.identity()));
 
-	protected ManagedFunction createStateAccessor(GlobalScope globalScope, Function<String, ManagedValue> getter, BiConsumer<String, ManagedValue> setter) {
-		return NativeFunction.simple(globalScope, List.of("name", "value?"), List.of(Primitive.String.class, ManagedValue.class), (args, scope, result) -> { // @symbol: <template>stateAccessor
+	protected ManagedFunction createStateAccessor(Realm realm, Function<String, ManagedValue> getter, BiConsumer<String, ManagedValue> setter) {
+		return NativeFunction.simple(realm, List.of("name", "value?"), List.of(Primitive.String.class, ManagedValue.class), (args, scope, result) -> { // @symbol: <template>stateAccessor
 			var key = args.get(0).getStringValue();
 			if (args.size() == 1) {
 				result.value = getter.apply(key);
@@ -70,7 +70,7 @@ public class ScriptedSystem extends ScriptEngine {
 		});
 	}
 
-	private ManagedValue translateValue(GlobalScope globalScope, ManagedValue value) {
+	private ManagedValue translateValue(Realm realm, ManagedValue value) {
 		if (value instanceof Primitive) {
 			return value;
 		}
@@ -78,30 +78,30 @@ public class ScriptedSystem extends ScriptEngine {
 		if (value instanceof ManagedTable table) {
 			var entries = table.properties.entrySet().stream().collect(Collectors.toMap(
 					Map.Entry::getKey,
-					kv -> this.translateValue(globalScope, kv.getValue())));
+					kv -> this.translateValue(realm, kv.getValue())));
 
-			return new ManagedTable(globalScope == null ? null : globalScope.TablePrototype, entries);
+			return new ManagedTable(realm == null ? null : realm.TablePrototype, entries);
 		}
 
 		if (value instanceof ManagedArray array) {
-			var elements = array.stream().map(v -> this.translateValue(globalScope, v)).toList();
+			var elements = array.stream().map(v -> this.translateValue(realm, v)).toList();
 
-			return ManagedArray.fromImmutableList(globalScope == null ? null : globalScope.ArrayPrototype, elements);
+			return ManagedArray.fromImmutableList(realm == null ? null : realm.ArrayPrototype, elements);
 		}
 
 		if (value instanceof ManagedMap table) {
 			var entries = table.entries.entrySet().stream().collect(Collectors.toMap(
-					kv -> this.translateValue(globalScope, kv.getKey()),
-					kv -> this.translateValue(globalScope, kv.getValue())));
+					kv -> this.translateValue(realm, kv.getKey()),
+					kv -> this.translateValue(realm, kv.getValue())));
 
-			return ManagedMap.withEntries(globalScope == null ? null : globalScope.MapPrototype, entries);
+			return ManagedMap.withEntries(realm == null ? null : realm.MapPrototype, entries);
 		}
 
 		return null;
 	}
 
 	public ManagedValue importValue(ManagedValue value) {
-		return this.translateValue(this.getGlobalScope(), value);
+		return this.translateValue(this.getRealm(), value);
 	}
 
 	public ManagedValue exportValue(ManagedValue value) {
@@ -114,17 +114,17 @@ public class ScriptedSystem extends ScriptEngine {
 	public final MutableClassToInstanceMap<ScriptedSystemIntegration> integrations = MutableClassToInstanceMap.create();
 
 	@Override
-	protected void initializeGlobals(GlobalScope globalScope) {
+	protected void initializeGlobals(Realm realm) {
 		this.host.log(Component.literal("Device restarted").withStyle(ChatFormatting.DARK_GRAY));
 
-		this.reactivityManager = new ReactivityManager(globalScope, this);
+		this.reactivityManager = new ReactivityManager(realm, this);
 		this.reactivityTick = TickReactiveDependency.get("tick", this.reactivityManager);
 
-		var sys = globalScope.declareGlobal("SYS", new ManagedTable(globalScope.TablePrototype)); // @summary: Contains functions and data regarding the current system.
+		var sys = realm.declareGlobal("SYS", new ManagedTable(realm.TablePrototype)); // @summary: Contains functions and data regarding the current system.
 		sys.declareProperty("tick", this.reactivityTick.getHandle()); // @symbol: SYS.tick, @type: TickReactiveDependency, @summary: Triggers each game tick.
 
 		for (var side : Side.values()) {
-			globalScope.declareGlobal(side.name.toUpperCase(), Primitive.from(side.name));
+			realm.declareGlobal(side.name.toUpperCase(), Primitive.from(side.name));
 
 			// @symbol: <template>side_constant, @type: String, @summary: Constant for the name of a side of the system
 			// @symbol: BOTTOM, @like: <template>side_constant
@@ -149,7 +149,7 @@ public class ScriptedSystem extends ScriptEngine {
 
 		this.host.onScopeInitialization.emit(new ScriptedSystemHost.ScopeInitializationEvent(this));
 
-		globalScope.declareGlobal("print", NativeFunction.simple(globalScope, List.of("message"), (args, scope, result) -> {
+		realm.declareGlobal("print", NativeFunction.simple(realm, List.of("message"), (args, scope, result) -> {
 			// @summary: Prints a message to the system log. If the message is not a string it is converted using `k_dump`.
 			var message = args.get(0);
 
@@ -158,29 +158,28 @@ public class ScriptedSystem extends ScriptEngine {
 				return;
 			}
 
-			this.host.log(formatValue(message, scope.globalScope));
+			this.host.log(formatValue(message, scope.realm));
 		}));
 
-		globalScope.declareGlobal("s", this.createStateAccessor(globalScope, key -> this.getNetworkDevice().getState(key), (key, value) -> { // @like: <template>stateAccessor
+		realm.declareGlobal("s", this.createStateAccessor(realm, key -> this.getNetworkDevice().getState(key), (key, value) -> { // @like: <template>stateAccessor
 			// @summary: Allows access to the device's local state. This state is persistent after reboots.
 			this.getNetworkDevice().setState(key, value);
 			this.host.entity.setChanged();
 		}));
 
-		sys.declareProperty("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(globalScope), new StateHandle(() -> { // @symbol: SYS.state, @type: Map
+		sys.declareProperty("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(realm), new StateHandle(() -> { // @symbol: SYS.state, @type: Map
 			// @summary: Allows raw access to the device's local state.
 			this.host.entity.setChanged();
 			return this.getNetworkDevice().state;
 		})));
 
-		globalScope.declareGlobal("setDomain", NativeFunction.simple(globalScope, List.of("domain"), List.of(Primitive.String.class), (args, scope, result) -> {
+		realm.declareGlobal("setDomain", NativeFunction.simple(realm, List.of("domain"), List.of(Primitive.String.class), (args, scope, result) -> {
 			// @summary[[Sets the domain this device should connect to. This connection is
 			// established exactly after initial code finishes executing and cannot be changed
 			// after. The only way to change the domain is to reboot the device.]]
 			var device = this.getNetworkDevice();
 			if (device.isConnected()) {
-				result.value = new Diagnostic("Cannot change the domain after already connected", Position.INTRINSIC);
-				result.label = LABEL_EXCEPTION;
+				result.setException(new Diagnostic("Cannot change the domain after already connected", Position.INTRINSIC));
 				return;
 			}
 
@@ -188,7 +187,7 @@ public class ScriptedSystem extends ScriptEngine {
 			result.value = null;
 		}));
 
-		globalScope.declareGlobal("r", this.createStateAccessor(globalScope, key -> { // @like: <template>stateAccessor
+		realm.declareGlobal("r", this.createStateAccessor(realm, key -> { // @like: <template>stateAccessor
 			// @summary[[Allows publishing resources onto a connected network or requesting
 			// resources published by other devices.
 			//
@@ -244,11 +243,54 @@ public class ScriptedSystem extends ScriptEngine {
 		}
 	}
 
-	public void executeCommand(String code) {
-		var result = super.executeCode("command", code);
+	protected boolean dumpBytecode = false;
+	protected boolean dumpAST = false;
 
-		if (result != null) {
-			this.host.log(formatValue(result, this.getGlobalScope()));
+	public void executeCommand(String code) {
+		var realm = this.getRealm();
+
+		while (code.startsWith(".")) {
+			if (code.startsWith(".byte")) {
+				this.dumpBytecode = !this.dumpBytecode;
+				this.host.log(Component.literal("Dump bytecode: " + this.dumpBytecode));
+				code = code.substring(5);
+				continue;
+			}
+
+			if (code.equals(".ast")) {
+				this.dumpAST = !this.dumpAST;
+				this.host.log(Component.literal("Dump AST: " + this.dumpAST));
+				code = code.substring(4);
+				continue;
+			}
+
+			this.host.log(Component.literal("Invalid REPL command").withStyle(ChatFormatting.RED));
+			break;
+		}
+
+		var document = new InputDocument("command", code);
+		var parser = new TreeBurstParser(document);
+		var root = parser.parse();
+
+		if (this.dumpBytecode) {
+			this.host.log(Component.literal(root.getExpression().toFormattedString()).withStyle(ChatFormatting.GRAY));
+		}
+
+		if (!parser.diagnostics.isEmpty()) {
+			parser.diagnostics.forEach(this::handleError);
+			return;
+		}
+
+		this.performWork(result -> root.compile(realm.globalScope, result));
+
+		if (this.dumpAST) {
+			this.host.log(Component.literal(root.toString()).withStyle(ChatFormatting.GRAY));
+		}
+
+		var value = this.performWork(result -> root.evaluate(realm.globalScope, result));
+
+		if (value != null) {
+			this.host.log(formatValue(value, this.getRealm()));
 		}
 	}
 }

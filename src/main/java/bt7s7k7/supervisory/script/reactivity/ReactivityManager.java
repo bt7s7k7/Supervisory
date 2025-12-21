@@ -7,23 +7,23 @@ import java.util.List;
 import java.util.Stack;
 
 import bt7s7k7.supervisory.script.ManagedWorkDispatcher;
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.NativeFunction;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Position;
 
 public class ReactivityManager {
 	public boolean ready = false;
-	public final GlobalScope globalScope;
+	public final Realm realm;
 	protected final ManagedWorkDispatcher workDispatcher;
 
-	public ReactivityManager(GlobalScope globalScope, ManagedWorkDispatcher workDispatcher) {
-		this.globalScope = globalScope;
+	public ReactivityManager(Realm realm, ManagedWorkDispatcher workDispatcher) {
+		this.realm = realm;
 		this.workDispatcher = workDispatcher;
 
-		globalScope.declareGlobal("reactive", NativeFunction.simple(globalScope, List.of("callback"), List.of(ManagedFunction.class), (args, scope, result) -> {
+		realm.declareGlobal("reactive", NativeFunction.simple(realm, List.of("callback"), List.of(ManagedFunction.class), (args, scope, result) -> {
 			// @summary[[Creates a new {@link ReactiveScope}. The callback receives an instance of
 			// {@link ReactiveScope} that you can use to set what dependencies to react to. The
 			// callback will be executed once, during initialization, and the every time any of the
@@ -33,12 +33,12 @@ public class ReactivityManager {
 			}
 
 			var callback = args.get(0).getFunctionValue();
-			var reactiveScope = new ReactiveScope(this, globalScope, callback);
+			var reactiveScope = new ReactiveScope(this, realm, callback);
 			this.queueReaction(reactiveScope);
 			reactiveScope.run(scope, result);
 		}));
 
-		ReactiveDependency.WRAPPER.ensurePrototype(globalScope);
+		ReactiveDependency.WRAPPER.ensurePrototype(realm);
 	}
 
 	protected Stack<ReactiveScope> scopeStack = new Stack<>();
@@ -91,7 +91,7 @@ public class ReactivityManager {
 
 		this.workDispatcher.performWork(result -> {
 			for (var pendingScope : pending) {
-				pendingScope.run(this.globalScope, result);
+				pendingScope.run(this.realm.globalScope, result);
 
 				var diagnostic = result.terminate();
 				if (diagnostic != null) {

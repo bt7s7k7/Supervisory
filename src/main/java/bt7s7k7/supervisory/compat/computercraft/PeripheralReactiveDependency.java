@@ -1,6 +1,6 @@
 package bt7s7k7.supervisory.compat.computercraft;
 
-import static bt7s7k7.treeburst.runtime.ExpressionEvaluator.evaluateInvocation;
+import static bt7s7k7.treeburst.runtime.EvaluationUtil.evaluateInvocation;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -37,9 +37,9 @@ public class PeripheralReactiveDependency extends SocketBasedDependency<IPeriphe
 		if (this.eventHandler == null) return;
 
 		this.workDispatcher.performWork(result -> {
-			var globalScope = this.owner.globalScope;
-			var managedArguments = List.of(Primitive.from(name), ComputerObject.toManagedValue(arguments, globalScope));
-			evaluateInvocation(Primitive.VOID, Primitive.VOID, this.eventHandler, Position.INTRINSIC, managedArguments, globalScope, result);
+			var realm = this.owner.realm;
+			var managedArguments = List.of(Primitive.from(name), ComputerObject.toManagedValue(arguments, realm));
+			evaluateInvocation(Primitive.VOID, Primitive.VOID, this.eventHandler, Position.INTRINSIC, managedArguments, realm.globalScope, result);
 		});
 	}
 

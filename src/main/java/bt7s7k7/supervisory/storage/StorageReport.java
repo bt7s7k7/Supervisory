@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import bt7s7k7.supervisory.Support;
-import bt7s7k7.treeburst.runtime.GlobalScope;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.Primitive;
@@ -72,11 +72,11 @@ public class StorageReport {
 		return count;
 	}
 
-	public void findItems(String id, ManagedArray output, GlobalScope globalScope) {
+	public void findItems(String id, ManagedArray output, Realm realm) {
 		var outputElements = output.getElementsMutable();
 		for (var stack : this.getItems().values()) {
 			if (id.isEmpty() || stack.item().id().equals(id)) {
-				outputElements.add(StackReport.WRAPPER.getHandle(stack, globalScope));
+				outputElements.add(StackReport.WRAPPER.getHandle(stack, realm));
 			}
 		}
 	}
@@ -102,11 +102,11 @@ public class StorageReport {
 			})
 			.addMethod("findItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
 				// @summary: Returns an {@link Array} of all {@link StackReport} instances with the specified id.
-				var array = ManagedArray.empty(scope.globalScope.ArrayPrototype);
-				self.findItems(args.get(0).getStringValue(), array, scope.globalScope);
+				var array = ManagedArray.empty(scope.realm.ArrayPrototype);
+				self.findItems(args.get(0).getStringValue(), array, scope.realm);
 				result.value = array;
 			})
 			.addMapAccess(StorageReport::getItems, Primitive.Number.class, StackReport.class,
 					v -> v, v -> (Primitive.Number) v,
-					value -> StackReport.WRAPPER.getHandle(value, ctx.globalScope), null));
+					value -> StackReport.WRAPPER.getHandle(value, ctx.realm), null));
 }

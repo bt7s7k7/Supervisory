@@ -11,8 +11,8 @@ import bt7s7k7.supervisory.support.Side;
 import bt7s7k7.supervisory.system.ScriptedSystem;
 import bt7s7k7.supervisory.system.ScriptedSystemInitializationEvent;
 import bt7s7k7.supervisory.system.ScriptedSystemIntegration;
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.NativeFunction;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.standard.LazyTable;
 import bt7s7k7.treeburst.support.Primitive;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -25,8 +25,8 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 	protected final RedstoneState redstone;
 	protected final RedstoneReactiveDependency[] handlers = new RedstoneReactiveDependency[Side.values().length];
 
-	public RedstoneIntegration(ScriptedSystem system, GlobalScope globalScope, RedstoneState redstone) {
-		super(globalScope.TablePrototype, globalScope);
+	public RedstoneIntegration(ScriptedSystem system, Realm realm, RedstoneState redstone) {
+		super(realm.TablePrototype, realm);
 		this.system = system;
 		this.redstone = redstone;
 	}
@@ -43,7 +43,7 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 
 			this.declareProperty(direction.name, dependency.getHandle()); // @symbol: <template>redstone_get, @type: RedstoneReactiveDependency, @summary: Triggers every time the input redstone signal on the side changes.
 
-			this.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(this.globalScope, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> { // @symbol: <template>redstone_set
+			this.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(this.realm, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> { // @symbol: <template>redstone_set
 				// @summary: Allows setting the selected side's output redstone signal. The strength must be in range `0..15` inclusive, if not it will be clamped.
 				var strength = args.get(0).getNumberValue();
 				this.redstone.setOutput(absoluteDirection, (int) strength);
@@ -86,10 +86,10 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 		});
 
 		init.signalConnector.connect(init.systemHost.onScopeInitialization, event -> {
-			var globalScope = event.system().getGlobalScope();
-			var integration = new RedstoneIntegration(event.system(), globalScope, redstone);
+			var realm = event.system().getRealm();
+			var integration = new RedstoneIntegration(event.system(), realm, redstone);
 			event.system().integrations.putInstance(RedstoneIntegration.class, integration);
-			globalScope.declareGlobal("Redstone", integration);
+			realm.declareGlobal("Redstone", integration);
 		});
 	}
 }

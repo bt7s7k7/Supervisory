@@ -17,7 +17,7 @@ import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
 import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
 import bt7s7k7.supervisory.support.LogEventRouter;
-import bt7s7k7.treeburst.runtime.GlobalScope;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.support.InputDocument;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -39,8 +39,8 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 	public final ArrayList<String> commandHistory = new ArrayList<>();
 
 	public static record ScopeInitializationEvent(ScriptedSystem system) {
-		public GlobalScope getGlobalScope() {
-			return this.system.getGlobalScope();
+		public Realm getRealm() {
+			return this.system.getRealm();
 		}
 	}
 

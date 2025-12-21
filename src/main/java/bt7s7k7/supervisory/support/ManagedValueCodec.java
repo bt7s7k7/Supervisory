@@ -12,9 +12,9 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import bt7s7k7.supervisory.Supervisory;
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.runtime.ManagedMap;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.nbt.CompoundTag;
@@ -112,17 +112,17 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 		}
 	}
 
-	public static ManagedValue importNbtData(Tag root, GlobalScope globalScope, ManagedValue defaultValue) {
+	public static ManagedValue importNbtData(Tag root, Realm realm, ManagedValue defaultValue) {
 		if (root == null) return defaultValue;
 
 		return switch (root) {
 			case StringTag string -> Primitive.from(string.getAsString());
 			case NumericTag number -> Primitive.from(number.getAsDouble());
-			case ListTag list -> ManagedArray.fromImmutableList(globalScope == null ? null : globalScope.ArrayPrototype, list.stream()
-					.map(v -> importNbtData(v, globalScope, Primitive.NULL))
+			case ListTag list -> ManagedArray.fromImmutableList(realm == null ? null : realm.ArrayPrototype, list.stream()
+					.map(v -> importNbtData(v, realm, Primitive.NULL))
 					.toList());
-			case CompoundTag compound -> ManagedMap.withEntries(globalScope == null ? null : globalScope.MapPrototype, compound.getAllKeys().stream()
-					.map(key -> new AbstractMap.SimpleEntry<>(Primitive.from(key), importNbtData(compound.get(key), globalScope, Primitive.VOID)))
+			case CompoundTag compound -> ManagedMap.withEntries(realm == null ? null : realm.MapPrototype, compound.getAllKeys().stream()
+					.map(key -> new AbstractMap.SimpleEntry<>(Primitive.from(key), importNbtData(compound.get(key), realm, Primitive.VOID)))
 					.filter(v -> v.getValue() != Primitive.VOID)
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 			default -> defaultValue;

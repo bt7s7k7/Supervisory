@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import bt7s7k7.treeburst.runtime.ExpressionResult;
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.runtime.Scope;
 import bt7s7k7.treeburst.support.Primitive;
 
@@ -21,13 +21,13 @@ public class ReactiveScope {
 	protected final ManagedTable context;
 	protected boolean missingDependency = false;
 
-	public ReactiveScope(ReactivityManager owner, GlobalScope globalScope, ManagedFunction callback) {
+	public ReactiveScope(ReactivityManager owner, Realm realm, ManagedFunction callback) {
 		this.callback = callback;
 		this.owner = owner;
 
-		this.context = new ManagedTable(globalScope.TablePrototype, Map.of( // @symbol: ReactiveScope, @entry-symbol
+		this.context = new ManagedTable(realm.TablePrototype, Map.of( // @symbol: ReactiveScope, @entry-symbol
 				// @summary: Allows for adding dependencies to the scope of a {@link reactive} function.
-				"use", NativeFunction.simple(globalScope, List.of("dependency"), List.of(ReactiveDependency.class), (args, scope, result) -> { // @symbol: ReactiveScope.use
+				"use", NativeFunction.simple(realm, List.of("dependency"), List.of(ReactiveDependency.class), (args, scope, result) -> { // @symbol: ReactiveScope.use
 					// @summary: Adds a dependency to this scope. This scope's callback will be executed each time the dependency changes. Returns the value of the dependency.
 					var dependency = args.get(0).getNativeValue(ReactiveDependency.class);
 
@@ -43,7 +43,7 @@ public class ReactiveScope {
 
 					return;
 				}),
-				"awaitReady", NativeFunction.simple(globalScope, Collections.emptyList(), (args, scope, result) -> { // @symbol: ReactiveScope.awaitReady
+				"awaitReady", NativeFunction.simple(realm, Collections.emptyList(), (args, scope, result) -> { // @symbol: ReactiveScope.awaitReady
 					// @summary: If any of the dependencies of this scope don't yet have a value, aborts the execution of this function. The callback will be called again, when the values are acquired.
 					result.value = Primitive.VOID;
 

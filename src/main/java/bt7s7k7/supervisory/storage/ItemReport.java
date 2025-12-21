@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.List;
 
 import bt7s7k7.supervisory.support.ManagedValueCodec;
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
@@ -51,7 +51,7 @@ public class ItemReport {
 		}
 	}
 
-	public ManagedValue getComponent(String name, GlobalScope globalScope) {
+	public ManagedValue getComponent(String name, Realm realm) {
 		var data = this.stack.getComponentsPatch();
 
 		@SuppressWarnings("unchecked")
@@ -62,7 +62,7 @@ public class ItemReport {
 		if (component == null || component.isEmpty()) return Primitive.VOID;
 
 		var nbt = type.codec().encodeStart(NbtOps.INSTANCE, component.get());
-		return ManagedValueCodec.importNbtData(nbt.getOrThrow(), globalScope, Primitive.VOID);
+		return ManagedValueCodec.importNbtData(nbt.getOrThrow(), realm, Primitive.VOID);
 	}
 
 	@Override
@@ -82,14 +82,14 @@ public class ItemReport {
 			.addGetter("code", v -> Primitive.from(v.code())) // @type: String, @summary: A unique code representing the NBT data of the item.
 			.addMethod("getComponents", Collections.emptyList(), Collections.emptyList(), (self, args, scope, result) -> {
 				// @summary: Returns an {@link Array} of the names of all component types on this item.
-				var array = ManagedArray.empty(scope.globalScope.ArrayPrototype);
+				var array = ManagedArray.empty(scope.realm.ArrayPrototype);
 				self.getComponents(array);
 				result.value = array;
 			})
 			.addMethod("getComponent", List.of("name"), List.of(Primitive.String.class), (self, args, scope, result) -> {
 				// @summary: Returns the data of the specified component name. If this item does not have the component, returns {@link void}.
 				var name = args.get(0).getStringValue();
-				result.value = self.getComponent(name, scope.globalScope);
+				result.value = self.getComponent(name, scope.realm);
 			})
 			.addDumpMethod((self, depth, scope, result) -> self.id()));
 }

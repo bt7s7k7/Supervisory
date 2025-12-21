@@ -10,11 +10,11 @@ import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.sockets.SocketConnectionManager;
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedArray;
 import bt7s7k7.treeburst.runtime.ManagedObject;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.runtime.NativeHandle;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.standard.LazyTable;
 import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.Position;
@@ -26,8 +26,8 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 	// @summary: Provides methods for scanning inventories, getting their items and transferring items between inventories.
 	protected final SocketConnectionManager<IItemHandler, StorageReactiveDependency> connectionManager;
 
-	public StorageAPI(ManagedObject prototype, GlobalScope globalScope, CompositeBlockEntity entity, ReactivityManager reactivityManager, Supplier<NetworkDevice> networkDeviceSupplier) {
-		super(prototype, globalScope);
+	public StorageAPI(ManagedObject prototype, Realm realm, CompositeBlockEntity entity, ReactivityManager reactivityManager, Supplier<NetworkDevice> networkDeviceSupplier) {
+		super(prototype, realm);
 
 		this.connectionManager = new SocketConnectionManager<IItemHandler, StorageReactiveDependency>("storage", 5, entity, reactivityManager, networkDeviceSupplier) {
 			@Override
@@ -42,7 +42,7 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 				var newValue = new StorageReport(dependency.capabilityCache, capability);
 
 				if (oldValue == null || newValue.itemsChanged(oldValue)) {
-					dependency.updateValue(StorageReport.WRAPPER.getHandle(newValue, StorageAPI.this.globalScope));
+					dependency.updateValue(StorageReport.WRAPPER.getHandle(newValue, StorageAPI.this.realm));
 				}
 			}
 
@@ -55,7 +55,7 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 
 	@Override
 	protected void initialize() {
-		this.declareProperty("connect", NativeFunction.simple(this.globalScope, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
+		this.declareProperty("connect", NativeFunction.simple(this.realm, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
 			// @summary[[Connects to an inventory, that will be scanned for contained items. The
 			// `target` can be either a side of this system or a name of a socket on the network.
 			// This function returns a {@link StorageReactiveDependency} that can watched for
@@ -67,7 +67,7 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 			return;
 		}));
 
-		this.declareProperty("transfer", NativeFunction.simple(this.globalScope, List.of("items", "targets"), List.of(ManagedArray.class, ManagedArray.class), (args, scope, result) -> {
+		this.declareProperty("transfer", NativeFunction.simple(this.realm, List.of("items", "targets"), List.of(ManagedArray.class, ManagedArray.class), (args, scope, result) -> {
 			// @summary[[Transfers all item stacks in the `items` argument into the `targets`
 			// inventories. The `items` array should contain {@link StackReport} instances for all
 			// items that should be transferred. The `targets` array should contain {@link

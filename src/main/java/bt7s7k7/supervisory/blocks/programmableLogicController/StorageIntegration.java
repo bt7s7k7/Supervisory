@@ -25,15 +25,15 @@ public final class StorageIntegration implements ScriptedSystemIntegration {
 	@SubscribeEvent
 	public static void registerIntegration(ScriptedSystemInitializationEvent init) {
 		init.signalConnector.connect(init.systemHost.onScopeInitialization, event -> {
-			var globalScope = event.getGlobalScope();
+			var realm = event.getRealm();
 			var system = event.system();
 
-			var storage = new StorageAPI(globalScope.TablePrototype, globalScope, init.systemHost.entity, system.reactivityManager, system::getNetworkDevice);
+			var storage = new StorageAPI(realm.TablePrototype, realm, init.systemHost.entity, system.reactivityManager, system::getNetworkDevice);
 
-			globalScope.declareGlobal("Storage", storage);
-			StorageReport.WRAPPER.ensurePrototype(globalScope);
-			StackReport.WRAPPER.ensurePrototype(globalScope);
-			ItemReport.WRAPPER.ensurePrototype(globalScope);
+			realm.declareGlobal("Storage", storage);
+			StorageReport.WRAPPER.ensurePrototype(realm);
+			StackReport.WRAPPER.ensurePrototype(realm);
+			ItemReport.WRAPPER.ensurePrototype(realm);
 
 			var integration = new StorageIntegration(storage);
 			system.integrations.putInstance(StorageIntegration.class, integration);

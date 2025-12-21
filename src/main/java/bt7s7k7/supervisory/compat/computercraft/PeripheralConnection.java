@@ -7,9 +7,9 @@ import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.Nullable;
 
 import bt7s7k7.supervisory.Supervisory;
-import bt7s7k7.treeburst.runtime.GlobalScope;
 import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.Position;
@@ -64,14 +64,14 @@ public class PeripheralConnection implements IComputerAccess {
 		return null;
 	}
 
-	public ManagedTable buildWrappingTable(GlobalScope globalScope) {
-		var table = new ManagedTable(globalScope.TablePrototype);
-		table.declareProperty("meta", WRAPPER.getHandle(this, globalScope)); // @type: PeripheralConnection.prototype, @symbol: PeripheralConnection.meta
+	public ManagedTable buildWrappingTable(Realm realm) {
+		var table = new ManagedTable(realm.TablePrototype);
+		table.declareProperty("meta", WRAPPER.getHandle(this, realm)); // @type: PeripheralConnection.prototype, @symbol: PeripheralConnection.meta
 		for (var kv : this.methods.entrySet()) {
 			var name = kv.getKey();
 			var method = kv.getValue();
 
-			table.declareProperty(name, new NativeFunction(globalScope.FunctionPrototype, List.of("???"), (args, scope, result) -> {
+			table.declareProperty(name, new NativeFunction(realm.FunctionPrototype, List.of("???"), (args, scope, result) -> {
 				var computerArguments = new ObjectArguments(args.stream().map(ComputerObject::fromManagedValue).toList());
 				try {
 					var computerResult = method.apply(this.peripheral, DUMMY_CONTEXT, this, computerArguments);
@@ -86,7 +86,7 @@ public class PeripheralConnection implements IComputerAccess {
 						if (computerResult.getCallback() != null) throw new IllegalStateException("Received MethodResult with a callback after unwrapping");
 					}
 
-					result.value = ComputerObject.toManagedValue(computerResult.getResult(), scope.globalScope);
+					result.value = ComputerObject.toManagedValue(computerResult.getResult(), scope.realm);
 				} catch (LuaException exception) {
 					result.setException(new Diagnostic(exception.getMessage(), Position.INTRINSIC));
 				}

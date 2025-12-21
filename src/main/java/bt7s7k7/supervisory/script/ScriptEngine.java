@@ -9,12 +9,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import bt7s7k7.supervisory.Config;
+import bt7s7k7.treeburst.bytecode.ProgramFragment;
 import bt7s7k7.treeburst.parsing.Expression;
 import bt7s7k7.treeburst.parsing.TreeBurstParser;
+import bt7s7k7.treeburst.runtime.EvaluationUtil;
 import bt7s7k7.treeburst.runtime.ExecutionLimitReachedException;
-import bt7s7k7.treeburst.runtime.ExpressionEvaluator;
 import bt7s7k7.treeburst.runtime.ExpressionResult;
-import bt7s7k7.treeburst.runtime.GlobalScope;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.support.Diagnostic;
 import bt7s7k7.treeburst.support.InputDocument;
 import bt7s7k7.treeburst.support.ManagedValue;
@@ -24,7 +25,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
 public abstract class ScriptEngine implements ManagedWorkDispatcher {
-	private GlobalScope globalScope;
+	private Realm realm;
 
 	public static final Codec<InputDocument> INPUT_DOCUMENT_CODEC = RecordCodecBuilder.create(instance -> (instance.group(
 			Codec.STRING.fieldOf("path").orElse("").forGetter(v -> v.path),
@@ -34,15 +35,15 @@ public abstract class ScriptEngine implements ManagedWorkDispatcher {
 	@Override
 	public abstract void handleError(Diagnostic error);
 
-	protected abstract void initializeGlobals(GlobalScope globalScope);
+	protected abstract void initializeGlobals(Realm realm);
 
-	public GlobalScope getGlobalScope() {
-		if (this.globalScope == null) {
-			this.globalScope = new GlobalScope();
-			this.initializeGlobals(this.globalScope);
+	public Realm getRealm() {
+		if (this.realm == null) {
+			this.realm = new Realm();
+			this.initializeGlobals(this.realm);
 		}
 
-		return this.globalScope;
+		return this.realm;
 	}
 
 	@Override
@@ -74,13 +75,13 @@ public abstract class ScriptEngine implements ManagedWorkDispatcher {
 	}
 
 	public ManagedValue executeCode(List<InputDocument> documents) {
-		var globalScope = this.getGlobalScope();
+		var realm = this.getRealm();
 		var units = new ArrayList<Expression>(documents.size());
 		var error = false;
 
 		for (var document : documents) {
 			var parser = new TreeBurstParser(document);
-			units.add(parser.parse());
+			units.add(parser.parse().getExpression());
 
 			if (!parser.diagnostics.isEmpty()) {
 				parser.diagnostics.forEach(this::handleError);
@@ -90,22 +91,22 @@ public abstract class ScriptEngine implements ManagedWorkDispatcher {
 
 		if (error) return null;
 
-		return this.performWork(result -> ExpressionEvaluator.evaluateExpression(new Expression.Group(Position.INTRINSIC, units), globalScope, result));
+		return this.performWork(result -> new ProgramFragment(new Expression.Group(Position.INTRINSIC, units)).evaluate(realm.globalScope, result));
 	}
 
 	public void clear() {
-		this.globalScope = null;
+		this.realm = null;
 	}
 
 	public boolean isEmpty() {
-		return this.globalScope == null;
+		return this.realm == null;
 	}
 
-	public static Component formatValue(ManagedValue value, GlobalScope globalScope) {
+	public static Component formatValue(ManagedValue value, Realm realm) {
 		if (value == Primitive.VOID || value == Primitive.NULL) {
-			return Component.literal(ExpressionEvaluator.getValueName(value)).withStyle(ChatFormatting.GRAY);
+			return Component.literal(EvaluationUtil.getValueName(value)).withStyle(ChatFormatting.GRAY);
 		}
 
-		return Component.literal(globalScope.inspect(value)).withStyle(ChatFormatting.GOLD);
+		return Component.literal(realm.inspect(value)).withStyle(ChatFormatting.GOLD);
 	}
 }
