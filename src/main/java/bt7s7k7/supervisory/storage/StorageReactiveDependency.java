@@ -2,7 +2,6 @@ package bt7s7k7.supervisory.storage;
 
 import bt7s7k7.supervisory.script.reactivity.ReactivityManager;
 import bt7s7k7.supervisory.sockets.SocketBasedDependency;
-import bt7s7k7.supervisory.sockets.SocketProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -12,7 +11,6 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 public class StorageReactiveDependency extends SocketBasedDependency<IItemHandler> {
 	public BlockCapabilityCache<IItemHandler, Direction> capabilityCache;
-	public SocketProvider provider;
 
 	public StorageReactiveDependency(ReactivityManager owner, String name) {
 		super(owner, name);

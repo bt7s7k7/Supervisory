@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Stack;
 
 import bt7s7k7.supervisory.script.ManagedWorkDispatcher;
 import bt7s7k7.treeburst.runtime.ManagedFunction;
@@ -41,20 +40,7 @@ public class ReactivityManager {
 		ReactiveDependency.WRAPPER.ensurePrototype(realm);
 	}
 
-	protected Stack<ReactiveScope> scopeStack = new Stack<>();
 	protected HashSet<ReactiveScope> pendingScopes = new HashSet<>();
-
-	public void pushScopeToStack(ReactiveScope scope) {
-		this.scopeStack.push(scope);
-	}
-
-	public void popScopeFromStack(ReactiveScope scope) {
-		if (this.scopeStack.peek() != scope) {
-			throw new IllegalArgumentException("Tried to pop a reactive scope from a stack that was not the top scope");
-		}
-		this.scopeStack.pop();
-	}
-
 	protected HashMap<String, ReactiveDependency<?>> dependencies = new HashMap<>();
 
 	public <TValue extends ManagedValue, TDependency extends ReactiveDependency<TValue>> TDependency ensureDependency(String name, Class<TDependency> type, TValue value) {
