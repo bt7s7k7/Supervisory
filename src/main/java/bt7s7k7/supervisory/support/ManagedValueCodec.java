@@ -49,32 +49,19 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 
 	@Override
 	public <T> DataResult<T> encode(ManagedValue input, DynamicOps<T> ops, T prefix) {
-		if (input == Primitive.VOID) {
-			return ENCODED_HEADER.encode(EncodedType.VOID, ops, prefix);
-		}
+		return switch (input) {
+			case Primitive __ when __ == Primitive.VOID -> ENCODED_HEADER.encode(EncodedType.VOID, ops, prefix);
+			case Primitive __ when __ == Primitive.NULL -> ENCODED_HEADER.encode(EncodedType.NULL, ops, prefix);
+			case Primitive.Number number -> NUMBER_CODEC.encode(number, ops, prefix);
+			case Primitive.String string -> STRING_CODEC.encode(string, ops, prefix);
+			case Primitive.Boolean bool -> BOOLEAN_CODEC.encode(bool, ops, prefix);
+			case ManagedArray array -> ARRAY_CODEC.encode(array, ops, prefix);
 
-		if (input == Primitive.NULL) {
-			return ENCODED_HEADER.encode(EncodedType.NULL, ops, prefix);
-		}
-
-		if (input instanceof Primitive.Number) {
-			return NUMBER_CODEC.encode(input, ops, prefix);
-		}
-
-		if (input instanceof Primitive.String) {
-			return STRING_CODEC.encode(input, ops, prefix);
-		}
-
-		if (input instanceof Primitive.Boolean) {
-			return BOOLEAN_CODEC.encode(input, ops, prefix);
-		}
-
-		if (input instanceof ManagedArray) {
-			return ARRAY_CODEC.encode(input, ops, prefix);
-		}
-
-		Supervisory.LOGGER.warn("Managed value type " + input.getClass() + " is not supported for encoding");
-		return ENCODED_HEADER.encode(EncodedType.VOID, ops, prefix);
+			case null, default -> {
+				Supervisory.LOGGER.warn("Managed value type " + input.getClass() + " is not supported for encoding");
+				yield ENCODED_HEADER.encode(EncodedType.VOID, ops, prefix);
+			}
+		};
 	}
 
 	@Override
@@ -88,24 +75,17 @@ public class ManagedValueCodec implements Codec<ManagedValue> {
 			Codec<ManagedValue> codec;
 
 			switch (type) {
-				case VOID:
+				case VOID -> {
 					return DataResult.success(Pair.of(Primitive.VOID, ops.empty()));
-				case NULL:
+				}
+				case NULL -> {
 					return DataResult.success(Pair.of(Primitive.NULL, ops.empty()));
-				case NUMBER:
-					codec = NUMBER_CODEC;
-					break;
-				case STRING:
-					codec = STRING_CODEC;
-					break;
-				case BOOLEAN:
-					codec = BOOLEAN_CODEC;
-					break;
-				case ARRAY:
-					codec = ARRAY_CODEC;
-					break;
-				default:
-					throw new RuntimeException("Invalid result of EncodedType parse");
+				}
+				case NUMBER -> codec = NUMBER_CODEC;
+				case STRING -> codec = STRING_CODEC;
+				case BOOLEAN -> codec = BOOLEAN_CODEC;
+				case ARRAY -> codec = ARRAY_CODEC;
+				default -> throw new RuntimeException("Invalid result of EncodedType parse");
 			}
 
 			return codec.decode(ops, input);
