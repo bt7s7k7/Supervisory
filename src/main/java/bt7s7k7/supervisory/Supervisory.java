@@ -23,6 +23,7 @@ import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -37,7 +38,7 @@ public class Supervisory {
 	public static final String MOD_ID = "supervisory";
 	public static final Logger LOGGER = LogUtils.getLogger();
 
-	public static final Registrate REGISTRATE = Registrate.create(MOD_ID);
+	public static final Registrate REGISTRATE = Registrate.create(MOD_ID).defaultCreativeTab(CreativeModeTabs.REDSTONE_BLOCKS);
 
 	private static Supervisory instance;
 	public final IEventBus bus;

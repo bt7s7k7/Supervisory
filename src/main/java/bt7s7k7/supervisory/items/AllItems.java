@@ -14,15 +14,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-@EventBusSubscriber
 public final class AllItems {
 	private AllItems() {}
 
@@ -52,12 +47,5 @@ public final class AllItems {
 
 	public static void register(IEventBus modBus) {
 		REGISTRAR.register(modBus);
-	}
-
-	@SubscribeEvent
-	private static void handleCreativeTabs(BuildCreativeModeTabContentsEvent event) {
-		if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) {
-			// event.accept(DEVICE_CONFIG_BUFFER);
-		}
 	}
 }
