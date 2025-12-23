@@ -20,11 +20,11 @@ public class Config {
 	}
 
 	public static final ModConfigSpec.IntValue EXPRESSION_LIMIT = addValue("Expression Limit", SERVER_BUILDER
-			.comment("Maximum amount of expression executed at once in one block")
+			.comment("Maximum amount of script expressions executed at once in one block")
 			.defineInRange("expression_limit", 15000, 1000, Integer.MAX_VALUE));
 
 	public static final ModConfigSpec.BooleanValue ALLOW_STORAGE_TRANSFER = addValue("Allow Storage Transfer", SERVER_BUILDER
-			.comment("If the Storage.transfer function should be enabled; with improper use it can be used to achieve overpowered item transfer with infinite range")
+			.comment("If the Storage.transfer function should be enabled; with dishonourable use, it can be used to achieve overpowered item transfer with infinite range")
 			.define("allow_storage_transfer", true));
 
 	static {
