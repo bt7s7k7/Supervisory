@@ -11,6 +11,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import bt7s7k7.supervisory.composition.BlockEntityComponent;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
+import bt7s7k7.supervisory.items.device_config_buffer.BufferContent;
+import bt7s7k7.supervisory.items.device_config_buffer.ConfigBufferSubject;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
 import bt7s7k7.supervisory.redstone.RedstoneState;
@@ -19,14 +21,16 @@ import bt7s7k7.supervisory.support.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.loading.FMLLoader;
 
-public class IOManager extends BlockEntityComponent implements Configurable<IOManager.Configuration, IOManager.Configuration> {
+public class IOManager extends BlockEntityComponent implements Configurable<IOManager.Configuration, IOManager.Configuration>, ConfigBufferSubject {
 	protected final NetworkDeviceHost networkDeviceHost;
 
 	@Override
@@ -198,5 +202,31 @@ public class IOManager extends BlockEntityComponent implements Configurable<IOMa
 		if (FMLLoader.getDist() == Dist.CLIENT) {
 			this.displayScreen(configuration);
 		}
+	}
+
+	@Override
+	public BufferContent getConfigBuffer() {
+		var config = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, this.configuration).getOrThrow();
+		return new BufferContent(this.configuration.domain, this.getDeviceType(), config);
+	}
+
+	@Override
+	public ResourceLocation getDeviceType() {
+		var block = this.entity.getBlockState().getBlock();
+		return BuiltInRegistries.BLOCK.getKeyOrNull(block);
+	}
+
+	@Override
+	public void applyDomain(String domain) {
+		var configuration = this.configuration.clone();
+		configuration.domain = domain;
+		this.updateConfiguration(configuration);
+	}
+
+	@Override
+	public void applyConfig(BufferContent config) {
+		Configuration.CODEC.parse(NbtOps.INSTANCE, config.value()).ifSuccess(configuration -> {
+			this.updateConfiguration(configuration);
+		});
 	}
 }

@@ -12,6 +12,7 @@ import com.tterrag.registrate.Registrate;
 import bt7s7k7.supervisory.blocks.AllBlockEntities;
 import bt7s7k7.supervisory.blocks.AllBlocks;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
+import bt7s7k7.supervisory.items.AllItems;
 import bt7s7k7.supervisory.support.DomainMonitor;
 import bt7s7k7.supervisory.support.LogEventRouter;
 import bt7s7k7.supervisory.support.LogEventRouter.Subscription;
@@ -53,6 +54,7 @@ public class Supervisory {
 
 		AllBlocks.register();
 		AllBlockEntities.register();
+		AllItems.register(modEventBus);
 		I18n.register();
 	}
 

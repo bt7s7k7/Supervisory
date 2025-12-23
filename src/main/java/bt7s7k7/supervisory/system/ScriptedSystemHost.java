@@ -13,6 +13,8 @@ import bt7s7k7.supervisory.composition.BlockEntityComponent;
 import bt7s7k7.supervisory.composition.ComponentSignal;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.configuration.Configurable;
+import bt7s7k7.supervisory.items.device_config_buffer.BufferContent;
+import bt7s7k7.supervisory.items.device_config_buffer.ConfigBufferSubject;
 import bt7s7k7.supervisory.network.NetworkDevice;
 import bt7s7k7.supervisory.network.NetworkDeviceHost;
 import bt7s7k7.supervisory.network.RemoteValueReactiveDependency;
@@ -22,17 +24,19 @@ import bt7s7k7.treeburst.support.InputDocument;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup.Provider;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.NeoForge;
 
-public class ScriptedSystemHost extends BlockEntityComponent implements Configurable<ScriptedSystemHost.Configuration, ScriptedSystemHost.ConfigurationUpdate> {
+public class ScriptedSystemHost extends BlockEntityComponent implements Configurable<ScriptedSystemHost.Configuration, ScriptedSystemHost.ConfigurationUpdate>, ConfigBufferSubject {
 	public final NetworkDeviceHost networkDeviceHost;
 
 	// This array is only used on the client. It is unique per player and is not saved.
@@ -141,6 +145,15 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 		}
 
 		public Configuration() {};
+
+		@Override
+		public Configuration clone() {
+			try {
+				return (Configuration) super.clone();
+			} catch (CloneNotSupportedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
 		@Override
 		public String toString() {
@@ -286,5 +299,34 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 		}
 
 		this.system.processTasks();
+	}
+
+	@Override
+	public BufferContent getConfigBuffer() {
+		var config = new Configuration(this.configuration.domain, this.configuration.modules, Collections.emptyList());
+
+		var value = (CompoundTag) Configuration.CODEC.encodeStart(NbtOps.INSTANCE, config).getOrThrow();
+		return new BufferContent(this.configuration.domain, this.getDeviceType(), value);
+	}
+
+	@Override
+	public ResourceLocation getDeviceType() {
+		var block = this.entity.getBlockState().getBlock();
+		return BuiltInRegistries.BLOCK.getKeyOrNull(block);
+	}
+
+	@Override
+	public void applyDomain(String domain) {
+		var update = new ConfigurationUpdate();
+		update.domain = Optional.of(domain);
+		this.updateConfiguration(update);
+	}
+
+	@Override
+	public void applyConfig(BufferContent config) {
+		Configuration.CODEC.parse(NbtOps.INSTANCE, config.value()).ifSuccess(configuration -> {
+			var update = new ConfigurationUpdate(Optional.empty(), Optional.of(configuration.domain), Optional.of(configuration.modules));
+			this.updateConfiguration(update);
+		});
 	}
 }

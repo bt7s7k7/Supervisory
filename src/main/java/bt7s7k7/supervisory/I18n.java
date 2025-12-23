@@ -49,6 +49,12 @@ public class I18n {
 	public static final Key CLOSE_CONFIRM = register(new Key("gui.close_confirm", "Are you sure you want exit?"));
 	public static final Key CLOSE_CONFIRM_DESC = register(new Key("gui.close_confirm_desc", "All unsaved changes will be lost."));
 
+	public static final Key TOOLTIP_DOMAIN_ONLY = register(new Key("gui.device_config_buffer.domain_only", "Paste domain only"));
+	public static final Key TOOLTIP_TRUE = register(new Key("gui.true", "True"));
+	public static final Key TOOLTIP_FALSE = register(new Key("gui.false", "False"));
+	public static final Key TOOLTIP_DEVICE_TYPE = register(new Key("gui.device_config_buffer.device_type", "Device type"));
+	public static final Key INCOMPATIBLE_DEVICE = register(new Key("gui.device_config_buffer.incompatible_device", "This device is not compatible with the stored configuration"));
+
 	public static void register() {
 		// Load this class
 	}
