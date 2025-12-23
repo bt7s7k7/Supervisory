@@ -133,7 +133,12 @@ dependencies {
 
     // Example mod dependency using a file as dependency
     // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
-    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
+    jarJar(implementation("com.tterrag.registrate:Registrate")) {
+		version {
+			strictly "[${registrate_version},)"
+			prefer registrate_version
+		}
+	}
 
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")
