@@ -1,11 +1,11 @@
 # Supervisory
 
-Provides industrial control and monitoring facilities for Minecraft by modeling real-world SCADA systems.
+Provides industrial control and monitoring facilities for Minecraft inspired by real-world SCADA systems.
 
 The modeled devices are the following:
 
-  - **Remote Terminal Unit** (RTU): acts as an simple remote connectivity point, with simple redstone I/O features and allowing PLCs to access blocks remotely via sockets
-  - **Programmable Logic Controller** (PLC): fully programmable blocks that allow you to define logic and execute actions based on inputs, either directly attached to the block or remotely via sockets
+  - **Remote Terminal Unit** (RTU): function as remote connectivity points; contain simple redstone I/O and enable PLCs to interface with remote blocks via network sockets
+  - **Programmable Logic Controller** (PLC): fully programmable blocks which allow for complex logic execution, interacting with redstone, detecting block states and scanning inventories.
 
 All programming is done using the TreeBurst language, which is purpose-built for this mod. Check out the [TreeBurst documentation](https://bt7s7k7.github.io/TreeBurst/) for more information, although the examples included should be enough to get understand the basics.
 

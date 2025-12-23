@@ -1,20 +1,29 @@
 package bt7s7k7.supervisory.blocks;
 
+import java.util.List;
+
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.DataIngredient;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
+import bt7s7k7.supervisory.I18n;
 import bt7s7k7.supervisory.Supervisory;
 import bt7s7k7.supervisory.blocks.programmableLogicController.ProgrammableLogicControllerBlock;
 import bt7s7k7.supervisory.blocks.remoteTerminalUnit.RemoteTerminalUnitBlock;
+import bt7s7k7.supervisory.items.ItemWithHint;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -24,6 +33,18 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 @EventBusSubscriber
 public class AllBlocks {
 	private static final TagKey<Block> WRENCH_PICKUP = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("create", "wrench_pickup"));
+
+	private static abstract class BlockItemWithHint extends BlockItem implements ItemWithHint {
+		public BlockItemWithHint(Block block, Properties properties) {
+			super(block, properties);
+		}
+
+		@Override
+		public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+			this.appendHint(stack, context, tooltipComponents, tooltipFlag);
+			super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+		}
+	}
 
 	public static final BlockEntry<RemoteTerminalUnitBlock> REMOTE_TERMINAL_UNIT = Supervisory.REGISTRATE.block("remote_terminal_unit", RemoteTerminalUnitBlock::new)
 			.initialProperties(() -> Blocks.DROPPER)
@@ -37,7 +58,12 @@ public class AllBlocks {
 							prov.mcLoc("minecraft:block/smithing_table_top"))))
 			.tag(WRENCH_PICKUP)
 			.tag(BlockTags.MINEABLE_WITH_PICKAXE)
-			.item()
+			.item((b, p) -> new BlockItemWithHint(b, p) {
+				@Override
+				public MutableComponent getHint() {
+					return I18n.REMOTE_TERMINAL_UNIT_DESC.toComponent();
+				};
+			})
 			.recipe((ctx, prov) -> {
 				prov.singleItem(DataIngredient.items(AllBlocks.PROGRAMMABLE_LOGIC_CONTROLLER.asItem()), RecipeCategory.REDSTONE, ctx::getEntry, 1, 1);
 
@@ -67,7 +93,12 @@ public class AllBlocks {
 							prov.mcLoc("minecraft:block/beehive_end"))))
 			.tag(WRENCH_PICKUP)
 			.tag(BlockTags.MINEABLE_WITH_PICKAXE)
-			.item()
+			.item((b, p) -> new BlockItemWithHint(b, p) {
+				@Override
+				public MutableComponent getHint() {
+					return I18n.PROGRAMMABLE_LOGIC_CONTROLLER_DESC.toComponent();
+				};
+			})
 			.recipe((ctx, prov) -> {
 				prov.singleItem(DataIngredient.items(REMOTE_TERMINAL_UNIT.asItem()), RecipeCategory.REDSTONE, ctx::getEntry, 1, 1);
 			})

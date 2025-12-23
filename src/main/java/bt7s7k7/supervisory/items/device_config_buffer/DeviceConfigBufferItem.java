@@ -7,9 +7,11 @@ import java.util.Optional;
 import bt7s7k7.supervisory.I18n;
 import bt7s7k7.supervisory.composition.CompositeBlockEntity;
 import bt7s7k7.supervisory.items.AllItems;
+import bt7s7k7.supervisory.items.ItemWithHint;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -29,9 +31,18 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.LeftClickBlock.Action;
 
 @EventBusSubscriber
-public class DeviceConfigBufferItem extends Item {
+public class DeviceConfigBufferItem extends Item implements ItemWithHint {
 	public DeviceConfigBufferItem(Properties properties) {
 		super(properties);
+	}
+
+	@Override
+	public MutableComponent getHint() {
+		return I18n.DEVICE_CONFIG_BUFFER_DESC.toComponent(
+				Component.keybind("key.use"),
+				Component.keybind("key.use"),
+				Component.keybind("key.use"),
+				Component.keybind("key.attack"));
 	}
 
 	@Override
@@ -157,6 +168,8 @@ public class DeviceConfigBufferItem extends Item {
 					.append(Component.literal(": "))
 					.append(Component.translatable(content.source().toLanguageKey("block")).withStyle(ChatFormatting.GOLD)));
 		}
+
+		this.appendHint(stack, context, tooltipComponents, tooltipFlag);
 	}
 
 	@Override
