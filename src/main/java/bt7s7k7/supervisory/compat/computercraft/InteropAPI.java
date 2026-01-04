@@ -45,7 +45,7 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 				}
 
 				if (oldValue instanceof ManagedTable table
-						&& table.getOwnProperty("meta") instanceof NativeHandle handle
+						&& table.getOwnProperty("__handle__") instanceof NativeHandle handle
 						&& handle.value instanceof PeripheralConnection wrapper
 						&& wrapper.peripheral == capability) {
 					return;

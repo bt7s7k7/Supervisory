@@ -1,5 +1,6 @@
 package bt7s7k7.supervisory.compat.computercraft;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -7,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.Nullable;
 
 import bt7s7k7.supervisory.Supervisory;
+import bt7s7k7.treeburst.runtime.EvaluationUtil;
+import bt7s7k7.treeburst.runtime.ManagedFunction;
 import bt7s7k7.treeburst.runtime.ManagedTable;
 import bt7s7k7.treeburst.runtime.NativeFunction;
 import bt7s7k7.treeburst.runtime.Realm;
@@ -66,7 +69,21 @@ public class PeripheralConnection implements IComputerAccess {
 
 	public ManagedTable buildWrappingTable(Realm realm) {
 		var table = new ManagedTable(realm.TablePrototype);
-		table.declareProperty("meta", WRAPPER.getHandle(this, realm)); // @type: PeripheralConnection.prototype, @symbol: PeripheralConnection.meta
+
+		var prototype = WRAPPER.ensurePrototype(realm);
+		// Force initialize the lazy table
+		prototype.getOwnProperty("");
+		var handle = WRAPPER.getHandle(this, realm);
+		for (var kv : prototype.properties.entrySet()) {
+			if (kv.getValue() instanceof ManagedFunction function) {
+				table.declareProperty(kv.getKey(), new NativeFunction(realm.FunctionPrototype, Collections.emptyList(), (args, scope, result) -> {
+					EvaluationUtil.evaluateInvocation(handle, handle, function, Position.INTRINSIC, args, scope, result);
+				}));
+			}
+		}
+
+		table.declareProperty("__handle__", handle);
+
 		for (var kv : this.methods.entrySet()) {
 			var name = kv.getKey();
 			var method = kv.getValue();
@@ -95,11 +112,11 @@ public class PeripheralConnection implements IComputerAccess {
 		return table;
 	}
 
-	public static NativeHandleWrapper<PeripheralConnection> WRAPPER = new NativeHandleWrapper<>("PeripheralConnection", PeripheralConnection.class, ctx -> ctx
+	public static NativeHandleWrapper<PeripheralConnection> WRAPPER = new NativeHandleWrapper<>("Interop.PeripheralConnection", PeripheralConnection.class, ctx -> ctx
 			// @summary[[Represents a connected peripheral. Each connection is a unique object, with
-			.addGetter("valid", v -> Primitive.from(v.peripheral.getType())) // @type: Boolean, @summary: If the peripheral this connection represents is still connected to the system.
-			.addGetter("type", v -> Primitive.from(v.peripheral.getType()))); // @type: String, @summary: The type of the connected peripheral.
 			// dynamically generated methods for every method of the peripheral.]]
+			.addGetter("__valid__", v -> Primitive.from(v.isValid())) // @type: Boolean, @summary: If the peripheral this connection represents is still connected to the system.
+			.addGetter("__type__", v -> Primitive.from(v.peripheral.getType()))); // @type: String, @summary: The type of the connected peripheral.
 
 	@Override
 	public String getAttachmentName() {
