@@ -161,14 +161,8 @@ public class ScriptedSystem extends ScriptEngine {
 			this.host.log(formatValue(message, scope.realm));
 		}));
 
-		realm.declareGlobal("s", this.createStateAccessor(realm, key -> this.getNetworkDevice().getState(key), (key, value) -> { // @like: <template>stateAccessor
-			// @summary: Allows access to the device's local state. This state is persistent after reboots.
-			this.getNetworkDevice().setState(key, value);
-			this.host.entity.setChanged();
-		}));
-
-		sys.declareProperty("state", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(realm), new StateHandle(() -> { // @symbol: SYS.state, @type: Map
-			// @summary: Allows raw access to the device's local state.
+		realm.declareGlobal("s", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(realm), new StateHandle(() -> { // @symbol: s, @type: Map
+			// @summary: Allows access to the device's local state. This state is persistent after reboots. Only {@link String} indexes are supported.
 			this.host.entity.setChanged();
 			return this.getNetworkDevice().state;
 		})));
