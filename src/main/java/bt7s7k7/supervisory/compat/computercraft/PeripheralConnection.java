@@ -97,10 +97,9 @@ public class PeripheralConnection implements IComputerAccess {
 
 	public static NativeHandleWrapper<PeripheralConnection> WRAPPER = new NativeHandleWrapper<>("PeripheralConnection", PeripheralConnection.class, ctx -> ctx
 			// @summary[[Represents a connected peripheral. Each connection is a unique object, with
-			// dynamically generated methods for every method of the peripheral. You can use the
-			// `meta` property to access the instance properties.]]
 			.addGetter("valid", v -> Primitive.from(v.peripheral.getType())) // @type: Boolean, @summary: If the peripheral this connection represents is still connected to the system.
 			.addGetter("type", v -> Primitive.from(v.peripheral.getType()))); // @type: String, @summary: The type of the connected peripheral.
+			// dynamically generated methods for every method of the peripheral.]]
 
 	@Override
 	public String getAttachmentName() {

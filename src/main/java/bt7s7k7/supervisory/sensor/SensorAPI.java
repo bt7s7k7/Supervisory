@@ -39,7 +39,7 @@ public class SensorAPI extends LazyTable implements ScriptedSystemIntegration { 
 		this.declareProperty("connect", NativeFunction.simple(this.realm, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
 			// @summary[[Connects to a sensor, that will scan for a block. The
 			// `target` can be either a side of this system or a name of a socket on the network.
-			// This function returns a {@link SensorReactiveDependency} that can watched for
+			// This function returns a {@link Sensor.SensorReactiveDependency} that can watched for
 			// changes using the {@link reactive} function.]]
 			var target = args.get(0).getStringValue();
 

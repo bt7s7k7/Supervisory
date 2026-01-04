@@ -9,10 +9,9 @@ import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 
-public class StorageReactiveDependency extends SocketBasedDependency<IItemHandler> { // @symbol: StorageReactiveDependency
-	// @entry-symbol
+public class StorageReactiveDependency extends SocketBasedDependency<IItemHandler> { // @symbol: Storage.StorageReactiveDependency
 	// @prototype: ReactiveDependency.prototype
-	// @summary: Triggers each time the storage contents change. The value is a {@link StorageReport}, storing the contained items.
+	// @summary: Triggers each time the storage contents change. The value is a {@link Storage.StorageReport}, storing the contained items.
 	public BlockCapabilityCache<IItemHandler, Direction> capabilityCache;
 
 	public StorageReactiveDependency(ReactivityManager owner, String name) {

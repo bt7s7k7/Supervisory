@@ -121,7 +121,7 @@ public class ScriptedSystem extends ScriptEngine {
 		this.reactivityTick = TickReactiveDependency.get("tick", this.reactivityManager);
 
 		var sys = realm.declareGlobal("SYS", new ManagedTable(realm.TablePrototype)); // @summary: Contains functions and data regarding the current system.
-		sys.declareProperty("tick", this.reactivityTick.getHandle()); // @symbol: SYS.tick, @type: TickReactiveDependency, @summary: Triggers each game tick.
+		sys.declareProperty("tick", this.reactivityTick.getHandle()); // @symbol: SYS.tick, @type: SYS.TickReactiveDependency, @summary: Triggers each game tick.
 
 		for (var side : Side.values()) {
 			realm.declareGlobal(side.name.toUpperCase(), Primitive.from(side.name));

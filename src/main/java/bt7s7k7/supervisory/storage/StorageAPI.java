@@ -58,7 +58,7 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 		this.declareProperty("connect", NativeFunction.simple(this.realm, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
 			// @summary[[Connects to an inventory, that will be scanned for contained items. The
 			// `target` can be either a side of this system or a name of a socket on the network.
-			// This function returns a {@link StorageReactiveDependency} that can watched for
+			// This function returns a {@link Storage.StorageReactiveDependency} that can watched for
 			// changes using the {@link reactive} function.]]
 			var target = args.get(0).getStringValue();
 
@@ -69,9 +69,9 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 
 		this.declareProperty("transfer", NativeFunction.simple(this.realm, List.of("items", "targets"), List.of(ManagedArray.class, ManagedArray.class), (args, scope, result) -> {
 			// @summary[[Transfers all item stacks in the `items` argument into the `targets`
-			// inventories. The `items` array should contain {@link StackReport} instances for all
+			// inventories. The `items` array should contain {@link Storage.StackReport} instances for all
 			// items that should be transferred. The `targets` array should contain {@link
-			// StorageReport} instances for all inventories that should be transferred into. If
+			// Storage.StorageReport} instances for all inventories that should be transferred into. If
 			// there is not enough space to transfer items, only a partial transfer is performed.
 			// The amount of transferred items is returned.]]
 			var items = new ArrayList<StackReport>();
@@ -138,7 +138,7 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 			result.value = Primitive.from(transferCount);
 		}));
 
-		this.declareProperty("update", this.connectionManager.updateTick.getHandle()); // @type: TickReactiveDependency, @summary: Triggers every 5 ticks, just after all connected inventories have been scanned.
+		this.declareProperty("update", this.connectionManager.updateTick.getHandle()); // @type: SYS.TickReactiveDependency, @summary: Triggers every 5 ticks, just after all connected inventories have been scanned.
 	}
 
 	public void tick() {

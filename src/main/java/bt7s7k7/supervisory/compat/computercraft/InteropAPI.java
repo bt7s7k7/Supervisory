@@ -17,7 +17,9 @@ import bt7s7k7.treeburst.support.Primitive;
 import dan200.computercraft.api.peripheral.IPeripheral;
 
 public class InteropAPI extends LazyTable implements ScriptedSystemIntegration { // @symbol: Interop
-	// @summary: Allows for interaction with ComputerCraft peripherals.
+	// @summary[[Allows for interaction with ComputerCraft peripherals. This API is only available
+	// if [CC:Tweaked](https://modrinth.com/mod/cc-tweaked) or any other mod that identifies itself
+	// as `computercraft` is installed.]]
 	protected final PeripheralConnectionController connectionController;
 	protected final SocketConnectionManager<IPeripheral, PeripheralReactiveDependency> connectionManager;
 
@@ -91,7 +93,7 @@ public class InteropAPI extends LazyTable implements ScriptedSystemIntegration {
 		this.declareProperty("connect", NativeFunction.simple(this.realm, List.of("target"), List.of(Primitive.String.class), (args, scope, result) -> {
 			// @summary[[Connects to a peripheral. The `target` can be a side of this system or a
 			// name of a socket on the network. This function returns a {@link
-			// PeripheralReactiveDependency} that will be updated when a peripheral is connected or
+			// Interop.PeripheralReactiveDependency} that will be updated when a peripheral is connected or
 			// disconnected.]]
 			var target = args.get(0).getStringValue();
 

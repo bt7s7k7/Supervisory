@@ -41,10 +41,17 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 			var dependency = RedstoneReactiveDependency.get(this.system.reactivityManager, direction, redstoneValue);
 			this.handlers[direction.index] = dependency;
 
-			this.declareProperty(direction.name, dependency.getHandle()); // @symbol: <template>redstone_get, @type: RedstoneReactiveDependency, @summary: Triggers every time the input redstone signal on the side changes.
+			this.declareProperty(direction.name, dependency.getHandle()); // @symbol: <template>redstone_get, @type: Redstone.RedstoneReactiveDependency, @summary: Triggers every time the input redstone signal on the side changes.
 
-			this.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(this.realm, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> { // @symbol: <template>redstone_set
-				// @summary: Allows setting the selected side's output redstone signal. The strength must be in range `0..15` inclusive, if not it will be clamped.
+			this.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(this.realm, List.of("active"), List.of(Primitive.Boolean.class), (args, scope, result) -> { // @symbol: <template>redstone_set
+				// @summary: Allows setting the selected side's output redstone signal.
+				var strength = args.get(0).getNumberValue();
+				this.redstone.setOutput(absoluteDirection, (int) strength);
+				result.value = null;
+			}));
+
+			this.declareProperty("set" + StringUtils.capitalize(direction.name) + "Analog", NativeFunction.simple(this.realm, List.of("strength"), List.of(Primitive.Number.class), (args, scope, result) -> { // @symbol: <template>redstone_set_analog
+				// @summary: Allows setting the selected side's output redstone signal strength. The strength must be in range `0..15` inclusive, otherwise it will be clamped.
 				var strength = args.get(0).getNumberValue();
 				this.redstone.setOutput(absoluteDirection, (int) strength);
 				result.value = null;
@@ -62,6 +69,12 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 			// @symbol: Redstone.setBack, @like: <template>redstone_set
 			// @symbol: Redstone.setRight, @like: <template>redstone_set
 			// @symbol: Redstone.setLeft, @like: <template>redstone_set
+			// @symbol: Redstone.setBottomAnalog, @like: <template>redstone_set_analog
+			// @symbol: Redstone.setTopAnalog, @like: <template>redstone_set_analog
+			// @symbol: Redstone.setFrontAnalog, @like: <template>redstone_set_analog
+			// @symbol: Redstone.setBackAnalog, @like: <template>redstone_set_analog
+			// @symbol: Redstone.setRightAnalog, @like: <template>redstone_set_analog
+			// @symbol: Redstone.setLeftAnalog, @like: <template>redstone_set_analog
 		}
 	}
 

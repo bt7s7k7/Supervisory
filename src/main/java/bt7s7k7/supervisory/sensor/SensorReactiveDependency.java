@@ -6,10 +6,9 @@ import bt7s7k7.supervisory.sockets.SocketBasedDependency;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-public class SensorReactiveDependency extends SocketBasedDependency<Sensor> { // @symbol: SensorReactiveDependency
-	// @entry-symbol
+public class SensorReactiveDependency extends SocketBasedDependency<Sensor> { // @symbol: Sensor.SensorReactiveDependency
 	// @prototype: ReactiveDependency.prototype
-	// @summary: Triggers each time the scanned block changes. The value is a {@link SensorReading} which contains the block state.
+	// @summary: Triggers each time the scanned block changes. The value is a {@link Sensor.SensorReading} which contains the block state.
 	public Sensor cachedSensor = null;
 
 	public SensorReactiveDependency(ReactivityManager owner, String name) {

@@ -68,7 +68,7 @@ public class SensorReading {
 		return properties;
 	}
 
-	public static final NativeHandleWrapper<SensorReading> WRAPPER = new NativeHandleWrapper<>("SensorReading", SensorReading.class, ctx -> ctx
+	public static final NativeHandleWrapper<SensorReading> WRAPPER = new NativeHandleWrapper<>("Sensor.SensorReading", SensorReading.class, ctx -> ctx
 			// @summary: The block state and data read from a sensor using the {@link Sensor} API.
 			.addGetter("id", SensorReading::id) // @type: String, @summary: The ID of the block.
 			.addGetter("properties", v -> v.getProperties(ctx.realm)) // @type: Map, @summary: The block state properties of the block.

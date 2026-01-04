@@ -19,10 +19,10 @@ import dan200.computercraft.shared.platform.PlatformHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-public class PeripheralReactiveDependency extends SocketBasedDependency<IPeripheral> { // @symbol: PeripheralReactiveDependency
-	// @entry-symbol
+public class PeripheralReactiveDependency extends SocketBasedDependency<IPeripheral> { // @symbol: Interop.PeripheralReactiveDependency
 	// @prototype: ReactiveDependency.prototype
-	// @summary: Allows for connecting to a ComputerCraft peripheral. The value is a {@link PeripheralConnection} that represents a connected peripheral.
+	// @native-alias: PeripheralReactiveDependency
+	// @summary: Allows for connecting to a ComputerCraft peripheral. The value is a {@link Interop.PeripheralConnection} that represents a connected peripheral.
 	protected final ManagedWorkDispatcher workDispatcher;
 
 	protected ComponentAccess<IPeripheral> peripheralAccess;

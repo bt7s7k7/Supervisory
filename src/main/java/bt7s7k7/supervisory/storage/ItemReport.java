@@ -76,8 +76,8 @@ public class ItemReport {
 		return super.equals(obj);
 	}
 
-	public static NativeHandleWrapper<ItemReport> WRAPPER = new NativeHandleWrapper<>("ItemReport", ItemReport.class, ctx -> ctx
-			// @summary: Represents an item inside a {@link StackReport}.
+	public static NativeHandleWrapper<ItemReport> WRAPPER = new NativeHandleWrapper<>("Storage.ItemReport", ItemReport.class, ctx -> ctx
+			// @summary: Represents an item inside a {@link Storage.StackReport}.
 			.addGetter("id", v -> Primitive.from(v.id())) // @type: String, @summary: The ID of the item.
 			.addGetter("code", v -> Primitive.from(v.code())) // @type: String, @summary: A unique code representing the NBT data of the item.
 			.addMethod("getComponents", Collections.emptyList(), Collections.emptyList(), (self, args, scope, result) -> {

@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import bt7s7k7.supervisory.Support;
-import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.runtime.ManagedArray;
+import bt7s7k7.treeburst.runtime.Realm;
 import bt7s7k7.treeburst.standard.NativeHandleWrapper;
 import bt7s7k7.treeburst.support.Primitive;
 import net.minecraft.core.Direction;
@@ -94,14 +94,14 @@ public class StorageReport {
 		return this.cachedItems;
 	}
 
-	public static final NativeHandleWrapper<StorageReport> WRAPPER = new NativeHandleWrapper<>("StorageReport", StorageReport.class, ctx -> ctx
-			// @summary: Represents a scan of an inventory, containing stacks of items, each represented by {@link StackReport}.
+	public static final NativeHandleWrapper<StorageReport> WRAPPER = new NativeHandleWrapper<>("Storage.StorageReport", StorageReport.class, ctx -> ctx
+			// @summary: Represents a scan of an inventory, containing stacks of items, each represented by {@link Storage.StackReport}.
 			.addMethod("countItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
 				// @summary: Returns the count of all numbers with the specified id.
 				result.value = Primitive.from(self.countItems(args.get(0).getStringValue()));
 			})
 			.addMethod("findItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
-				// @summary: Returns an {@link Array} of all {@link StackReport} instances with the specified id.
+				// @summary: Returns an {@link Array} of all {@link Storage.StackReport} instances with the specified id.
 				var array = ManagedArray.empty(scope.realm.ArrayPrototype);
 				self.findItems(args.get(0).getStringValue(), array, scope.realm);
 				result.value = array;
