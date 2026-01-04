@@ -3,7 +3,6 @@ package bt7s7k7.supervisory.blocks;
 import java.util.List;
 
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
-import com.tterrag.registrate.util.DataIngredient;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
 import bt7s7k7.supervisory.I18n;
@@ -65,18 +64,16 @@ public class AllBlocks {
 				};
 			})
 			.recipe((ctx, prov) -> {
-				prov.singleItem(DataIngredient.items(AllBlocks.PROGRAMMABLE_LOGIC_CONTROLLER.asItem()), RecipeCategory.REDSTONE, ctx::getEntry, 1, 1);
-
 				ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ctx.getEntry())
 						.define('I', Items.IRON_INGOT)
 						.define('R', Items.REDSTONE)
-						.define('C', Items.COPPER_BLOCK)
+						.define('C', Items.COPPER_INGOT)
 						.define('S', Items.STONE)
-						.pattern("III")
+						.pattern("ICI")
 						.pattern("RCR")
 						.pattern("SSS")
 						.unlockedBy("has_copper", RegistrateRecipeProvider.has(Items.COPPER_INGOT))
-						.save(prov, prov.safeId(ctx.getEntry()).withSuffix("_full"));
+						.save(prov);
 			})
 			.build()
 			.register();
@@ -100,7 +97,16 @@ public class AllBlocks {
 				};
 			})
 			.recipe((ctx, prov) -> {
-				prov.singleItem(DataIngredient.items(REMOTE_TERMINAL_UNIT.asItem()), RecipeCategory.REDSTONE, ctx::getEntry, 1, 1);
+				ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, ctx.getEntry())
+						.define('I', Items.IRON_INGOT)
+						.define('R', Items.REDSTONE)
+						.define('C', Items.COPPER_BLOCK)
+						.define('S', Items.STONE)
+						.pattern("III")
+						.pattern("RCR")
+						.pattern("SSS")
+						.unlockedBy("has_copper", RegistrateRecipeProvider.has(Items.COPPER_INGOT))
+						.save(prov);
 			})
 			.build()
 			.register();
