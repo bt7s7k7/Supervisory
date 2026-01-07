@@ -3,8 +3,10 @@ package bt7s7k7.supervisory.blocks.remoteTerminalUnit;
 import java.util.function.Consumer;
 
 import bt7s7k7.supervisory.I18n;
+import bt7s7k7.supervisory.blocks.remoteTerminalUnit.IOManager.SideConfiguration;
 import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
 import bt7s7k7.supervisory.support.GridLayout;
+import bt7s7k7.supervisory.support.Side;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -19,11 +21,19 @@ public class RemoteTerminalUnitScreen extends Screen {
 	public final IOManager host;
 	public final IOManager.Configuration configuration;
 
+	public Side selectedSide = Side.FRONT;
+	public SideConfiguration sideConfiguration;
+
 	protected RemoteTerminalUnitScreen(IOManager blockEntity, IOManager.Configuration configuration) {
 		super(I18n.REMOTE_TERMINAL_UNIT_TITLE.toComponent());
 
 		this.host = blockEntity;
 		this.configuration = configuration;
+
+		this.sideConfiguration = configuration.sides[this.selectedSide.index];
+		if (this.sideConfiguration == null) {
+			configuration.sides[this.selectedSide.index] = this.sideConfiguration = new SideConfiguration();
+		}
 	}
 
 	@Override
@@ -58,18 +68,72 @@ public class RemoteTerminalUnitScreen extends Screen {
 				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
 					this.addStringField(layout, I18n.DOMAIN.toComponent(), this.configuration.domain, v -> this.configuration.domain = v);
 				})
-				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					this.addStringField(layout, I18n.INPUT.toComponent(), this.configuration.input, v -> this.configuration.input = v);
+				.addRow(Button.DEFAULT_HEIGHT * 3).render(layout -> {
+					layout.apply(this.addRenderableWidget(new StringWidget(I18n.SIDE.toComponent(), this.font)).alignLeft());
+
+					layout.cell().childLayout()
+							.setGap(5)
+							.addGrowColumn()
+							.addColumns(50, 3)
+							.addGrowColumn()
+							.addGrowRow()
+							.addGrowRow()
+							.addGrowRow()
+							.render(layout_1 -> {
+								for (var side : new Side[] {
+										null, null, Side.TOP, Side.BACK, null,
+										null, Side.RIGHT, Side.FRONT, Side.LEFT, null,
+										null, null, Side.BOTTOM, null, null
+								}) {
+									if (side == null) {
+										layout_1.next();
+										continue;
+									}
+
+									var button = this.addRenderableWidget(Button.builder(I18n.SIDES.get(side).toComponent(), e -> {
+										this.selectedSide = side;
+										this.sideConfiguration = this.configuration.sides[this.selectedSide.index];
+										if (this.sideConfiguration == null) {
+											this.configuration.sides[this.selectedSide.index] = this.sideConfiguration = new SideConfiguration();
+										}
+
+										this.rebuildWidgets();
+									}).build());
+									layout_1.apply(button);
+
+									button.active = this.selectedSide != side;
+								}
+							})
+							.build();
 				})
-				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					this.addStringField(layout, I18n.OUTPUT.toComponent(), this.configuration.output, v -> this.configuration.output = v);
+				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
+					this.addStringField(layout, I18n.NAME.toComponent(), this.sideConfiguration.name, v -> this.sideConfiguration.name = v);
 				})
-				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					this.addStringField(layout, I18n.SOCKETS.toComponent(), this.configuration.socket, v -> this.configuration.socket = v);
+				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
+					layout.apply(this.addRenderableWidget(new StringWidget(I18n.TYPE.toComponent(), this.font)).alignLeft());
+
+					var builder = layout.cell().childLayout()
+							.setGap(5)
+							.addGrowRow();
+
+					for (var type : IOManager.SideType.values()) {
+						builder.addGrowColumn().renderColumn(layout_1 -> {
+							var button = this.addRenderableWidget(Button.builder(I18n.SIDE_TYPES.get(type).toComponent(), e -> {
+								this.sideConfiguration.type = type;
+								this.rebuildWidgets();
+							}).build());
+
+							layout_1.apply(button);
+
+							button.active = this.sideConfiguration.type != type;
+						});
+					}
+
+					builder.build();
 				})
 				.addRow(5)
-				.addRow(Button.DEFAULT_HEIGHT).render(layout -> {
-					layout.nextRow().colspan(2).cell().childLayout()
+				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
+					layout.colspan(2).cell().childLayout()
 							.addGrowColumn()
 							.addColumn(50)
 							.addColumn(50)

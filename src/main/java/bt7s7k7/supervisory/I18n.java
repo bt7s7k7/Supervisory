@@ -1,5 +1,13 @@
 package bt7s7k7.supervisory;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+
+import bt7s7k7.supervisory.blocks.remoteTerminalUnit.IOManager;
+import bt7s7k7.supervisory.support.Side;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -34,9 +42,9 @@ public class I18n {
 			blocks via network sockets."""));
 
 	public static final Key DOMAIN = register(new Key("gui", "domain", "Domain"));
-	public static final Key INPUT = register(new Key("gui", "input", "Input"));
-	public static final Key OUTPUT = register(new Key("gui", "output", "Output"));
-	public static final Key SOCKETS = register(new Key("gui", "sockets", "Sockets"));
+	public static final Key SIDE = register(new Key("gui", "side", "Side"));
+	public static final Key NAME = register(new Key("gui", "name", "Name"));
+	public static final Key TYPE = register(new Key("gui", "type", "Type"));
 
 	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_TITLE = register(new Key("gui", "programmable_logic_controller.title", "PLC Configuration"));
 	public static final Key PROGRAMMABLE_LOGIC_CONTROLLER_DESC = register(new Key("gui", "programmable_logic_controller.desc", """
@@ -74,6 +82,12 @@ public class I18n {
 	public static final Key INCOMPATIBLE_DEVICE = register(new Key("gui", "device_config_buffer.incompatible_device", "This device is not compatible with the stored configuration"));
 
 	public static final Key TOOLTIP_HOLD_SHIFT = register(new Key("gui", "hold_shift", "Hold [Shift] for more info"));
+
+	public static final Map<Side, Key> SIDES = Arrays.stream(Side.values()).collect(Collectors.toMap(v -> v, v -> register(new Key("gui", "side." + v.name, StringUtils.capitalize(v.name)))));
+	public static final Map<IOManager.SideType, Key> SIDE_TYPES = Map.of(
+			IOManager.SideType.SOCKET, register(new Key("gui", "side_type.socket", "Socket")),
+			IOManager.SideType.INPUT, register(new Key("gui", "side_type.input", "Signal In")),
+			IOManager.SideType.OUTPUT, register(new Key("gui", "side_type.output", "Signal Out")));
 
 	public static void register() {
 		// Load this class
