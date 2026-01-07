@@ -129,7 +129,7 @@ public class Supervisory {
 			}
 		})));
 
-		var monitorDomain = Commands.literal("domain").then(Commands.literal("name").then(Commands.argument("enable", BoolArgumentType.bool()).executes(ctx -> {
+		var monitorDomain = Commands.literal("domain").then(Commands.argument("name", StringArgumentType.string()).then(Commands.argument("enable", BoolArgumentType.bool()).executes(ctx -> {
 			var source = ctx.getSource();
 			var player = source.getPlayer();
 			var enable = BoolArgumentType.getBool(ctx, "enable");

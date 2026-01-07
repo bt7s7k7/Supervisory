@@ -2,7 +2,7 @@
 // @ts-check
 
 const { project, join, constants, run, github, log } = require("ucpem")
-const { mkdir } = require("node:fs/promises")
+const { mkdir, readFile, writeFile } = require("node:fs/promises")
 const { dirname } = require("node:path")
 
 project.prefix("src/main/java").res("bt7s7k7.supervisory",
@@ -12,6 +12,30 @@ project.prefix("src/main/java").res("bt7s7k7.supervisory",
 project.use(
 	github("bt7s7k7/TreeBurst").script("leaf-gen")
 )
+
+project.script("update-readme", async () => {
+	const content = await readFile("docs/index.md", { encoding: "utf-8" })
+	const types = JSON.parse(await readFile("docs-build/symbols.json", { encoding: "utf-8" }))
+	const baseURL = new URL("https://bt7s7k7.github.io/Supervisory/")
+
+	const stdURL = new URL("https://bt7s7k7.github.io/TreeBurst/")
+	const stdTypes = await fetch(new URL("symbols.json", stdURL)).then(v => v.json())
+
+	await writeFile("README.md", content.replace(/\{@link ([\w.]+)\}/g, (link, name) => {
+		let url
+
+		if (name in types) {
+			url = new URL(types[name], baseURL)
+		} else if (name in stdTypes) {
+			url = new URL(stdTypes[name], stdURL)
+		} else {
+			log(`Failed to resolve symbol "${name}"`)
+			return link
+		}
+
+		return `[\`${name}\`](${url.href})`
+	}))
+}, { desc: "Updates the README based on documentation index" })
 
 async function exportGIMP(/** @type {{ input: string, output: string, configuration?: Record<string, boolean> }[]} */ images) {
 	/** @type {string[]} */

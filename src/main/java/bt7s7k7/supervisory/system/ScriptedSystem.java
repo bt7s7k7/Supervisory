@@ -161,7 +161,9 @@ public class ScriptedSystem extends ScriptEngine {
 			this.host.log(formatValue(message, scope.realm));
 		}));
 
-		realm.declareGlobal("s", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(realm), new StateHandle(() -> { // @symbol: s, @type: Map
+		realm.declareGlobal("s", new NativeHandle(STATE_HANDLE_WRAPPER.buildPrototype(realm), new StateHandle(() -> { // @symbol: s
+			// @entry-symbol
+			// @type: Map
 			// @summary: Allows access to the device's local state. This state is persistent after reboots. Only {@link String} indexes are supported.
 			this.host.entity.setChanged();
 			return this.getNetworkDevice().state;
@@ -193,7 +195,9 @@ public class ScriptedSystem extends ScriptEngine {
 			// When reading, the resource will be read from this system's cache or, if the resource
 			// is missing, {@link void} will be returned and the system will send a resource request
 			// over the network. A device that publishes this resource will hopefully respond and,
-			// when an update message is received, this system's cache will be updated.]]
+			// when an update message is received, this system's cache will be updated. The return
+			// value is wrapped in a {@link SYS.RemoteValueReactiveDependency} object to be used with the
+			// {@link ReactiveScope.use} method.]]
 			var imported = this.importValue(this.getNetworkDevice().readCachedValue(key));
 			if (imported == null) imported = Primitive.VOID;
 			var dependency = RemoteValueReactiveDependency.get(this.reactivityManager, key, imported);
