@@ -7,12 +7,15 @@ import bt7s7k7.supervisory.blocks.remoteTerminalUnit.IOManager.SideConfiguration
 import bt7s7k7.supervisory.configuration.ConfigurationScreenManager;
 import bt7s7k7.supervisory.support.GridLayout;
 import bt7s7k7.supervisory.support.Side;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.util.FormattedCharSequence;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
@@ -46,13 +49,14 @@ public class RemoteTerminalUnitScreen extends Screen {
 		return false;
 	}
 
-	private void addStringField(GridLayout layout, Component label, String value, Consumer<String> responder) {
+	private EditBox addStringField(GridLayout layout, Component label, String value, Consumer<String> responder) {
 		layout.apply(this.addRenderableWidget(new StringWidget(label, this.font)).alignLeft());
 		var inputField = this.addRenderableWidget(new EditBox(this.font, 0, 0, label));
 		layout.apply(inputField);
 		inputField.setValue(value);
 		inputField.setResponder(responder);
 		inputField.setMaxLength(2048);
+		return inputField;
 	}
 
 	@Override
@@ -107,7 +111,14 @@ public class RemoteTerminalUnitScreen extends Screen {
 							.build();
 				})
 				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
-					this.addStringField(layout, I18n.NAME.toComponent(), this.sideConfiguration.name, v -> this.sideConfiguration.name = v);
+					var field = this.addStringField(layout, I18n.NAME.toComponent(), this.sideConfiguration.name, v -> this.sideConfiguration.name = v);
+
+					field.setFormatter((value, __) -> FormattedCharSequence.forward(value, Style.EMPTY.withColor(switch (this.sideConfiguration.type) {
+						case IOManager.SideType.INPUT -> ChatFormatting.AQUA;
+						case IOManager.SideType.OUTPUT -> ChatFormatting.GOLD;
+						case IOManager.SideType.SOCKET -> ChatFormatting.GREEN;
+						default -> ChatFormatting.WHITE;
+					})));
 				})
 				.addRow(Button.DEFAULT_HEIGHT).renderRow(layout -> {
 					layout.apply(this.addRenderableWidget(new StringWidget(I18n.TYPE.toComponent(), this.font)).alignLeft());
