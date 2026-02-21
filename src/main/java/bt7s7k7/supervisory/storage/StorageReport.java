@@ -1,5 +1,6 @@
 package bt7s7k7.supervisory.storage;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,9 +102,15 @@ public class StorageReport {
 				result.value = Primitive.from(self.countItems(args.get(0).getStringValue()));
 			})
 			.addMethod("findItems", List.of("id"), List.of(Primitive.String.class), (self, args, scope, result) -> {
-				// @summary: Returns an {@link Array} of all {@link Storage.StackReport} instances with the specified id.
+				// @summary: Returns an {@link Array} of all {@link Storage.StackReport} instances with the specified `id`.
 				var array = ManagedArray.empty(scope.realm.ArrayPrototype);
 				self.findItems(args.get(0).getStringValue(), array, scope.realm);
+				result.value = array;
+			})
+			.addMethod("getItems", Collections.emptyList(), Collections.emptyList(), (self, args, scope, result) -> {
+				// @summary: Returns an {@link Array} of all {@link Storage.StackReport} instances in the storage.
+				var array = ManagedArray.empty(scope.realm.ArrayPrototype);
+				self.findItems("", array, scope.realm);
 				result.value = array;
 			})
 			.addMapAccess(StorageReport::getItems, Primitive.Number.class, StackReport.class,
