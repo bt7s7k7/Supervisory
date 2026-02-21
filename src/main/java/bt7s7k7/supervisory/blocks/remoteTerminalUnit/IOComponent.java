@@ -52,8 +52,12 @@ public interface IOComponent {
 			});
 
 			this.connect(networkDeviceHost.onNetworkUpdate, event -> {
-				if (event.key().equals(this.name) && event.value() instanceof Primitive.Number strength) {
-					redstone.setOutput(this.direction, (int) strength.value);
+				if (event.key().equals(this.name)) {
+					if (event.value() instanceof Primitive.Number strength) {
+						redstone.setOutput(this.direction, (int) strength.value);
+					} else if (event.value() instanceof Primitive.Boolean active) {
+						redstone.setOutput(this.direction, active.value ? 15 : 0);
+					}
 				}
 			});
 		}

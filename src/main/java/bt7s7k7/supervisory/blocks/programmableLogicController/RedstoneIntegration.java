@@ -45,8 +45,8 @@ public class RedstoneIntegration extends LazyTable implements ScriptedSystemInte
 
 			this.declareProperty("set" + StringUtils.capitalize(direction.name), NativeFunction.simple(this.realm, List.of("active"), List.of(Primitive.Boolean.class), (args, scope, result) -> { // @symbol: <template>redstone_set
 				// @summary: Allows setting the selected side's output redstone signal.
-				var strength = args.get(0).getNumberValue();
-				this.redstone.setOutput(absoluteDirection, (int) strength);
+				var output = args.get(0).getBooleanValue();
+				this.redstone.setOutput(absoluteDirection, output ? 15 : 0);
 				result.value = null;
 			}));
 
