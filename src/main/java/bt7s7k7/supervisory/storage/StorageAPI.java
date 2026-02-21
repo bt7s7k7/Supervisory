@@ -114,11 +114,12 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 				// This will be null if the source container was destroyed
 				if (outputHandler == null) continue;
 
-				var originalStack = outputHandler.getStackInSlot(item.slot);
-				var stack = originalStack.copy();
+				var extractedStack = outputHandler.extractItem(item.slot, item.count(), true);
 				// This may be a good place to check if the item in the slot is still the same
 				// as in the report, but I don't think this will ever cause a problem.
-				if (stack.isEmpty()) continue;
+				if (extractedStack.isEmpty()) continue;
+
+				var extracted = 0;
 
 				for (var target : targets) {
 					var inputHandler = target.handler;
@@ -126,13 +127,15 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 					if (inputHandler == null) continue;
 
 					// insertItemStacked modifies the stack to remove inserted items from it
-					var prevCount = stack.getCount();
-					stack = ItemHandlerHelper.insertItemStacked(target.handler, stack, false);
-					transferCount += prevCount - stack.getCount();
-					if (stack.isEmpty()) break;
+					var prevCount = extractedStack.getCount();
+					extractedStack = ItemHandlerHelper.insertItemStacked(target.handler, extractedStack, false);
+					var delta = prevCount - extractedStack.getCount();
+					transferCount += delta;
+					extracted += delta;
+					if (extractedStack.isEmpty()) break;
 				}
 
-				originalStack.setCount(stack.getCount());
+				outputHandler.extractItem(item.slot, extracted, false);
 			}
 
 			result.value = Primitive.from(transferCount);
