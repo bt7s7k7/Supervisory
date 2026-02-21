@@ -1,3 +1,11 @@
+import java.text.SimpleDateFormat
+
+def getTimestamp() {
+    def date = new Date()
+    // format: YearMonthDay-HourMinute
+    return new SimpleDateFormat("yyyyMMdd-HHmm").format(date)
+}
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -166,7 +174,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,
-            mod_version            : mod_version,
+            mod_version            : "${mod_version}-${getTimestamp()}" ,
             mod_authors            : mod_authors,
             mod_description        : mod_description
     ]
