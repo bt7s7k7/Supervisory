@@ -54,9 +54,9 @@ async function exportGIMP(/** @type {{ input: string, output: string, configurat
                 (image (car (gimp-file-load RUN-NONINTERACTIVE "${input}" "${input}")))
             )
                 ${Object.entries(image.configuration ?? {}).map(([name, enabled]) => (
-			`(gimp-drawable-set-visible (car (gimp-image-get-layer-by-name image "${name}")) ${enabled ? "1" : "0"})`
+			`(gimp-item-set-visible (car (gimp-image-get-layer-by-name image "${name}")) ${enabled ? "1" : "0"})`
 		)).join(" ")}
-                (gimp-file-save RUN-NONINTERACTIVE image (car (gimp-image-merge-visible-layers image 1)) "${output}" "${output}")
+                (gimp-file-save RUN-NONINTERACTIVE image "${output}" (car (gimp-image-merge-visible-layers image 1)))
                 (gimp-image-delete image)
             )
         `.replace(/ {4}|\n/g, "")
@@ -64,7 +64,7 @@ async function exportGIMP(/** @type {{ input: string, output: string, configurat
 		commands.push("-b " + JSON.stringify(script))
 	}
 
-	await run(`gimp -i ${commands.join(" ")} -b '(gimp-quit 0)'`)
+	await run(`gimp --batch-interpreter=plug-in-script-fu-eval -i ${commands.join(" ")} -b '(gimp-quit 0)'`)
 }
 
 project.script("export-art", async () => {
