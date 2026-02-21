@@ -50,9 +50,13 @@ reactive(\(ctx) {
 })
 ```
 
+## API Reference
+
+See the [complete API reference here](https://bt7s7k7.github.io/Supervisory/reference.html).
+
 ## Guide
 
-[Check out the guide on the project website to get proper code highlighting.](https://bt7s7k7.github.io/Supervisory/).
+[Check out the guide on the project website to get proper code highlighting.](https://bt7s7k7.github.io/Supervisory/)
 
 ### Basics
 

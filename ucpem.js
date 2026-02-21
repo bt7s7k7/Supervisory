@@ -21,20 +21,21 @@ project.script("update-readme", async () => {
 	const stdURL = new URL("https://bt7s7k7.github.io/TreeBurst/")
 	const stdTypes = await fetch(new URL("symbols.json", stdURL)).then(v => v.json())
 
-	await writeFile("README.md", content.replace(/\{@link ([\w.]+)\}/g, (link, name) => {
-		let url
+	await writeFile("README.md", content.replace(/<!-- GUIDE -->.*?<!-- END -->/, "")
+		.replace(/\{@link ([\w.]+)\}/g, (link, name) => {
+			let url
 
-		if (name in types) {
-			url = new URL(types[name], baseURL)
-		} else if (name in stdTypes) {
-			url = new URL(stdTypes[name], stdURL)
-		} else {
-			log(`Failed to resolve symbol "${name}"`)
-			return link
-		}
+			if (name in types) {
+				url = new URL(types[name], baseURL)
+			} else if (name in stdTypes) {
+				url = new URL(stdTypes[name], stdURL)
+			} else {
+				log(`Failed to resolve symbol "${name}"`)
+				return link
+			}
 
-		return `[\`${name}\`](${url.href})`
-	}))
+			return `[\`${name}\`](${url.href})`
+		}))
 }, { desc: "Updates the README based on documentation index" })
 
 async function exportGIMP(/** @type {{ input: string, output: string, configuration?: Record<string, boolean> }[]} */ images) {

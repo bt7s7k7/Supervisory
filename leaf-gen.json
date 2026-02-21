@@ -19,5 +19,6 @@
 			]
 		}
 	],
-	"emitSymbolDatabase": true
+	"emitSymbolDatabase": true,
+	"separateReferencePage": true
 }

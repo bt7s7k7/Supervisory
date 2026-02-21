@@ -50,9 +50,13 @@ reactive(\(ctx) {
 })
 ```
 
+## API Reference
+
+See the [complete API reference here](https://bt7s7k7.github.io/Supervisory/reference.html).
+
 ## Guide
 
-[Check out the guide on the project website to get proper code highlighting.](https://bt7s7k7.github.io/Supervisory/).
+[Check out the guide on the project website to get proper code highlighting.](https://bt7s7k7.github.io/Supervisory/)
 
 ### Basics
 
@@ -75,13 +79,13 @@ To actually run your code you should press the compile button. This will upload 
 
 The device is factory reset every time your upload new code, so all state will be lost, including your variables, the device's local state, the event log etc.
 
-The event log displays messages from the [`print`](https://bt7s7k7.github.io/Supervisory/index.html#print) function, compilation and runtime errors and lifecycle events.
+The event log displays messages from the [`print`](https://bt7s7k7.github.io/Supervisory/reference.html#print) function, compilation and runtime errors and lifecycle events.
 
 You can use the command input to execute code without changing the program. The result of your input will be also printed to the log. All commands are executed in the global scope of your program so you can use and change variables and functions your have defined. You can use the up/down arrow to return to a previously executed command and enter to execute the command.
 
 The use of the domain input will be specified in the next section. 
 
-When a chunk unloads, all devices inside will be shutdown and then subsequently rebooted when the chunk loads. Due to this, all runtime state will be lost. However, the device's local state, accessed via [`s`](https://bt7s7k7.github.io/Supervisory/index.html#s), the cache of network resources, accessed via [`r`](https://bt7s7k7.github.io/Supervisory/index.html#r) and the event log will be preserved. Of course the code will be preserved too.
+When a chunk unloads, all devices inside will be shutdown and then subsequently rebooted when the chunk loads. Due to this, all runtime state will be lost. However, the device's local state, accessed via [`s`](https://bt7s7k7.github.io/Supervisory/reference.html#s), the cache of network resources, accessed via [`r`](https://bt7s7k7.github.io/Supervisory/reference.html#r) and the event log will be preserved. Of course the code will be preserved too.
 
 The device allows for I/O via each of its six sides. Please note that the sides are specified from the perspective of the device, where the front is the part with the colored dots. If you configure the device with its front facing you, its right side will be on your left.
 
@@ -103,7 +107,7 @@ reactive(\(ctx) {
 })
 ```
 
-By using the [`r`](https://bt7s7k7.github.io/Supervisory/index.html#r) function, you publish a resource, in this case a number, onto the network. The resource can subsequently be subscribed to as follows:
+By using the [`r`](https://bt7s7k7.github.io/Supervisory/reference.html#r) function, you publish a resource, in this case a number, onto the network. The resource can subsequently be subscribed to as follows:
 
 ```js
 reactive(\(ctx) {
@@ -122,7 +126,7 @@ This system means that in the first iteration of the reactive scope in the recei
 
 Keep in mind that the entire callback re-runs every time a resource changes. Since the list of monitored resources is dynamic, any new resources you access during an execution will replace the old ones in the next update cycle.
 
-Of course the [`reactive`](https://bt7s7k7.github.io/Supervisory/index.html#reactive) API is optional, you can imperatively read values of resources via the [`ReactiveDependency.prototype.value`](https://bt7s7k7.github.io/Supervisory/ReactiveDependency.html#reactivedependency-prototype-value) field. In this case you'll have to handle missing values yourself.
+Of course the [`reactive`](https://bt7s7k7.github.io/Supervisory/reference.html#reactive) API is optional, you can imperatively read values of resources via the [`ReactiveDependency.prototype.value`](https://bt7s7k7.github.io/Supervisory/ReactiveDependency.html#reactivedependency-prototype-value) field. In this case you'll have to handle missing values yourself.
 
 ### Interacting with the world
 
@@ -174,7 +178,7 @@ It is also important to understand that the sides specified are from the perspec
 
 For redstone, if you select `Signal In`, the device will publish the incoming redstone signal on the network in a resource of the name you specify. Similarly, if you select `Signal Out`, the device will generate a redstone signal with strength equal to the value of the resource of the specified name.
 
-For sockets, the device won't do anything, it will only allow PLCs to connect to socket through it. For example if you place a chest on the devices and configure a socket, you can use the [`Storage.connect`](https://bt7s7k7.github.io/Supervisory/Storage.html#storage-connect) function in a PLC on the same domain with the name you specified and connect to the chest as if it was attached to the PLC.
+For sockets, the device won't do anything. It will only allow PLCs to connect to socket through it. For example if you place a chest on and RTU and configure a socket, you can use the [`Storage.connect`](https://bt7s7k7.github.io/Supervisory/Storage.html#storage-connect) function, in a PLC on the same domain with the name you specified, and connect to the chest as if it was attached directly to the PLC.
 
 The PLC will not generate an error if a socket is not found, it will simply wait until an RTU providing a socket of a specified name connects to the domain. This is to handle cases when you move your RTU to a new location or when the chunk the RTU is in unloads. 
 
