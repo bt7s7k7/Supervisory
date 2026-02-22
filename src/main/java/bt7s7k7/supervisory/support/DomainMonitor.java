@@ -54,7 +54,7 @@ public final class DomainMonitor {
 			player.sendSystemMessage(Component.literal("[domain \"" + Primitive.String.escapeString(domain) + "\"] ")
 					.withStyle(Style.EMPTY
 							.withColor(ChatFormatting.GRAY)
-							.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/supervisory monitor domain name \"" + Primitive.String.escapeString(domain) + "\" false"))
+							.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/supervisory monitor domain \"" + Primitive.String.escapeString(domain) + "\" false"))
 							.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to unsubscribe"))))
 					.append(Component.literal(message).withStyle(ChatFormatting.WHITE)));
 		}
