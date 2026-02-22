@@ -67,13 +67,18 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 			return;
 		}));
 
-		this.declareProperty("transfer", NativeFunction.simple(this.realm, List.of("items", "targets"), List.of(ManagedArray.class, ManagedArray.class), (args, scope, result) -> {
+		this.declareProperty("transfer", NativeFunction.simple(this.realm, List.of("sources", "targets", "maxCount?"), List.of(ManagedArray.class, ManagedArray.class, Primitive.Number.class), (args, scope, result) -> {
 			// @summary[[Transfers all item stacks in the `items` argument into the `targets`
-			// inventories. The `items` array should contain {@link Storage.StackReport} instances for all
-			// items that should be transferred. The `targets` array should contain {@link
-			// Storage.StorageReport} instances for all inventories that should be transferred into. If
-			// there is not enough space to transfer items, only a partial transfer is performed.
-			// The amount of transferred items is returned.]]
+			// inventories. The `sources` array should contain {@link Storage.StackReport} instances
+			// for all items that should be transferred or {@link Storage.StorageReport} instances
+			// to specify source inventories. The `targets` array should contain {@link Storage.StorageReport}
+			// instances for all inventories that should be transferred into.
+			// You can specify the maximum transfer count using the `maxCount` parameter. If there
+			// is not enough space to transfer items or `maxCount` is less than the available number
+			// of items, only a partial transfer is performed. The amount of transferred items is
+			// returned.]]
+			var maxCount = args.size() > 2 ? (int) args.get(2).getNumberValue() : Integer.MAX_VALUE;
+
 			var items = new ArrayList<StackReport>();
 			var targets = new ArrayList<StorageReport>();
 
@@ -84,12 +89,20 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 			}
 
 			for (var element : args.get(0).getArrayValue()) {
-				if (!(element instanceof NativeHandle handle) || !(handle.value instanceof StackReport report)) {
-					result.setException(new Diagnostic("All item elements must be instances of StackReport", Position.INTRINSIC));
-					return;
+				if (element instanceof NativeHandle handle) {
+					if (handle.value instanceof StackReport report) {
+						items.add(report);
+						continue;
+					}
+
+					if (handle.value instanceof StorageReport report) {
+						items.addAll(report.getItems().values());
+						continue;
+					}
 				}
 
-				items.add(report);
+				result.setException(new Diagnostic("All source elements must be instances of StackReport or StorageReport", Position.INTRINSIC));
+				return;
 			}
 
 			for (var element : args.get(1).getArrayValue()) {
@@ -114,7 +127,13 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 				// This will be null if the source container was destroyed
 				if (outputHandler == null) continue;
 
-				var extractedStack = outputHandler.extractItem(item.slot, item.count(), true);
+				var countToTransfer = item.count();
+
+				if (transferCount + countToTransfer > maxCount) {
+					countToTransfer = maxCount - transferCount;
+				}
+
+				var extractedStack = outputHandler.extractItem(item.slot, countToTransfer, true);
 				// This may be a good place to check if the item in the slot is still the same
 				// as in the report, but I don't think this will ever cause a problem.
 				if (extractedStack.isEmpty()) continue;
@@ -136,6 +155,10 @@ public class StorageAPI extends LazyTable { // @symbol: Storage
 				}
 
 				outputHandler.extractItem(item.slot, extracted, false);
+
+				if (transferCount >= maxCount) {
+					break;
+				}
 			}
 
 			result.value = Primitive.from(transferCount);
