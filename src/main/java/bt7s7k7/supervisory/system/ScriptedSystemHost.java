@@ -114,8 +114,9 @@ public class ScriptedSystemHost extends BlockEntityComponent implements Configur
 			var reactivityManager = this.system.reactivityManager;
 			if (reactivityManager == null) return;
 
-			var dependency = RemoteValueReactiveDependency.get(reactivityManager, key, value);
-			dependency.updateValue(value);
+			var managedValue = this.system.importValue(value);
+			var dependency = RemoteValueReactiveDependency.get(reactivityManager, key, managedValue);
+			dependency.updateValue(managedValue);
 		});
 
 		NeoForge.EVENT_BUS.post(new ScriptedSystemInitializationEvent(this, this::connect));
