@@ -16,6 +16,18 @@ import bt7s7k7.treeburst.support.ManagedValue;
 import bt7s7k7.treeburst.support.Primitive;
 
 public class NetworkDevice {
+	public static boolean isValueChanged(ManagedValue newValue, ManagedValue oldValue) {
+		return switch (newValue) {
+			case Primitive.Number a -> oldValue instanceof Primitive.Number b ? a.value != b.value : true;
+			case Primitive.Boolean a -> oldValue instanceof Primitive.Boolean b ? a.value != b.value : true;
+			case Primitive.String a -> oldValue instanceof Primitive.String b ? !a.value.equals(b.value) : true;
+
+			// Handle null, void and other reference equality, but don't bother with structural
+			// comparison of data structures, that use case will be so rare it's not worth the
+			// effort.
+			default -> newValue != oldValue;
+		};
+	}
 
 	public NetworkDevice(String domain) {
 		this.domain = domain;
@@ -104,6 +116,9 @@ public class NetworkDevice {
 	}
 
 	public void publishResource(String key, ManagedValue value) {
+		var existing = this.published.getOrDefault(key, Primitive.VOID);
+		if (!isValueChanged(value, existing)) return;
+
 		if (value == Primitive.VOID) {
 			this.published.remove(key);
 		} else {
@@ -147,6 +162,9 @@ public class NetworkDevice {
 		if (value instanceof UpdateSubmission update) {
 			for (var event : update.updates) {
 				if (this.subscriptions.contains(event.id)) {
+					var existing = this.cache.getOrDefault(event.id, Primitive.VOID);
+					if (!isValueChanged(event.value, existing)) continue;
+
 					if (event.value == Primitive.VOID) {
 						this.cache.remove(event.id);
 					} else {
