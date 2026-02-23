@@ -1,6 +1,6 @@
 package bt7s7k7.supervisory.blocks.programmableLogicController;
 
-import bt7s7k7.supervisory.storage.ItemReport;
+import bt7s7k7.supervisory.storage.ResourceReport;
 import bt7s7k7.supervisory.storage.StackReport;
 import bt7s7k7.supervisory.storage.StorageAPI;
 import bt7s7k7.supervisory.storage.StorageReport;
@@ -33,7 +33,7 @@ public final class StorageIntegration implements ScriptedSystemIntegration {
 			realm.declareGlobal("Storage", storage);
 			StorageReport.WRAPPER.ensurePrototype(realm);
 			StackReport.WRAPPER.ensurePrototype(realm);
-			ItemReport.WRAPPER.ensurePrototype(realm);
+			ResourceReport.WRAPPER.ensurePrototype(realm);
 
 			var integration = new StorageIntegration(storage);
 			system.integrations.putInstance(StorageIntegration.class, integration);
