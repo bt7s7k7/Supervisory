@@ -352,6 +352,11 @@ public class ScriptEditorScreen extends Screen {
 			return true;
 		}
 
+		if (keyCode == InputConstants.KEY_S && (modifiers & InputConstants.MOD_CONTROL) != 0) {
+			this.compile();
+			return true;
+		}
+
 		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 
